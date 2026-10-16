@@ -1,6 +1,6 @@
 # Escolhendo o Provedor de IA
 
-O BDR Kit usa IA em dois momentos: enriquecimento de leads (Fase 1b — Instagram e
+O Setup 17 usa IA em dois momentos: enriquecimento de leads (Fase 1b — Instagram e
 Meta Ads) e qualificação + geração de copy (Fase 2). **Os dois rodam pelo mesmo
 Claude Code** — não há uma segunda ferramenta de IA no meio. Fase 1b tem também
 um caminho sem IA nenhuma (o script `enrich-instagram.py`, puro Playwright).
@@ -72,7 +72,7 @@ Use esta seção se você quer rodar sem assinatura Claude Pro/Max, pagando por 
 1. Acesse [console.anthropic.com](https://console.anthropic.com)
 2. Faça login ou crie uma conta
 3. Vá em **API Keys** no menu lateral
-4. Clique em **Create Key**, dê um nome (ex: `bdr-kit`) e copie a chave gerada
+4. Clique em **Create Key**, dê um nome (ex: `zx-control-7`) e copie a chave gerada
 5. Guarde em lugar seguro — ela não aparece novamente depois que você fechar a tela
 
 **Passo 2: Configurar no ambiente**

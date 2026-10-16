@@ -46,7 +46,7 @@ function readJsonOrNull(file) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return null; }
 }
 
-console.log('\n' + bold('ZX LAB · SETUP DO BDR KIT — Etapa 8: teste final'));
+console.log('\n' + bold('ZX LAB · ZX CONTROL 7 · SETUP 17 — Etapa 8: teste final'));
 console.log(dim('Só leitura: nada é alterado nem enviado.'));
 
 // ── Etapa 6: instalação ────────────────────────────────────────────────────

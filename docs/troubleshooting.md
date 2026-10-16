@@ -1,4 +1,4 @@
-# Troubleshooting — BDR Kit
+# Troubleshooting — ZX Control 7 · Setup 17
 
 Problemas comuns, causas e soluções. Se o problema não estiver aqui, abra o Claude
 Code e descreva o que está acontecendo — ele pode diagnosticar a partir dos
@@ -191,7 +191,7 @@ Isso é um risco real e conhecido de qualquer automação de WhatsApp não ofici
 risco (intervalo entre mensagens, teto diário, respeito à janela de horário),
 mas não elimina — a pergunta certa é "quando", não "se".
 
-**Leia o guia completo antes de precisar dele:** `docs/BDR-Kit-Contingencia-WhatsApp.pdf`
+**Leia o guia completo antes de precisar dele:** `docs/Contingencia-WhatsApp-Setup17.pdf`
 (ou a versão `-Mobile.pdf`, pra ler no celular sem dar zoom).
 Ele cobre erro de sessão, restrição temporária e banimento — o que fazer em cada
 caso, como manter um número reserva aquecendo, e o prompt pronto pra pedir ao
@@ -275,4 +275,4 @@ você precisa fazer, é só configurar:
   Para mais de uma pessoa, hospede os dois num servidor (VPS) atrás de um proxy
   com autenticação. Não abra as portas 3001 e 8080 para a rede.
 - **Volume alto num único número:** o risco de restrição sobe com o volume.
-  Veja o item 7 e `docs/BDR-Kit-Contingencia-WhatsApp.pdf` antes de escalar.
+  Veja o item 7 e `docs/Contingencia-WhatsApp-Setup17.pdf` antes de escalar.

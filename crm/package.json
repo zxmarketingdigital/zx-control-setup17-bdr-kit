@@ -1,7 +1,7 @@
 {
   "name": "bdr-crm",
   "version": "1.1.0",
-  "description": "Local CRM for BDR Agent — read/write pipeline JSON files + Google Calendar integration",
+  "description": "Local CRM for ZX Control 7 · Setup 17 — read/write pipeline JSON files + Google Calendar integration",
   "type": "module",
   "engines": {
     "node": ">=18.0.0"

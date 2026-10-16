@@ -1,4 +1,4 @@
-# Operação Diária — BDR Kit
+# Operação Diária — ZX Control 7 · Setup 17
 
 Rotina completa para um dia útil de prospecção. Siga as fases na ordem — cada uma depende da anterior.
 

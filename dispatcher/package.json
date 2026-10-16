@@ -1,7 +1,7 @@
 {
   "name": "bdr-dispatcher",
   "version": "1.0.0",
-  "description": "WhatsApp dispatcher for BDR Kit — reads queue files and sends messages via Evolution API",
+  "description": "WhatsApp dispatcher for ZX Control 7 · Setup 17 — reads queue files and sends messages via Evolution API",
   "type": "module",
   "engines": {
     "node": ">=18.0.0"

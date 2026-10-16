@@ -1,6 +1,8 @@
-# BDR Kit — Self-Install v1.0.10
+# ZX Control 7 · Setup 17
 
 Sistema de prospecção outbound via WhatsApp com qualificação de leads por IA e cadência de 6 toques em 5 dias úteis. O aluno instala, configura com os dados do próprio negócio e opera de forma independente.
+
+**Demo oficial** (dados fictícios): https://zxcontrol7-demo.zxlab.com.br/
 
 ---
 
@@ -49,11 +51,11 @@ A instalação é o **Setup ZX LAB**: o Code do app Claude conduz você, convers
 
 Extraia o arquivo `.zip` numa pasta permanente — não a pasta Downloads, que pode ser limpa pelo sistema.
 
-Sugestões: `~/Documentos/bdr-kit` ou `~/BDR-Kit`
+Sugestões: `~/Documentos/zx-control-setup17` ou `~/ZX-Control-Setup17`
 
 Anote o caminho completo da pasta extraída. Você vai precisar dele no próximo passo.
 
-**Exemplo:** `/Users/Carlos/Documentos/bdr-kit/bdr-template-self`
+**Exemplo:** `/Users/Carlos/Documentos/zx-control-setup17/bdr-template-self`
 
 ### Passo 2 — Abra o Code no app Claude
 
@@ -66,15 +68,15 @@ No app Claude para Desktop, clique no botão **`</> Code`** (canto inferior esqu
 No chat do Code, cole o comando abaixo substituindo o caminho pelo local onde você extraiu o kit:
 
 ```
-instale esse setup através do repositório localizado em /Users/Carlos/Documentos/bdr-kit/bdr-template-self
+instale esse setup através do repositório localizado em /Users/Carlos/Documentos/zx-control-setup17/bdr-template-self
 ```
 
 **No Windows**, o caminho usa barras invertidas:
 ```
-instale esse setup através do repositório localizado em C:\Users\Carlos\Documentos\bdr-kit\bdr-template-self
+instale esse setup através do repositório localizado em C:\Users\Carlos\Documentos\zx-control-setup17\bdr-template-self
 ```
 
-O Code abre com o quadro **ZX LAB · Setup do BDR Kit** e segue o roteiro em `INSTALACAO-GUIADA.md`, uma pergunta por vez:
+O Code abre com o quadro **ZX LAB · ZX Control 7 · Setup 17** e segue o roteiro em `INSTALACAO-GUIADA.md`, uma pergunta por vez:
 
 | Etapa | O que acontece |
 |---|---|
@@ -124,7 +126,7 @@ CRM:             cd crm && npm start          (opcional, http://localhost:3001)
 
 Tudo roda local, pelo terminal ou pelo próprio Claude Code — nenhuma etapa depende de outra ferramenta de IA. Detalhes das duas formas de enriquecer em `docs/operacao-diaria.md`.
 
-Veja o guia completo em `docs/manual-uso-bdr-kit.pdf`.
+Veja o guia completo em `docs/manual-uso-setup17.pdf`.
 
 ---
 
@@ -177,8 +179,8 @@ bdr-template-self/
 │   ├── setup.js                      ← Wizard de instalação (o Code roda ele na etapa 6)
 │   └── smoke.mjs                     ← Teste final do setup (etapa 8), só leitura
 └── docs/
-    ├── manual-instalacao-bdr-kit.pdf ← Manual de instalação passo a passo
-    ├── manual-uso-bdr-kit.pdf        ← Manual de uso da rotina diária
+    ├── manual-instalacao-setup17.pdf ← Manual de instalação passo a passo
+    ├── manual-uso-setup17.pdf        ← Manual de uso da rotina diária
     ├── crm-calendar-setup.md         ← Setup Google Calendar no CRM
     ├── modo-automatico.md            ← Modo automático opcional (pré-requisito extra + limitações)
     ├── simulacoes-atendimento.md     ← Conversas simuladas (também na aba Simulações do CRM)
@@ -189,8 +191,8 @@ bdr-template-self/
     ├── escolhendo-provedor.md        ← Claude Pro/Max vs. API paga, custo estimado
     ├── personalizando-skill.md       ← Como adaptar ao seu nicho
     ├── troubleshooting.md            ← Problemas comuns e soluções
-    ├── BDR-Kit-Contingencia-WhatsApp.pdf  ← O que fazer quando o número cai (sessão, restrição, banimento)
-    └── BDR-Kit-Contingencia-WhatsApp-Mobile.pdf ← Mesmo conteúdo, formato retrato pra ler no celular
+    ├── Contingencia-WhatsApp-Setup17.pdf  ← O que fazer quando o número cai (sessão, restrição, banimento)
+    └── Contingencia-WhatsApp-Setup17-Mobile.pdf ← Mesmo conteúdo, formato retrato pra ler no celular
 ```
 
 ---

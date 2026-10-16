@@ -132,7 +132,7 @@ lead topar a call, passa pra você confirmar o horário. Setup em
 - **Mais mensagem automática = mais risco de restrição no número.** O modo
   automático não muda os limites de envio do dispatcher, mas responder mais rápido
   tende a gerar mais conversa por dia. Tenha um número reserva aquecendo antes de
-  ligar — veja `docs/BDR-Kit-Contingencia-WhatsApp.pdf`.
+  ligar — veja `docs/Contingencia-WhatsApp-Setup17.pdf`.
 
 ## Ligar / desligar / pausar
 

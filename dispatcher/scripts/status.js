@@ -22,7 +22,7 @@ async function main() {
   const schedule = await readJson(path.join(config.pipelineDir, 'followup-schedule.json'), []);
   const responses = await readJson(path.join(config.pipelineDir, 'responses.json'), []);
 
-  console.log('\n=== BDR Dispatcher Status ===');
+  console.log('\n=== ZX Control 7 · Setup 17 · Status do dispatcher ===');
   console.log(`Date: ${today}\n`);
 
   // Today's queue

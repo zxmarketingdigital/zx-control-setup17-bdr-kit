@@ -1,0 +1,98 @@
+/* Manuais do ZX Control 7 · Setup 17 (instalação e uso) — papel A4, identidade ZX LAB em versão pra imprimir. */
+:root{
+  --ink:#14161b;--ink-2:#3a4150;--mute:#6b7280;--line:#e3e5ea;--paper:#fff;--soft:#f6f7f9;
+  --amber:#D97706;--amber-d:#B45309;--amber-bg:#fff6e6;--amber-b:#f3c37b;
+  --info-bg:#f1f5f9;--info-b:#94a3b8;--info-t:#334155;
+  --ok-bg:#ecfdf3;--ok-b:#4cb87a;--ok-t:#14532d;
+  --bad-bg:#fef0f0;--bad-b:#e58a8a;--bad-t:#7f1d1d;
+  --dark:#0D0D0D;--dark-2:#1A1A1A;
+}
+@page{
+  size:A4;margin:24mm 19mm 22mm;
+  @top-left{content:"ZX LAB · ZX CONTROL 7 · SETUP 17";font:600 8.5pt 'JetBrains Mono',Consolas,monospace;letter-spacing:.12em;color:#9a8f7c}
+  @bottom-center{content:counter(page);font:600 9pt 'JetBrains Mono',Consolas,monospace;color:#8b8577}
+}
+@page cover{margin:0;@top-left{content:none}@top-right{content:none}@bottom-center{content:none}}
+*{box-sizing:border-box}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{margin:0;font-family:'Inter','Segoe UI',Arial,sans-serif;font-size:10.7pt;line-height:1.5;color:var(--ink)}
+b,strong{font-weight:700}
+code,.mono{font-family:'JetBrains Mono',Consolas,'Courier New',monospace}
+code{font-size:.88em;background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:0 4px;white-space:nowrap}
+a{color:var(--amber-d);text-decoration:none}
+
+/* ---------- capa (escura, ZX LAB) ---------- */
+.cover{page:cover;break-after:page;height:297mm;width:210mm;background:var(--dark);color:#e2e8f0;position:relative;overflow:hidden;
+  background-image:linear-gradient(rgba(217,119,6,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(217,119,6,.045) 1px,transparent 1px);background-size:15mm 15mm}
+.cover .logo{position:absolute;left:22mm;top:22mm;height:15mm}
+.cover .kicker{position:absolute;left:22mm;top:112mm;font:600 10.5pt 'JetBrains Mono',Consolas,monospace;letter-spacing:.2em;text-transform:uppercase;color:#F59E0B}
+.cover h1{position:absolute;left:22mm;right:22mm;top:122mm;margin:0;font-size:50pt;font-weight:900;letter-spacing:-.04em;line-height:1.02;color:#fff}
+.cover h1 small{display:block;margin-top:5mm;font-size:23pt;font-weight:700;letter-spacing:-.02em;color:#F59E0B}
+.cover .tag{position:absolute;left:22mm;right:30mm;top:176mm;font-size:13.5pt;line-height:1.5;color:#9CA3AF}
+.cover .meta{position:absolute;left:22mm;bottom:22mm;font:500 10pt 'JetBrains Mono',Consolas,monospace;line-height:1.8;color:#9CA3AF}
+.cover .meta b{color:#F59E0B;font-weight:600}
+.cover .bar{position:absolute;left:22mm;top:106mm;width:22mm;height:1.6mm;background:var(--amber)}
+
+/* ---------- tipografia ---------- */
+.sec{break-before:auto}
+.sec.pg{break-before:page}
+.sec>h1.t:not(:first-child),.sec+.sec>h1.t:first-child{margin-top:13mm}
+.sec.pg>h1.t:first-child{margin-top:0}
+h1.t{break-after:avoid;font-size:25pt;font-weight:900;letter-spacing:-.03em;line-height:1.1;margin:0 0 3mm;color:var(--ink)}
+h1.t::after{content:"";display:block;width:16mm;height:1.3mm;background:var(--amber);margin-top:3.5mm}
+h2{font-size:15pt;font-weight:800;letter-spacing:-.015em;line-height:1.2;margin:8mm 0 2.5mm;color:var(--ink);break-after:avoid}
+h3{font-size:12pt;font-weight:800;margin:5.5mm 0 1.8mm;color:var(--ink);break-after:avoid}
+p{margin:0 0 3mm}
+.lead{break-after:avoid;font-size:12.2pt;color:var(--ink-2);line-height:1.55;margin:0 0 5mm}
+.kick{display:inline-block;font:600 8.5pt 'JetBrains Mono',Consolas,monospace;letter-spacing:.15em;text-transform:uppercase;color:var(--amber-d);margin-bottom:2mm}
+ul,ol{margin:0 0 3.5mm;padding-left:6mm}
+li{margin-bottom:1.3mm}
+ul.b{list-style:none;padding-left:0}
+ul.b li{position:relative;padding-left:5.5mm}
+ul.b li::before{content:"▸";position:absolute;left:0;color:var(--amber);font-size:.9em;top:.05em}
+
+/* ---------- etapas ---------- */
+.etapa{display:flex;align-items:center;gap:3.5mm;margin:9mm 0 3mm;break-after:avoid}
+.etapa .n{flex:none;font:700 9pt 'JetBrains Mono',Consolas,monospace;letter-spacing:.1em;color:#fff;background:var(--dark);border-left:2.4mm solid var(--amber);padding:1.7mm 3.4mm 1.7mm 3mm;border-radius:1.2mm;white-space:nowrap}
+.etapa h2{margin:0;font-size:15pt}
+.etapa .t{margin-left:auto;font:500 8.5pt 'JetBrains Mono',Consolas,monospace;color:var(--mute);white-space:nowrap}
+
+ol.steps{list-style:none;counter-reset:s;padding-left:0}
+ol.steps>li{counter-increment:s;position:relative;padding-left:9mm;margin-bottom:2.4mm;min-height:6.5mm;break-inside:avoid}
+ol.steps>li::before{content:counter(s);position:absolute;left:0;top:.05em;width:6mm;height:6mm;border-radius:50%;background:var(--amber);color:#fff;font:700 9pt 'JetBrains Mono',Consolas,monospace;display:flex;align-items:center;justify-content:center}
+
+/* ---------- tabelas ---------- */
+table{width:100%;border-collapse:collapse;margin:2mm 0 5mm;font-size:10pt;line-height:1.45}
+th{background:var(--soft);text-align:left;font-weight:700;color:var(--ink);padding:2.2mm 3mm;border-bottom:1.4px solid var(--amber)}
+td{padding:2.2mm 3mm;border-bottom:1px solid var(--line);vertical-align:top}
+tr{break-inside:avoid}
+table{break-inside:avoid}
+table.long{break-inside:auto}
+p:has(+ .cmd),p:has(+ table),p:has(+ ol),p:has(+ ul),p:has(+ .callout){break-after:avoid}
+td:first-child{font-weight:600}
+td code{font-size:.9em}
+.cols-fixed td:first-child,.cols-fixed th:first-child{width:36%}
+
+/* ---------- comandos ---------- */
+.cmd{margin:2mm 0 4.5mm;border-radius:2mm;overflow:hidden;background:var(--dark);break-inside:avoid}
+.cmd .lab{font:600 8pt 'JetBrains Mono',Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:#F59E0B;background:var(--dark-2);padding:1.6mm 4mm}
+.cmd pre{margin:0;padding:3mm 4mm;font:500 9.6pt/1.55 'JetBrains Mono',Consolas,'Courier New',monospace;color:#e2e8f0;white-space:pre-wrap;word-break:break-word}
+.cmd pre .c{color:#7b8494}
+
+/* ---------- avisos ---------- */
+.callout{margin:3mm 0 5mm;padding:3.2mm 4.2mm 2.6mm;border-left:1.6mm solid var(--info-b);background:var(--info-bg);border-radius:0 2mm 2mm 0;break-inside:avoid;font-size:10.4pt;line-height:1.5;color:var(--info-t)}
+.callout .h{display:block;font:700 8.4pt 'JetBrains Mono',Consolas,monospace;letter-spacing:.13em;text-transform:uppercase;margin-bottom:1.2mm}
+.callout p{margin:0 0 1.6mm}.callout ul{margin:0}.callout li{margin-bottom:.9mm}
+.callout.atencao{border-color:var(--amber);background:var(--amber-bg);color:#5b3a06}.callout.atencao .h{color:var(--amber-d)}
+.callout.dica{border-color:var(--ok-b);background:var(--ok-bg);color:var(--ok-t)}.callout.dica .h{color:#15803d}
+.callout.perigo{border-color:var(--bad-b);background:var(--bad-bg);color:var(--bad-t)}.callout.perigo .h{color:#b91c1c}
+.callout.info .h{color:#475569}
+
+.ok{color:#15803d;font-weight:700}.bad{color:#b91c1c;font-weight:700}.warnc{color:var(--amber-d);font-weight:700}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:4mm}
+.card{border:1px solid var(--line);border-radius:2mm;padding:3.4mm 4mm;background:#fff;break-inside:avoid}
+.card h3{margin-top:0}
+.toc{columns:2;column-gap:8mm;margin:3mm 0 0;font-size:10.8pt}
+.toc li{break-inside:avoid;margin-bottom:1.8mm}
+.toc b{color:var(--amber-d);font-family:'JetBrains Mono',Consolas,monospace;font-size:.92em;margin-right:1.5mm}
+.small{font-size:9.6pt;color:var(--mute)}

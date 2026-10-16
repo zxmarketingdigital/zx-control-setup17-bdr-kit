@@ -1236,7 +1236,7 @@ function renderPatterns(data,container){
 }
 async function copyPatternsContext(){
   if(!LAST_PATTERNS)return;
-  const ctx={fonte:'BDR CRM',gerado_em:LAST_PATTERNS.generated_at,total:LAST_PATTERNS.total_with_outcome,por_angulo:LAST_PATTERNS.by_angle.map(g=>({angulo:g.key,total:g.total,taxa_conversao:`${g.taxa_conversao}%`,validado:g.validated})),por_categoria:LAST_PATTERNS.by_category.map(g=>({categoria:g.key,total:g.total,taxa_conversao:`${g.taxa_conversao}%`,validado:g.validated}))};
+  const ctx={fonte:'CRM ZX Control 7 · Setup 17',gerado_em:LAST_PATTERNS.generated_at,total:LAST_PATTERNS.total_with_outcome,por_angulo:LAST_PATTERNS.by_angle.map(g=>({angulo:g.key,total:g.total,taxa_conversao:`${g.taxa_conversao}%`,validado:g.validated})),por_categoria:LAST_PATTERNS.by_category.map(g=>({categoria:g.key,total:g.total,taxa_conversao:`${g.taxa_conversao}%`,validado:g.validated}))};
   await navigator.clipboard.writeText(JSON.stringify(ctx,null,2));
   const btn=document.getElementById('copy-pat');btn.textContent='✓ Copiado!';setTimeout(()=>btn.textContent='📋 Copiar',2000);
 }

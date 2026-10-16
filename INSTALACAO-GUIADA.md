@@ -1,7 +1,7 @@
-# BDR Kit — Setup ZX LAB (instalação guiada pelo Claude Code)
+# ZX Control 7 · Setup 17 — Setup ZX LAB (instalação guiada pelo Claude Code)
 
 > Você (Claude Code) está dentro do repositório de um **produto pronto e testado**: o
-> **BDR Kit**, da ZX LAB, um sistema de prospecção por WhatsApp com qualificação por
+> **ZX Control 7 · Setup 17**, da ZX LAB, um sistema de prospecção por WhatsApp com qualificação por
 > IA. O dono deste computador é um **aluno do ZX Control** que vai instalar e operar o
 > produto no negócio dele. Este arquivo é o roteiro da instalação.
 
@@ -34,7 +34,7 @@ logo abaixo o mapa das etapas:
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║  ZX LAB · SETUP DO BDR KIT                                   ║
+║  ZX LAB · ZX CONTROL 7 · SETUP 17                            ║
 ║  Instalação guiada pelo Claude Code · 8 etapas               ║
 ╚══════════════════════════════════════════════════════════════╝
 ```
@@ -55,7 +55,7 @@ B2B soma o briefing), e a etapa 7 é à parte, cerca de 10 minutos.
 
 **Em toda etapa, siga sempre o mesmo ritmo:**
 
-1. Cabeçalho de uma linha: `━━ ZX LAB · Setup BDR Kit · Etapa N de 8 — Nome da etapa ━━`
+1. Cabeçalho de uma linha: `━━ ZX LAB · ZX Control 7 · Setup 17 · Etapa N de 8 — Nome da etapa ━━`
 2. Em uma frase, o que vai acontecer nessa etapa.
 3. Conduza: **uma pergunta ou uma ação por vez**.
 4. Feche com `✅ Etapa N concluída` e anuncie a próxima. Não avance sem fechar a
@@ -81,10 +81,11 @@ Na dúvida, rode `node setup/smoke.mjs`: ele mostra o que falta e em que etapa r
 
 ## Etapa 1 — Boas-vindas e pré-requisitos
 
-Cumprimente, diga que você vai configurar o BDR Kit pro negócio dele e que ele só
+Cumprimente, diga que você vai configurar o Setup 17 pro negócio dele e que ele só
 precisa responder às perguntas. Explique o kit em três linhas: coleta leads, o Claude
 Code qualifica e escreve a mensagem de cada um, **ele aprova**, e o dispatcher envia
-pelo WhatsApp dele com intervalo controlado e uma cadência de follow-up.
+pelo WhatsApp dele com intervalo controlado e uma cadência de follow-up. Se ele quiser ver
+o produto funcionando antes, mostre a demo oficial: https://zxcontrol7-demo.zxlab.com.br/
 
 Confira antes de perguntar qualquer outra coisa:
 
@@ -104,7 +105,7 @@ Duas partes, uma pergunta de cada vez.
 
 Pergunte assim:
 
-> "Você vai usar o BDR Kit pra quê: pra uma **agência de marketing** prospectar
+> "Você vai usar o Setup 17 pra quê: pra uma **agência de marketing** prospectar
 > clientes, ou pra **outro tipo de negócio B2B** (software, contabilidade,
 > consultoria, indústria, distribuidora, serviços pra empresas...)?"
 
@@ -362,4 +363,4 @@ Rotina do dia, nesta ordem:
 > Com o **modo automático** ligado, o kit detecta e marca sozinho.
 
 Referências: `docs/operacao-diaria.md` (rotina completa), `docs/troubleshooting.md`
-(problemas comuns) e `docs/manual-uso-bdr-kit.pdf`.
+(problemas comuns) e `docs/manual-uso-setup17.pdf`.

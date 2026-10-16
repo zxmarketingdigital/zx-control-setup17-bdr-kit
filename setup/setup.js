@@ -21,7 +21,7 @@ const c = {
 // Cabeçalho de etapa do Setup ZX LAB — mesmo texto do roteiro INSTALACAO-GUIADA.md.
 const SETUP_TOTAL_ETAPAS = 8;
 function etapaHeader(n, nome) {
-  console.log('\n' + c.bold(c.cyan(`━━ ZX LAB · Setup BDR Kit · Etapa ${n} de ${SETUP_TOTAL_ETAPAS} — ${nome} ━━`)));
+  console.log('\n' + c.bold(c.cyan(`━━ ZX LAB · ZX Control 7 · Setup 17 · Etapa ${n} de ${SETUP_TOTAL_ETAPAS} — ${nome} ━━`)));
 }
 
 // ─── Paths ─────────────────────────────────────────────────────────────────────
@@ -193,7 +193,7 @@ async function phase1(rl) {
     : suggestedSlug;
   console.log(c.dim(`  Slug definido: ${AGENT_SLUG}`));
 
-  console.log('\n' + c.bold('  Que tipo de negócio vai usar o BDR Kit?'));
+  console.log('\n' + c.bold('  Que tipo de negócio vai usar o Setup 17?'));
   console.log(c.dim('  [1] Agência de marketing — setup validado (ângulos de criativo, site, LP, tráfego)'));
   console.log(c.dim('  [2] Outro negócio B2B — você define oferta, segmentos-alvo, dores e decisor;'));
   console.log(c.dim('      o ranking dos leads e os ângulos de abordagem se adaptam ao seu nicho\n'));
@@ -2014,7 +2014,7 @@ function printFinalInstructions(vars) {
   }
 
   console.log(c.dim('Rotina completa: docs/operacao-diaria.md'));
-  console.log(c.dim('Manual de uso:   docs/manual-uso-bdr-kit.pdf'));
+  console.log(c.dim('Manual de uso:   docs/manual-uso-setup17.pdf'));
   console.log('\n' + c.dim('Dúvidas? docs/troubleshooting.md') + '\n');
 }
 
@@ -2144,10 +2144,10 @@ async function main() {
   // ── End non-interactive mode ─────────────────────────────────────────────────
 
   console.log('\n' + c.bold(c.cyan('╔══════════════════════════════════════════════════════════════╗')));
-  console.log(c.bold(c.cyan('║  ZX LAB · SETUP DO BDR KIT                                   ║')));
+  console.log(c.bold(c.cyan('║  ZX LAB · ZX CONTROL 7 · SETUP 17                            ║')));
   console.log(c.bold(c.cyan('║  Modo interativo no terminal · 8 etapas                      ║')));
   console.log(c.bold(c.cyan('╚══════════════════════════════════════════════════════════════╝')));
-  console.log(c.dim('\n  Este wizard configura o seu BDR Kit personalizado.'));
+  console.log(c.dim('\n  Este wizard configura o seu Setup 17 personalizado.'));
   console.log(c.dim('  Você precisará de: nome, nicho, posicionamento, e tokens da Apify.'));
   console.log(c.dim('  O jeito padrão da ZX LAB é o Claude Code conduzir tudo no chat: INSTALACAO-GUIADA.md\n'));
 

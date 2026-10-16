@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>ZX Control 7 · Setup 17 · Manual de uso</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="manual.css">
+<style>
+  @page{@top-right{content:"Manual de uso";font:500 8.5pt 'Inter','Segoe UI',Arial,sans-serif;color:#9a8f7c}}
+</style>
+</head>
+<body>
+
+<!-- ===================== CAPA ===================== -->
+<section class="cover">
+  <img class="logo" src="../../crm/public/assets/zxlab-logo.svg" alt="ZX LAB">
+  <div class="bar"></div>
+  <div class="kicker">Rotina diária</div>
+  <h1>ZX Control 7<small>Setup 17 · Manual de uso</small></h1>
+  <p class="tag">Do lead novo à call marcada: o que fazer em cada dia, onde clicar e o que dizer ao Claude Code.</p>
+  <div class="meta">
+    <div><b>Edição</b> outubro de 2026</div>
+    <div><b>Demo</b> zxcontrol7-demo.zxlab.com.br</div>
+    <div><b>Suporte</b> suporte.zxlab.com.br/hub · contato@zxlab.com.br</div>
+  </div>
+</section>
+
+<!-- ===================== COMO FUNCIONA ===================== -->
+<section class="sec">
+  <h1 class="t">Como o kit funciona</h1>
+  <p class="lead">O Setup 17 tem quatro peças, todas rodando no seu computador. Na maioria dos dias você abre o Code, o terminal e o CRM, e leva menos de 30 minutos de atenção ativa.</p>
+
+  <table>
+    <tr><th style="width:23%">Peça</th><th style="width:24%">Onde</th><th>O que faz</th></tr>
+    <tr><td>Enriquecimento</td><td>Terminal (ou o próprio Code)</td><td>Levanta site, pixel, Instagram e anúncios de cada lead do dia.</td></tr>
+    <tr><td>Qualificação e copies</td><td>App Claude, botão <b>&lt;/&gt; Code</b></td><td>Aplica a skill do seu nicho, escreve a mensagem do toque 1 e a ata pré-ligação. <b>Você aprova</b> cada uma.</td></tr>
+    <tr><td>Dispatcher</td><td>Terminal (fica aberto)</td><td>Envia pelo WhatsApp dentro da janela de envio e cuida dos follow-ups.</td></tr>
+    <tr><td>CRM</td><td>Navegador, <code>localhost:3001</code></td><td>Acompanha os leads, registra respostas e resultados, e é onde você conduz a conversa.</td></tr>
+  </table>
+
+  <p class="small">Quer ver o produto antes de operar? A demonstração oficial está em <b>https://zxcontrol7-demo.zxlab.com.br/</b>, com dados fictícios.</p>
+
+  <h2>O ciclo de um lead</h2>
+  <ol class="steps">
+    <li>O lead entra no <b>pool</b> (dataset da Apify processado por <code>build-pool.py</code>).</li>
+    <li>Os scripts <b>enriquecem</b> o lead com site, Instagram e anúncios.</li>
+    <li>O Code <b>qualifica</b> e escreve a copy do toque 1. Você aprova, edita ou pula.</li>
+    <li>O dispatcher <b>envia</b> o toque 1 pelo WhatsApp, entre 10h e 18h, em dias úteis.</li>
+    <li>Os <b>toques 2 a 6</b> saem sozinhos nos 5 dias úteis seguintes.</li>
+    <li>O lead <b>responde</b>. Você marca no CRM e a cadência para.</li>
+    <li>Você <b>conduz a conversa</b> até a call. No modo automático opcional, é o próprio BDR que conduz.</li>
+  </ol>
+
+  <div class="callout atencao"><span class="h">Regra de ouro</span>
+    <p>Nenhuma mensagem sai sem a sua aprovação no chat do Code. No modo manual (o padrão), o kit também nunca responde o lead: a conversa é sempre sua. O modo automático é opcional, vem desligado e está explicado mais adiante.</p>
+  </div>
+
+  <h2>Os dois jeitos de operar</h2>
+  <div class="grid2">
+    <div class="card"><h3>Modo manual (padrão)</h3>
+      <p class="small" style="margin:0">O kit envia os 6 toques da cadência. Quando o lead responde, <b>você</b> marca no CRM, lê a conversa e responde. O CRM sugere a resposta, você edita e envia.</p></div>
+    <div class="card"><h3>Modo automático (opcional)</h3>
+      <p class="small" style="margin:0">Depois da resposta do lead, o BDR continua a conversa e agenda a call sozinho, com trava de segurança. Precisa do Claude Code CLI e do Google Calendar.</p></div>
+  </div>
+</section>
+
+<!-- ===================== ROTINA DIÁRIA ===================== -->
+<section class="sec">
+  <h1 class="t">Rotina diária</h1>
+  <p class="lead">Um dia útil tem cinco momentos, nesta ordem. O primeiro e o segundo você faz pela manhã. Do terceiro em diante é só acompanhar.</p>
+
+  <table>
+    <tr><th style="width:7%">#</th><th style="width:34%">O que fazer</th><th style="width:31%">Onde</th><th>Tempo</th></tr>
+    <tr><td>1</td><td>Enriquecer os leads do dia</td><td>Terminal (ou chat do Code)</td><td>2 a 5 min</td></tr>
+    <tr><td>2</td><td>Gerar e aprovar as copies</td><td>App Claude, <b>&lt;/&gt; Code</b></td><td>10 a 15 min</td></tr>
+    <tr><td>3</td><td>Iniciar o dispatcher</td><td>Terminal</td><td>1 min (fica aberto)</td></tr>
+    <tr><td>4</td><td>Abrir o CRM e atender as respostas</td><td>Navegador</td><td>ao longo do dia</td></tr>
+    <tr><td>5</td><td>Encerrar o dia</td><td>Terminal</td><td>1 min</td></tr>
+  </table>
+
+  <div class="callout info"><span class="h">Windows e Mac</span>
+    <p>Os comandos de Python aparecem como <code>python3</code>, que é o nome no Mac. No Windows, use <code>python</code> no lugar. O arquivo <code>docs/comandos-diarios.md</code>, gerado na instalação, já vem com o comando certo pro seu sistema.</p>
+  </div>
+
+  <div class="etapa"><span class="n">1</span><h2>Enriquecer os leads</h2><span class="t">2 a 5 min</span></div>
+  <p>Na pasta do kit, rode os dois scripts na ordem:</p>
+  <div class="cmd"><div class="lab">Terminal, na pasta do kit</div><pre>python3 scripts/enrich-sites.py --n 10
+python3 scripts/enrich-instagram.py</pre></div>
+  <p>O primeiro pega os 10 próximos leads do pool e levanta pixel, GA4, Instagram do site e Meta Ads. Leva menos de 2 minutos e não abre navegador. O segundo busca seguidores, bio e posts de cada perfil e grava o <code>enriched-leads</code> do dia.</p>
+  <div class="callout dica"><span class="h">Sem instalar nada</span>
+    <p>Se preferir não usar o script do Instagram, peça ao Code, no mesmo chat da etapa 2: <b>"enriquece o site-enrichment de hoje: pra cada lead, abre o Instagram e a Biblioteca de Anúncios pelo teu navegador e escreve o enriched-leads de hoje"</b>. Ele faz o mesmo trabalho pelo navegador dele.</p>
+  </div>
+  <p class="small">Primeira vez no script do Instagram: rode <code>python3 scripts/enrich-instagram.py --login</code> e entre na sua conta no navegador que abrir. A sessão dura cerca de 30 dias.</p>
+
+  <div class="etapa"><span class="n">2</span><h2>Gerar e aprovar as copies</h2><span class="t">10 a 15 min</span></div>
+  <p>Abra o app Claude, clique em <b>&lt;/&gt; Code</b>, escolha a pasta do kit e diga:</p>
+  <div class="cmd"><div class="lab">No chat do Code</div><pre>roda o pipeline</pre></div>
+  <p>O Code lê o <code>enriched-leads</code> mais recente, aplica os 7 checks de qualificação da sua skill e mostra os leads um por um. Para cada lead aprovado no filtro você vê:</p>
+  <ul class="b">
+    <li>o <b>resumo</b> dos dados (seguidores, anúncios, site, gargalo identificado);</li>
+    <li>a <b>copy do toque 1</b>, pronta pra enviar, no seu tom de voz;</li>
+    <li>a <b>ata pré-ligação</b>: sinais observados, pontos de melhoria e direção pra call. Ela nunca vai pro lead.</li>
+  </ul>
+  <table class="cols-fixed">
+    <tr><th>Você responde</th><th>O que acontece</th></tr>
+    <tr><td><code>ok</code></td><td>A copy entra na fila e sai hoje.</td></tr>
+    <tr><td>o texto corrigido</td><td>Você edita: a sua versão substitui a do Code e entra na fila.</td></tr>
+    <tr><td><code>skip</code></td><td>O lead não entra na fila de hoje.</td></tr>
+  </table>
+  <p>No fim, o Code grava <code>pipeline/queue-AAAA-MM-DD.json</code> e diz quantas copies foram aprovadas. Se você edita muito as copies, ajuste os exemplos da skill: <code>docs/personalizando-skill.md</code>.</p>
+</section>
+
+<section class="sec">
+  <div class="etapa"><span class="n">3</span><h2>Iniciar o dispatcher</h2><span class="t">1 min</span></div>
+  <p>O dispatcher é o único componente que precisa ficar com o terminal aberto, porque trabalha o dia todo. Com o Docker Desktop aberto, rode na pasta <code>dispatcher</code>:</p>
+  <div class="cmd"><div class="lab">Terminal, na pasta dispatcher</div><pre>docker compose up -d
+npm start</pre></div>
+  <p>O primeiro comando garante que a Evolution API (a ponte com o WhatsApp) está de pé. O segundo inicia o envio. Se você começar antes das 10h, ele espera a janela abrir.</p>
+  <table class="cols-fixed">
+    <tr><th>Regra do dispatcher</th><th>Padrão</th></tr>
+    <tr><td>Janela de envio</td><td>10h às 18h, só em dias úteis</td></tr>
+    <tr><td>Intervalo entre mensagens</td><td>120 a 180 segundos</td></tr>
+    <tr><td>Leads novos por dia</td><td>10 (ajustável na instalação)</td></tr>
+    <tr><td>Cadência</td><td>Toque 1 no dia, depois um toque por dia útil até o toque 6</td></tr>
+    <tr><td>Fim da cadência</td><td>Após o toque 6 sem resposta, o lead vira "Esgotado"</td></tr>
+  </table>
+  <div class="callout perigo"><span class="h">Cuidados</span>
+    <ul>
+      <li><b>Nunca rode dois dispatchers ao mesmo tempo.</b> Causa mensagem duplicada. Na dúvida, feche todos os terminais e abra um só.</li>
+      <li>Se fechar o terminal, o dispatcher para. Ao abrir de novo, ele retoma de onde parou.</li>
+      <li>Nas duas primeiras semanas, fique em <b>até 15 mensagens por dia</b> e suba aos poucos. Número novo enviando muito cedo é o que mais leva a restrição.</li>
+      <li>Não prospecte aos sábados e domingos: a resposta é baixa e o risco de bloqueio sobe.</li>
+    </ul>
+  </div>
+  <p>Para ver o que já saiu, no mesmo terminal (ou em outro, na pasta <code>dispatcher</code>):</p>
+  <div class="cmd"><div class="lab">Terminal, na pasta dispatcher</div><pre>npm run status</pre></div>
+  <p>Mostra a fila, os follow-ups agendados por data, as respostas recebidas e os últimos envios.</p>
+
+  <div class="etapa"><span class="n">4</span><h2>Abrir o CRM</h2><span class="t">ao longo do dia</span></div>
+  <p>Em outro terminal, na pasta <code>crm</code>:</p>
+  <div class="cmd"><div class="lab">Terminal, na pasta crm</div><pre>npm start</pre></div>
+  <p>Abra <code>http://localhost:3001</code> no navegador e deixe a aba aberta durante o dia. É ali que você acompanha os leads e atende quem respondeu. A próxima seção explica como.</p>
+
+  <div class="etapa"><span class="n">5</span><h2>Encerrar o dia</h2><span class="t">1 min</span></div>
+  <ol class="steps">
+    <li>No terminal do dispatcher, pressione <code>Ctrl+C</code> às 18h ou quando terminar o expediente.</li>
+    <li>Rode <code>npm run status</code> para ver o resumo: enviados, respostas e erros.</li>
+    <li>Feche os terminais. Não há mais nada a fazer até o próximo dia útil.</li>
+  </ol>
+</section>
+
+<!-- ===================== QUANDO O LEAD RESPONDE ===================== -->
+<section class="sec">
+  <h1 class="t">Quando um lead responde</h1>
+  <p class="lead">Este é o ponto que mais exige atenção no modo manual. O kit <b>não detecta sozinho</b> que o lead respondeu. Quem respondeu e não foi marcado continua recebendo os próximos toques.</p>
+
+  <div class="callout atencao"><span class="h">Por que é assim</span>
+    <p>Respostas automáticas (mensagem de ausência, robô de atendimento) não podem encerrar a cadência por engano. Então a decisão de parar é sua. Com o modo automático ligado, o kit detecta a resposta sozinho e já filtra as mensagens automáticas.</p>
+  </div>
+
+  <h2>O que fazer, passo a passo</h2>
+  <ol class="steps">
+    <li>No CRM, abra a aba <b>Prospecção Fria</b>. Ela lista os leads em andamento, com o último toque enviado e a última resposta.</li>
+    <li>Clique no lead (ou em <b>💬 Abordar</b>) para abrir o painel de conversa.</li>
+    <li>Clique em <b>📥 Puxar conversa do WhatsApp</b>. O CRM busca o que o lead mandou, transcreve os áudios (se a transcrição estiver ligada), <b>marca o lead como respondido e cancela o próximo toque</b>.</li>
+    <li>Clique em <b>✨ Gerar sugestão</b>. O Code escreve uma resposta no seu tom, considerando a conversa inteira. Se o botão avisar que o Claude Code CLI não está instalado, use <b>📋 Copiar prompt</b> e cole no chat do Code.</li>
+    <li>Leia, edite o que quiser e clique em <b>Enviar agora →</b>. A mensagem sai pelo seu WhatsApp conectado.</li>
+    <li>Anote o contexto da conversa no lead e conduza até a call. Marque a reunião pelo botão <b>📅 Agendar</b> do painel do lead.</li>
+  </ol>
+  <div class="callout dica"><span class="h">Lead respondeu fora do WhatsApp</span>
+    <p>Se a resposta veio por e-mail, ligação ou LinkedIn, abra o lead na aba <b>Leads</b> e clique em <b>Marcar respondido</b>. Também funciona dizer ao Code: <b>"marca o lead [nome] como respondido"</b>.</p>
+  </div>
+
+  <h2>Status do lead</h2>
+  <p>Qualquer status diferente de <b>Ativo</b> pausa os follow-ups na hora. Para retomar a cadência de onde parou, volte o status pra Ativo: o histórico de toques é preservado.</p>
+  <table class="cols-fixed">
+    <tr><th>Status</th><th>Quando usar</th></tr>
+    <tr><td>Ativo</td><td>Em cadência. Os próximos toques seguem saindo.</td></tr>
+    <tr><td>Respondeu</td><td>O lead respondeu e a conversa está em andamento. Follow-ups pausados.</td></tr>
+    <tr><td>Reunião agendada</td><td>Call marcada. Follow-ups pausados e a confirmação sai sozinha na véspera, às 14h.</td></tr>
+    <tr><td>Precisa revisão</td><td>Resposta ambígua, ou o lead pediu pra falar depois. Pausa até você decidir.</td></tr>
+    <tr><td>Frio</td><td>Disse que não tem interesse ou pediu para não ser contatado.</td></tr>
+    <tr><td>Esgotado</td><td>Passou pelos 6 toques sem responder. Sai da fila sozinho.</td></tr>
+    <tr><td>Pulado</td><td>Descartado na qualificação, sem toque enviado.</td></tr>
+  </table>
+</section>
+
+<!-- ===================== MODO AUTOMÁTICO ===================== -->
+<section class="sec">
+  <h1 class="t">Modo automático (opcional)</h1>
+  <p class="lead">Depois que o lead responde, o BDR continua a conversa, qualifica e agenda a call de diagnóstico sozinho. Vem <b>desligado</b>. O kit funciona por inteiro sem ele.</p>
+
+  <h2>O que ele faz</h2>
+  <ul class="b">
+    <li><b>Detecta a resposta</b> sozinho, consultando o WhatsApp a cada minuto.</li>
+    <li><b>Ignora mensagem automática</b> (ausência, autorresponder). Elas aparecem em "Prováveis mensagens automáticas" para você conferir, e a cadência segue.</li>
+    <li><b>Espera 9 segundos</b> antes de responder, porque lead costuma emendar várias mensagens. Se vier mais alguma, espera de novo; quando para de chegar, lê todas juntas e responde <b>uma vez só</b>. O teto é de 60 segundos.</li>
+    <li><b>Decide o que fazer</b> a cada resposta, conforme a tabela abaixo.</li>
+  </ul>
+  <table>
+    <tr><th style="width:21%">Ação</th><th style="width:36%">Quando</th><th>O que acontece</th></tr>
+    <tr><td>Responder</td><td>Dúvida, objeção, preço, interesse</td><td>Responde e segue qualificando, ou propõe dois horários.</td></tr>
+    <tr><td>Agendar</td><td>O lead confirmou dia e hora</td><td>Cria o evento no Google Calendar com Meet e manda a confirmação.</td></tr>
+    <tr><td>Encerrar</td><td>Recusa, pedido pra parar, adiamento</td><td>Uma frase educada. Adiamento fica em "Precisa revisão" com a data.</td></tr>
+    <tr><td>Passar pra você</td><td>Proposta, e-mail, contrato, foto, arquivo, dúvida</td><td>O lead vai pra "Precisa revisão" com o motivo.</td></tr>
+  </table>
+
+  <h2>Travas de segurança</h2>
+  <ul class="b">
+    <li>Só oferece horário <b>livre na sua agenda</b>, em dia útil, com pelo menos 2 horas de antecedência.</li>
+    <li>Confere de novo a agenda <b>na hora de criar o evento</b>. Se mudou, não agenda e passa pra você.</li>
+    <li>Mensagem com travessão, emoji ou frase de robô é corrigida ou barrada antes de sair.</li>
+    <li>Resposta ambígua do Claude <b>nunca</b> vira envio: vira "passar pra você".</li>
+    <li>No máximo <b>8 turnos automáticos por lead</b>. Depois disso, é sempre você.</li>
+    <li>Depois de agendar, o BDR sai da conversa. Remarcação e dúvida da call são com você.</li>
+  </ul>
+
+  <h2>Como ligar e desligar</h2>
+  <ol class="steps">
+    <li>Instale o Claude Code CLI, uma vez só: <code>npm install -g @anthropic-ai/claude-code</code> e depois <code>claude login</code>.</li>
+    <li>Conecte o Google Calendar ao CRM (<code>docs/crm-calendar-setup.md</code>). Sem agenda, o BDR conversa mas não agenda.</li>
+    <li>No CRM, na aba <b>Prospecção Fria</b>, clique em <b>Ligar modo automático</b>.</li>
+    <li>Para pausar um lead só, clique no selo <b>Ativo / Pausado</b> da linha dele. O modo continua ligado para os outros.</li>
+  </ol>
+  <p>Dois recursos extras aparecem nesse mesmo card: <b>🎙 Responder áudios</b> (continua a conversa a partir do áudio transcrito) e <b>🎯 Qualificar antes de agendar</b> (o BDR só marca call depois de saber o faturamento do negócio e quem decide, com um mínimo que você define).</p>
+
+  <div class="callout atencao"><span class="h">Antes de ligar</span>
+    <ul>
+      <li>Leia <code>docs/modo-automatico.md</code> e veja as conversas de exemplo na aba <b>Simulações</b> do CRM, pra calibrar o tom.</li>
+      <li>Cada resposta automática consome o uso da sua assinatura Claude, e responder mais rápido gera mais conversa por dia. Tenha um número reserva aquecendo (<code>docs/Contingencia-WhatsApp-Setup17.pdf</code>).</li>
+      <li>Ligar ou desligar no meio da cadência já muda o texto dos próximos toques: no manual eles pedem uma ligação, no automático pedem que o lead responda.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== CRM ===================== -->
+<section class="sec pg">
+  <h1 class="t">O CRM</h1>
+  <p class="lead">O CRM é uma interface local que lê os mesmos arquivos do pipeline. Não precisa de configuração extra. Pelo menu lateral:</p>
+
+  <table class="cols-fixed">
+    <tr><th>Aba</th><th>Para que serve</th></tr>
+    <tr><td>Dashboard</td><td>Visão geral: leads ativos, respostas, reuniões agendadas, esgotados, e o funil por toque.</td></tr>
+    <tr><td>Leads</td><td>Todos os leads, com busca e filtros por status, toque e resultado. Ao abrir um lead: ata pré-ligação, status, reunião, resultado, anotações e histórico de toques.</td></tr>
+    <tr><td>Prospecção Fria</td><td>A central do dia: status do WhatsApp, modo automático, mensagens automáticas filtradas e a lista de quem está em conversa, com o botão <b>💬 Abordar</b>.</td></tr>
+    <tr><td>Simulações</td><td>Conversas de exemplo (objeção, preço, recepção, pedido pra parar, agendamento), com a análise de cada mensagem do agente, para calibrar o tom.</td></tr>
+    <tr><td>Clientes</td><td>Quem fechou. Dados do contrato, pacote, status e cobranças. Um lead que respondeu vira cliente em <b>Converter em cliente</b>.</td></tr>
+    <tr><td>Agenda</td><td>Reuniões e compromissos. Usa o Google Calendar, se conectado.</td></tr>
+    <tr><td>Equipe e Pacotes</td><td>Pessoas que atendem os clientes e os pacotes de serviço que você vende.</td></tr>
+    <tr><td>Financeiro</td><td>Dashboard, cobranças, custos e pré-notas.</td></tr>
+  </table>
+
+  <h2>Status do cliente</h2>
+  <table class="cols-fixed">
+    <tr><th>Status</th><th>Significa</th></tr>
+    <tr><td>Ativo</td><td>Contrato em andamento, sem alerta.</td></tr>
+    <tr><td>Em risco</td><td>Ainda é cliente, mas há sinal de que pode sair: atraso, queda de engajamento ou insatisfação. Precisa de ação sua.</td></tr>
+    <tr><td>Pausado</td><td>Contrato suspenso temporariamente, com motivo registrado.</td></tr>
+    <tr><td>Churn</td><td>Cliente que saiu. Registre o motivo para entender o que melhorar.</td></tr>
+  </table>
+
+  <h2>Por que registrar o resultado de cada lead</h2>
+  <p>No painel do lead existe o campo <b>Resultado comercial</b>. Ele não é só organização: é o que ensina o sistema quais ângulos e categorias de negócio convertem. Com amostra suficiente (a partir de uns 5 leads por ângulo), você enxerga padrões como "o ângulo X converte bem em clínicas, mas não em academias", e passa a priorizar e ajustar a skill com base nisso.</p>
+  <table class="cols-fixed">
+    <tr><th>Resultado</th><th>Quando usar</th></tr>
+    <tr><td>Reunião agendada</td><td>O lead aceitou conversar e a call está marcada.</td></tr>
+    <tr><td>Proposta aceita</td><td>O lead aceitou a proposta.</td></tr>
+    <tr><td>Proposta recusada</td><td>O lead recebeu a proposta e recusou.</td></tr>
+    <tr><td>Cliente convertido</td><td>O lead virou cliente pagante.</td></tr>
+    <tr><td>No-show</td><td>O lead confirmou a call e não apareceu.</td></tr>
+  </table>
+  <div class="callout atencao"><span class="h">Registre na hora</span>
+    <p>Marque o resultado assim que a conversa definir um desfecho, positivo ou negativo. Lead sem resultado registrado não ajuda o sistema a aprender. Não precisa registrar quem nunca chegou a um desfecho.</p>
+  </div>
+</section>
+
+<!-- ===================== NOVO LOTE + REATIVAÇÃO ===================== -->
+<section class="sec">
+  <h1 class="t">Alimentar o pool de leads</h1>
+  <p class="lead">Não é uma tarefa diária. O kit avisa quando o pool cai abaixo de <b>30 leads pendentes</b>. Um lote de 200 a 300 leads dura de 3 a 4 semanas no ritmo de 10 por dia.</p>
+  <ol class="steps">
+    <li>No console da Apify, rode o Actor da sua fonte (Google Maps, LinkedIn ou outra).</li>
+    <li>Abra o último run e exporte o dataset como <b>JSON</b>. O download é gratuito e não consome cota.</li>
+    <li>Salve o arquivo na pasta <code>pipeline/</code>, por exemplo <code>pipeline/dataset-2026-10-15.json</code>.</li>
+    <li>Na pasta do kit, rode:</li>
+  </ol>
+  <div class="cmd"><div class="lab">Terminal, na pasta do kit</div><pre>python3 scripts/build-pool.py pipeline/dataset-2026-10-15.json</pre></div>
+  <table class="cols-fixed">
+    <tr><th>O script mantém</th><th>O script descarta</th></tr>
+    <tr><td>Leads com celular válido (<code>+55 DDD 9XXXXXXXX</code>) e alguma presença digital: site, Instagram, Google Meu Negócio, Doctoralia ou Linktree.</td>
+        <td>Sem celular válido, já presentes no histórico de leads (duplicata) ou com zero presença digital.</td></tr>
+  </table>
+  <p>O ranking usa o seu tipo de negócio e as categorias-alvo do <code>pipeline/icp-config.json</code>, definidos na instalação.</p>
+
+  <h1 class="t" style="margin-top:12mm">Religar depois de desligar o computador</h1>
+  <p>Nada sobe sozinho quando o computador liga. Os dados (leads, histórico, fila) e a sessão do WhatsApp ficam salvos em disco, então normalmente você <b>não precisa escanear o QR de novo</b>.</p>
+  <table>
+    <tr><th style="width:7%">#</th><th style="width:30%">O que fazer</th><th>Como</th></tr>
+    <tr><td>1</td><td>Abrir o Docker Desktop</td><td>Espere o ícone da baleia ficar verde (30 a 60 segundos). Dá pra ligar a opção "Start Docker Desktop when you sign in".</td></tr>
+    <tr><td>2</td><td>Subir a Evolution API</td><td>Terminal 1, pasta <code>dispatcher</code>: <code>docker compose up -d</code></td></tr>
+    <tr><td>3</td><td>Conferir o WhatsApp</td><td>No mesmo terminal: <code>npm run setup</code>. Deve responder "instância conectada (state: open)".</td></tr>
+    <tr><td>4</td><td>Iniciar o dispatcher</td><td>No mesmo terminal: <code>npm start</code>. Deixe a janela aberta.</td></tr>
+    <tr><td>5</td><td>Iniciar o CRM</td><td>Terminal 2, pasta <code>crm</code>: <code>npm start</code>, e abra <code>localhost:3001</code>.</td></tr>
+  </table>
+
+  <h2>Se o WhatsApp estiver desconectado</h2>
+  <p>Se o <code>npm run setup</code> mostrar "state: close", ou o CRM mostrar "WhatsApp desconectado":</p>
+  <ol class="steps">
+    <li>Abra <code>http://localhost:8080/manager</code> no navegador.</li>
+    <li>Selecione a instância (por exemplo <code>bdr-instance</code>) e clique em <b>Connect</b>.</li>
+    <li>No celular: WhatsApp, Dispositivos vinculados, Vincular dispositivo. Escaneie o QR.</li>
+    <li>Espere o status virar <b>Connected</b> e rode <code>npm run setup</code> de novo para confirmar.</li>
+  </ol>
+  <div class="callout info"><span class="h">Cuidado com o número</span>
+    <p>Use um chip dedicado à prospecção, separado do WhatsApp pessoal. Se o número cair, for restringido ou banido, siga o guia <code>docs/Contingencia-WhatsApp-Setup17.pdf</code> antes de tentar reconectar.</p>
+  </div>
+</section>
+
+<!-- ===================== PROBLEMAS COMUNS + REFERÊNCIA ===================== -->
+<section class="sec">
+  <h1 class="t">Problemas comuns</h1>
+  <table class="long">
+    <tr><th style="width:30%">Sintoma</th><th style="width:30%">Causa provável</th><th>O que fazer</th></tr>
+    <tr><td>Nada sai, mesmo com o dispatcher rodando</td><td>Fora da janela 10h às 18h, fim de semana, copies sem aprovar, ou WhatsApp desconectado</td><td>Confira o horário, rode <code>npm run status</code> e <code>npm run setup</code>. Veja se a fila do dia existe.</td></tr>
+    <tr><td>WhatsApp desconectou no meio do dia</td><td>Celular sem internet ou sessão expirada</td><td>Reconecte em <code>localhost:8080/manager</code>, como descrito acima.</td></tr>
+    <tr><td>Evolution API offline ao iniciar</td><td>Docker Desktop fechado</td><td>Abra o Docker, aguarde 15 segundos e rode <code>docker compose up -d</code> na pasta <code>dispatcher</code>.</td></tr>
+    <tr><td>Mensagem duplicada</td><td>Dois dispatchers rodando</td><td>Feche todos os terminais e abra um só.</td></tr>
+    <tr><td>Lead respondeu e continua recebendo toques</td><td>Você não marcou a resposta</td><td>No CRM, <b>Puxar conversa do WhatsApp</b> ou <b>Marcar respondido</b>.</td></tr>
+    <tr><td>"Gerar sugestão" não funciona</td><td>Claude Code CLI não instalado</td><td>Use <b>Copiar prompt</b> e cole no Code, ou instale o CLI (<code>docs/modo-automatico.md</code>).</td></tr>
+    <tr><td>Code não encontra a skill</td><td>Sessão aberta na pasta errada</td><td>Pergunte "qual pasta você está usando?" e abra o Code na pasta do kit.</td></tr>
+    <tr><td>Copies genéricas</td><td>Skill pouco calibrada ao nicho</td><td>Acrescente exemplos seus em <code>.claude/skills/bdr-.../SKILL.md</code> (<code>docs/personalizando-skill.md</code>).</td></tr>
+    <tr><td>Instagram trava ou pede login</td><td>Sessão expirada (cerca de 30 dias)</td><td>Rode <code>python3 scripts/enrich-instagram.py --login</code>.</td></tr>
+    <tr><td>Pool com menos de 30 leads</td><td>Precisa de um novo lote</td><td>Exporte o dataset da Apify e rode o <code>build-pool.py</code>.</td></tr>
+    <tr><td>Número restrito ou banido</td><td>Volume alto ou denúncias</td><td>Pare os envios e siga <code>docs/Contingencia-WhatsApp-Setup17.pdf</code>.</td></tr>
+  </table>
+  <div class="callout dica"><span class="h">Em qualquer erro</span>
+    <p>Cole a mensagem de erro no chat do Code e pergunte <b>"o que fazer?"</b>. Ele lê o log e diagnostica. Para checar a instalação inteira, peça ao Code que rode <code>node setup/smoke.mjs</code>.</p>
+  </div>
+
+  <h2>O que dizer ao Code</h2>
+  <p>O Code responde a linguagem natural, não precisa decorar comando. Variações como "gera as copies" ou "começar o dia" funcionam igual.</p>
+  <table class="cols-fixed">
+    <tr><th>O que você quer</th><th>O que dizer</th></tr>
+    <tr><td>Gerar as copies do dia</td><td>"roda o pipeline"</td></tr>
+    <tr><td>Ver quantos leads há no pool</td><td>"quantos leads tenho no pool?"</td></tr>
+    <tr><td>Ver o status de um lead</td><td>"qual o status do lead [nome]?"</td></tr>
+    <tr><td>Ver as respostas de hoje</td><td>"mostra as respostas de hoje"</td></tr>
+    <tr><td>Resumir a semana</td><td>"resume os disparos desta semana"</td></tr>
+    <tr><td>Marcar uma resposta</td><td>"marca o lead [nome] como respondido"</td></tr>
+  </table>
+
+  <h2>Documentação e suporte</h2>
+  <table class="cols-fixed">
+    <tr><th>Arquivo</th><th>O que tem</th></tr>
+    <tr><td><code>docs/operacao-diaria.md</code></td><td>A rotina técnica completa.</td></tr>
+    <tr><td><code>docs/modo-automatico.md</code></td><td>Modo automático: travas e limitações.</td></tr>
+    <tr><td><code>docs/troubleshooting.md</code></td><td>Soluções detalhadas para os problemas mais comuns.</td></tr>
+    <tr><td><code>docs/comandos-diarios.md</code></td><td>Comandos prontos com os seus dados. <b>Contém o token da Apify: não compartilhe.</b></td></tr>
+  </table>
+  <p>Suporte oficial da ZX LAB: <b>https://suporte.zxlab.com.br/hub</b> ou <b>contato@zxlab.com.br</b>. Inclua a saída de <code>npm run status</code> e de <code>node setup/smoke.mjs</code>.</p>
+</section>
+
+</body>
+</html>

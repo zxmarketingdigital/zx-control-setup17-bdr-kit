@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<!--
+  Contingência de números · WhatsApp — versão mobile (ZX LAB brand kit)
+  Mesmo conteúdo da versão desktop (contingencia-whatsapp.html), em páginas
+  retrato largura de celular — pra ler no PDF sem precisar dar zoom.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contingência de números · WhatsApp (mobile)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0D0D0D;--bg-alt:#0A0A0A;--surface:#1A1A1A;--surface-2:#222222;--border:#2A2A2A;
+    --text:#E2E8F0;--text-2:#9CA3AF;--muted:#6B7280;
+    --amber:#D97706;--amber-l:#F59E0B;--amber-b:rgba(217,119,6,.35);--amber-bg:rgba(217,119,6,.10);
+    --ok:#4ADE80;--ok-bg:rgba(74,222,128,.08);--ok-b:rgba(74,222,128,.35);
+    --bad:#EF4444;--bad-bg:rgba(239,68,68,.08);--bad-b:rgba(239,68,68,.4);
+    --warn:#FBBF24;--warn-bg:rgba(251,191,36,.08);--warn-b:rgba(251,191,36,.4);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .mono{font-family:'JetBrains Mono',monospace}
+  @page{margin:0}
+  @page m1{size:402px 730px} @page m2{size:402px 1170px} @page m3{size:402px 1130px}
+  @page m4{size:402px 1240px} @page m5{size:402px 1000px} @page m6{size:402px 1710px}
+  @page m7{size:402px 1040px} @page m8{size:402px 1340px} @page m9{size:402px 890px}
+  @page m10{size:402px 1800px} @page m11{size:402px 1190px} @page m12{size:402px 1640px}
+  .page{width:402px;position:relative;padding:26px 20px 46px;
+    background-color:var(--bg);
+    background-image:linear-gradient(rgba(217,119,6,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(217,119,6,.03) 1px,transparent 1px);
+    background-size:36px 36px;page-break-after:always}
+  .page:last-child{page-break-after:auto}
+  .page:nth-of-type(1){page:m1;min-height:730px}
+  .page:nth-of-type(2){page:m2;min-height:1170px}
+  .page:nth-of-type(3){page:m3;min-height:1130px}
+  .page:nth-of-type(4){page:m4;min-height:1240px}
+  .page:nth-of-type(5){page:m5;min-height:1000px}
+  .page:nth-of-type(6){page:m6;min-height:1710px}
+  .page:nth-of-type(7){page:m7;min-height:1040px}
+  .page:nth-of-type(8){page:m8;min-height:1340px}
+  .page:nth-of-type(9){page:m9;min-height:890px}
+  .page:nth-of-type(10){page:m10;min-height:1800px}
+  .page:nth-of-type(11){page:m11;min-height:1190px}
+  .page:nth-of-type(12){page:m12;min-height:1640px}
+  .foot{position:absolute;left:20px;right:20px;bottom:18px;display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted);letter-spacing:.06em}
+  .kicker{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber-l);margin-bottom:10px}
+  h1{font-size:30px;font-weight:900;letter-spacing:-.03em;line-height:1.08}
+  h2{font-size:22px;font-weight:900;letter-spacing:-.02em;line-height:1.15;margin-bottom:2px}
+  h3{font-size:15.5px;font-weight:800;letter-spacing:-.005em}
+  .lead{font-size:14.5px;color:var(--text-2);line-height:1.5;margin-top:10px}
+  .amber{color:var(--amber-l)} .ok{color:var(--ok)} .bad{color:#fca5a5} .warn{color:var(--warn)} .dim{color:var(--text-2)} .mute{color:var(--muted)}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:14px 15px}
+  .card p,.card li{font-size:13px;line-height:1.48;color:var(--text-2)}
+  .card b{color:var(--text)}
+  .tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:100px;border:1px solid var(--amber-b);color:var(--amber-l);background:var(--amber-bg)}
+  .tag.ok{border-color:var(--ok-b);color:var(--ok);background:var(--ok-bg)}
+  .tag.bad{border-color:var(--bad-b);color:#fca5a5;background:var(--bad-bg)}
+  .tag.warn{border-color:var(--warn-b);color:var(--warn);background:var(--warn-bg)}
+  ul.b{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.b li{position:relative;padding-left:16px}
+  ul.b li::before{content:"▸";position:absolute;left:0;color:var(--amber);font-family:'JetBrains Mono',monospace}
+  .stack{display:flex;flex-direction:column;gap:12px;margin-top:14px}
+  .note{border-left:3px solid var(--amber);background:var(--amber-bg);border-radius:0 10px 10px 0;padding:11px 13px;font-size:13px;line-height:1.48;color:var(--text-2)}
+  .note b{color:var(--text)}
+  .note.warn{border-color:var(--warn);background:var(--warn-bg)}
+  .prompt{font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.48;color:var(--text);background:var(--bg-alt);border:1px solid var(--amber-b);border-radius:10px;padding:11px 12px}
+  .prompt::before{content:"você → claude";display:block;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber-l);margin-bottom:5px}
+  /* fluxos — sempre verticais no mobile */
+  .node{border:1px solid var(--border);background:var(--surface);border-radius:12px;padding:11px 13px;font-size:13px;line-height:1.4;color:var(--text-2)}
+  .node b{color:var(--text);display:block;font-size:14px;margin-bottom:2px}
+  .node.center{text-align:center}
+  .node.amber{border-color:var(--amber-b);background:var(--amber-bg)}
+  .node.ok{border-color:var(--ok-b);background:var(--ok-bg)}
+  .node.bad{border-color:var(--bad-b);background:var(--bad-bg)}
+  .node.warn{border-color:var(--warn-b);background:var(--warn-bg)}
+  .node.solid{background:var(--amber);border-color:var(--amber);color:#000}
+  .node.solid b{color:#000}
+  .vline{width:2px;height:18px;background:#3a3a3a;margin:0 0 0 20px;position:relative}
+  .vline.c{margin:0 auto}
+  .vline::after{content:"";position:absolute;bottom:-6px;left:-5px;border:6px solid transparent;border-top:7px solid #3a3a3a;border-bottom:0}
+  .flow{display:flex;flex-direction:column}
+  .subhead{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;margin:16px 0 8px}
+  .divider{border-top:1px dashed var(--border);margin:20px 0}
+  /* resumo — cartão por situação, não tabela */
+  .sitcard{border:1px solid var(--border);border-radius:12px;padding:13px 15px;margin-top:10px}
+  .sitcard .row{display:flex;gap:8px;font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--border)}
+  .sitcard .row:last-child{border-bottom:none}
+  .sitcard .row span:first-child{color:var(--muted);width:88px;flex-shrink:0;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.04em;text-transform:uppercase;padding-top:2px}
+  .sitcard .row span:last-child{color:var(--text-2)}
+</style>
+</head>
+<body>
+
+<!-- 1. CAPA -->
+<section class="page" style="display:flex;flex-direction:column;justify-content:center;min-height:640px">
+  <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9Ijk2IiB2aWV3Qm94PSIwIDAgMzIwIDk2IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHJvbGU9ImltZyIgYXJpYS1sYWJlbD0iWlggTEFCIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYW1iZXIiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI0ZDRDM0RCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjU1JSIgc3RvcC1jb2xvcj0iI0Y1OUUwQiIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNEOTc3MDYiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDwhLS0gw41jb25lOiBjaGV2cm9uIGFzY2VuZGVudGUgZGUgMyBjYW1hZGFzIChwcm9ncmVzc8OjbyAvIGVzY2FsYSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoOCwxMikiPgogICAgPHBhdGggZD0iTTM2IDQgTDYyIDMwIEw1MiAzMCBMMzYgMTQgTDIwIDMwIEwxMCAzMCBaIiBmaWxsPSJ1cmwoI2FtYmVyKSIvPgogICAgPHBhdGggZD0iTTM2IDI0IEw1OCA0NiBMNDggNDYgTDM2IDM0IEwyNCA0NiBMMTQgNDYgWiIgZmlsbD0iI0Y1OUUwQiIgb3BhY2l0eT0iMC43OCIvPgogICAgPHBhdGggZD0iTTM2IDQ0IEw1NCA2MiBMNDQgNjIgTDM2IDU0IEwyOCA2MiBMMTggNjIgWiIgZmlsbD0iI0Q5NzcwNiIgb3BhY2l0eT0iMC41NSIvPgogIDwvZz4KICA8IS0tIFdvcmRtYXJrIC0tPgogIDx0ZXh0IHg9IjkyIiB5PSI1NiIgZm9udC1mYW1pbHk9IidKZXRCcmFpbnMgTW9ubycsJ1NGIE1vbm8nLG1vbm9zcGFjZSIgZm9udC1zaXplPSI0MCIgZm9udC13ZWlnaHQ9IjcwMCIgbGV0dGVyLXNwYWNpbmc9IjIiIGZpbGw9IiNFMkU4RjAiPlpYPC90ZXh0PgogIDx0ZXh0IHg9IjE3NiIgeT0iNTYiIGZvbnQtZmFtaWx5PSInSmV0QnJhaW5zIE1vbm8nLCdTRiBNb25vJyxtb25vc3BhY2UiIGZvbnQtc2l6ZT0iNDAiIGZvbnQtd2VpZ2h0PSI3MDAiIGxldHRlci1zcGFjaW5nPSI2IiBmaWxsPSJ1cmwoI2FtYmVyKSI+TEFCPC90ZXh0PgogIDxyZWN0IHg9IjkyIiB5PSI2NiIgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzJBMkEyQSIvPgogIDx0ZXh0IHg9IjkyIiB5PSI4NCIgZm9udC1mYW1pbHk9IkludGVyLHN5c3RlbS11aSxzYW5zLXNlcmlmIiBmb250LXNpemU9IjEwLjUiIGZvbnQtd2VpZ2h0PSI3MDAiIGxldHRlci1zcGFjaW5nPSIzLjUiIGZpbGw9IiM2QjcyODAiPkFJIE9QRVJBVElORyBTWVNURU08L3RleHQ+Cjwvc3ZnPgo=" alt="ZX LAB" style="height:32px;margin-bottom:22px">
+  <span class="kicker">ZX Control 7 · Setup 17 · Operação</span>
+  <h1>Contingência de números no WhatsApp</h1>
+  <p class="lead" style="font-size:15px">A pergunta não é <b class="amber">se</b> o número vai cair. É <b class="amber">quando</b>. Este guia mostra como deixar a troca pronta antes de precisar dela, e o que fazer em cada tipo de queda.</p>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:18px">
+    <span class="tag">aquecimento</span><span class="tag">número reserva</span><span class="tag warn">restrição</span><span class="tag bad">banimento</span><span class="tag ok">recuperação</span>
+  </div>
+</section>
+
+<!-- 2. POR QUE -->
+<section class="page">
+  <span class="kicker">01 · O risco</span>
+  <h2>Por que o número vai cair um dia</h2>
+  <div class="stack">
+    <div class="card">
+      <span class="tag bad">fora do nosso controle</span>
+      <ul class="b" style="margin-top:12px">
+        <li><b>Instância não oficial.</b> A Evolution conecta o WhatsApp como se fosse um aparelho. Não é a API oficial da Meta, e os termos do WhatsApp não permitem esse uso.</li>
+        <li><b>Prospecção fria é o que a Meta chama de spam:</b> mensagem pra quem não pediu e não tem o seu número salvo.</li>
+        <li><b>Quem decide é o WhatsApp.</b> Uma denúncia ou bloqueio de quem recebeu pesa, e a Meta não publica os critérios nem avisa antes.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="tag ok">o que o kit já faz pra reduzir o risco</span>
+      <ul class="b" style="margin-top:12px">
+        <li>No máximo <b>10 abordagens novas por dia</b>, com <b>2 a 3 minutos</b> entre mensagens</li>
+        <li>Envia só em <b>dia útil, das 10h às 18h</b></li>
+        <li>Confere se o número tem WhatsApp antes de enviar</li>
+        <li>Pedido pra parar é gravado e o número <b>nunca mais</b> recebe mensagem</li>
+        <li>Copy curta, específica e sem cara de robô (checklist anti-IA)</li>
+        <li><b>Pausa sozinho</b> quando a conexão cai: confere a cada 30 segundos</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note" style="margin-top:16px"><b>Isso reduz a chance de queda. Não zera.</b> Por isso a operação trabalha sempre com um segundo número pronto pra assumir.</div>
+  <div class="foot"><span>ZX LAB · ZX CONTROL 7 · SETUP 17</span><span>02</span></div>
+</section>
+
+<!-- 3. REGRA DE OURO -->
+<section class="page">
+  <span class="kicker">02 · A regra</span>
+  <h2>Sempre dois números: um ativo, um aquecendo</h2>
+  <p class="lead">O número reserva está cadastrado, sendo usado de forma normal e <b>fora de qualquer automação</b>. Quando o ativo cai, ele assume no mesmo dia.</p>
+  <div class="stack">
+    <div class="card" style="border-color:var(--ok-b)">
+      <div style="display:flex;justify-content:space-between;align-items:center"><h3>Número ATIVO</h3><span class="tag ok">prospectando</span></div>
+      <ul class="b" style="margin-top:12px">
+        <li>Conectado a uma instância Evolution própria</li>
+        <li>Dispara toque 1 e follow-ups pelo dispatcher</li>
+        <li>É o que aparece na aba Prospecção Fria do CRM</li>
+      </ul>
+    </div>
+    <div class="card" style="border-color:var(--amber-b)">
+      <div style="display:flex;justify-content:space-between;align-items:center"><h3>Número RESERVA</h3><span class="tag">aquecendo</span></div>
+      <ul class="b" style="margin-top:12px">
+        <li>WhatsApp Business cadastrado, perfil preenchido</li>
+        <li>Trocando mensagens normais há pelo menos 3 dias</li>
+        <li><b>Nunca</b> conectado à Evolution enquanto é reserva</li>
+      </ul>
+    </div>
+  </div>
+  <p class="mono mute subhead">O ciclo</p>
+  <div class="flow">
+    <div class="node bad center"><b>Ativo cai</b>sessão, restrição ou banimento</div>
+    <div class="vline c"></div>
+    <div class="node solid center"><b>Reserva assume</b>em instância Evolution nova</div>
+    <div class="vline c"></div>
+    <div class="node amber center"><b>Novo reserva</b>entra no mesmo dia e aquece 3 dias</div>
+    <div class="vline c"></div>
+    <div class="node ok center"><b>Dois números de novo</b>operação protegida</div>
+  </div>
+  <div class="foot"><span>ZX LAB · ZX CONTROL 7 · SETUP 17</span><span>03</span></div>
+</section>
+
+<!-- 4. AQUECIMENTO -->
+<section class="page">
+  <span class="kicker">03 · Aquecimento</span>
+  <h2>Como aquecer um número antes de conectar</h2>
+  <p class="lead">Número recém-criado que já começa disparando é o perfil que mais cai. O reserva precisa parecer, e ser, um WhatsApp de uso normal antes de entrar na automação.</p>
+  <div class="flow" style="margin-top:16px">
+    <div class="node amber"><span class="tag">dia 0</span><b style="margin-top:8px">Cadastro no WhatsApp Business</b>Chip no celular, código de verificação, nome da empresa, foto e descrição preenchidos.</div>
+    <div class="vline"></div>
+    <div class="node amber"><span class="tag">dias 1 a 3</span><b style="margin-top:8px">Uso de verdade, pelo celular</b>Mande e receba mensagens com contatos que conhecem você e respondem. Conversa normal, sem disparo.</div>
+    <div class="vline"></div>
+    <div class="node ok"><span class="tag ok">dia 3 em diante</span><b style="margin-top:8px">Pronto pra ser reserva</b>Fica esperando nesse estado. Só vai pra Evolution quando o ativo cair.</div>
+  </div>
+  <div class="stack" style="margin-top:16px">
+    <div class="note"><b>Mínimo de 3 dias</b> de uso no app antes de conectar a qualquer instância não oficial. Mais tempo aquecendo não atrapalha.</div>
+    <div class="note warn"><b>Não pule o aquecimento</b> nem na pressa de voltar a prospectar. Um número frio que cai em 2 dias custa mais que 3 dias de espera.</div>
+  </div>
+  <div class="foot"><span>ZX LAB · ZX CONTROL 7 · SETUP 17</span><span>04</span></div>
+</section>
+
+<!-- 5. CADASTRO DIFÍCIL -->
+<section class="page">
+  <span class="kicker">04 · Cadastro</span>
+  <h2>O WhatsApp Business não aceita o número novo?</h2>
+  <p class="lead">Acontece com chip recém-ativado: o código não chega ou o cadastro trava. O caminho é cadastrar primeiro no WhatsApp comum e depois levar o número pro Business.</p>
+  <div class="flow" style="margin-top:16px">
+    <div class="node bad"><b>Cadastro no WhatsApp Business falhou</b>código não chega, erro ou bloqueio no cadastro</div>
+    <div class="vline"></div>
+    <div class="node amber"><b>1. Cadastre no WhatsApp comum</b>mesmo chip, mesmo celular</div>
+    <div class="vline"></div>
+    <div class="node amber"><b>2. Use normalmente por alguns dias</b>conversas reais, como qualquer WhatsApp pessoal</div>
+    <div class="vline"></div>
+    <div class="node amber"><b>3. Instale o WhatsApp Business no mesmo celular</b>ele oferece usar o número que já está no WhatsApp: aceite</div>
+    <div class="vline"></div>
+    <div class="node ok"><b>4. Continue o aquecimento no Business</b>a contagem dos 3 dias vale a partir daqui</div>
+  </div>
+  <div class="foot"><span>ZX LAB · ZX CONTROL 7 · SETUP 17</span><span>05</span></div>
+</section>
+
+<!-- 6. FLUXOGRAMA GERAL -->
+<section class="page">
+  <span class="kicker">05 · Diagnóstico</span>
+  <h2>A automação parou. E agora?</h2>
+  <div class="flow" style="margin-top:14px">
+    <div class="node solid"><b>O WhatsApp da automação parou</b>a aba Prospecção Fria mostra "WhatsApp desconectado"</div>
+    <div class="vline"></div>
+    <div class="node"><b>Abra o WhatsApp no celular do número</b>o que aparece lá?</div>
+  </div>
+  <div class="divider"></div>
+  <div class="flow">
+    <div class="node warn"><b>Nenhum aviso. O app funciona.</b>só a conexão da Evolution caiu</div>
+    <div class="vline"></div>
+    <div class="node"><span class="tag warn">erro de sessão</span><div style="margin-top:7px">Espere <b style="display:inline;color:var(--text);font-size:13px">24 horas</b>. Depois suba uma Evolution <b style="display:inline;color:var(--text);font-size:13px">zerada</b> com o número reserva.</div></div>
+  </div>
+  <div class="divider"></div>
+  <div class="flow">
+    <div class="node warn"><b>"Conta restrita temporariamente"</b>normalmente 24 a 48 horas</div>
+    <div class="vline"></div>
+    <div class="node"><span class="tag warn">restrição</span><div style="margin-top:7px">O reserva assume em instância nova. O número restrito espera o prazo e volta em instância limpa, com motor <b style="display:inline;color:var(--text);font-size:13px">whatsapp-web.js</b>.</div></div>
+  </div>
+  <div class="divider"></div>
+  <div class="flow">
+    <div class="node bad"><b>"Este número não pode mais usar o WhatsApp"</b>ou não consegue mais entrar</div>
+    <div class="vline"></div>
+    <div class="node"><span class="tag bad">banimento</span><div style="margin-top:7px"><b style="display:inline;color:var(--text);font-size:13px">Abandone o número.</b> Evolution nova, do zero, com o reserva. Não tente recuperar pela automação.</div></div>
+  </div>
+  <div class="note" style="margin-top:16px;text-align:center;border-left:0;border:1px solid var(--amber-b);border-radius:10px"><b>Nos três casos:</b> no mesmo dia, comece a aquecer um novo número reserva.</div>
+  <div class="foot"><span>ZX LAB · ZX CONTROL 7 · SETUP 17</span><span>06</span></div>
+</section>
+
+<!-- 7. ERRO DE SESSÃO -->
+<section class="page">
+  <span class="kicker">06 · Caso 1</span>
+  <h2>Erro de sessão</h2>
+  <p class="lead">A conexão entre a Evolution e o WhatsApp se perdeu, mas o número não recebeu punição. É o caso mais leve, e mesmo assim não vale reconectar na pressa.</p>
+  <div class="card" style="margin-top:16px">
+    <span class="tag warn">como reconhecer</span>
+    <ul class="b" style="margin-top:12px">
+      <li>A aba Prospecção Fria mostra <b>WhatsApp desconectado</b></li>
+      <li>O painel da Evolution pede QR de novo ou fica em "connecting"</li>
+      <li>No celular, o WhatsApp funciona normal, <b>sem nenhum aviso</b></li>
+    </ul>
+  </div>
+  <div class="flow" style="margin-top:16px">
+    <div class="node amber"><b>1. Espere 24 horas</b>o dispatcher já pausou sozinho, nada é enviado nesse tempo</div>
+    <div class="vline"></div>
+    <div class="node amber"><b>2. Suba uma Evolution zerada</b>peça ao Claude (prompt na seção "Na prática")</div>
+    <div class="vline"></div>
+    <div class="node ok"><b>3. Conecte o número reserva e leia o QR</b>e comece a aquecer o próximo reserva</div>
+  </div>
+  <div class="foot"><span>ZX LAB · ZX CONTROL 7 · SETUP 17</span><span>07</span></div>
+</section>
+
+<!-- 8. RESTRIÇÃO -->
+<section class="page">
+  <span class="kicker">07 · Caso 2</span>
+  <h2>Restrição temporária</h2>
+  <p class="lead">O WhatsApp limita o número por um tempo, normalmente 24 a 48 horas. Dois números seguem caminhos diferentes a partir daqui.</p>
+  <p class="mono ok subhead">Número reserva · assume já</p>
+  <div class="flow">
+    <div class="node amber"><b>1. Instância Evolution nova</b>nunca a mesma do número restrito</div>
+    <div class="vline"></div>
+    <div class="node ok"><b>2. Reserva vira ativo</b>a prospecção continua no mesmo dia</div>
+    <div class="vline"></div>
+    <div class="node amber"><b>3. Novo reserva começa a aquecer</b></div>
+  </div>
+  <p class="mono warn subhead">Número restrito · espera e volta diferente</p>
+  <div class="flow">
+    <div class="node warn"><b>1. Espere o prazo da restrição</b>sem conectar, sem disparar</div>
+    <div class="vline"></div>
+    <div class="node amber"><b>2. Volte em instância limpa e nova</b>nada reaproveitado da instância anterior</div>
+    <div class="vline"></div>
+    <div class="node amber"><b>3. Troque o motor pra whatsapp-web.js</b>pra não cruzar com os dados da instância que tomou a restrição</div>
+  </div>
+  <div class="note warn" style="margin-top:16px"><b>Atenção com o whatsapp-web.js.</b> O kit hoje vem só com o motor Evolution, então a troca é o Claude reescrevendo o transporte de envio. E esse motor tem uma limitação conhecida: contatos no endereçamento novo do WhatsApp (LID) podem não receber, com o envio aparecendo como enviado. Nos primeiros envios, confira os dois tiques antes de soltar a cadência.</div>
+  <div class="foot"><span>ZX LAB · ZX CONTROL 7 · SETUP 17</span><span>08</span></div>
+</section>
+
+<!-- 9. BANIMENTO -->
+<section class="page">
+  <span class="kicker">08 · Caso 3</span>
+  <h2>Banimento</h2>
+  <p class="lead">O número foi banido. Não existe versão da automação que traga ele de volta com segurança.</p>
+  <div class="card" style="margin-top:16px;border-color:var(--bad-b)">
+    <span class="tag bad">como reconhecer</span>
+    <ul class="b" style="margin-top:12px">
+      <li>O app avisa que o número <b>não pode mais usar o WhatsApp</b></li>
+      <li>Você é desconectado e não consegue entrar de novo</li>
+    </ul>
+    <p style="margin-top:12px;font-size:12px" class="mute">O próprio app oferece pedir revisão à Meta. Pode pedir, mas fora da operação: não espere a resposta pra voltar a prospectar.</p>
+  </div>
+  <div class="flow" style="margin-top:16px">
+    <div class="node bad"><b>1. Abandone o número</b>não reconecte, não tente outra instância com ele</div>
+    <div class="vline"></div>
+    <div class="node amber"><b>2. Evolution nova, do zero</b>apaga a instância e os dados guardados da antiga</div>
+    <div class="vline"></div>
+    <div class="node ok"><b>3. Reserva assume</b>e um novo reserva começa a aquecer no mesmo dia</div>
+  </div>
+  <div class="foot"><span>ZX LAB · ZX CONTROL 7 · SETUP 17</span><span>09</span></div>
+</section>
+
+<!-- 10. PEÇA AO CLAUDE -->
+<section class="page">
+  <span class="kicker">09 · Na prática</span>
+  <h2>O que pedir ao Claude Code</h2>
+  <p class="lead">Você não precisa mexer em Docker nem em arquivo de configuração. Abra o Claude Code na pasta do kit e peça:</p>
+  <div class="stack">
+    <div>
+      <div class="prompt">Crie uma instância Evolution do zero pro número novo e evite cruzar com os dados da instância antiga.</div>
+      <p class="mono mute" style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;margin:10px 0 6px">o que ele faz</p>
+      <ul class="b" style="font-size:12px;color:var(--text-2)">
+        <li>Desconecta e apaga a instância antiga</li>
+        <li>Zera os volumes da Evolution (<span class="mono">docker compose down -v</span>) e sobe de novo</li>
+        <li>Cria a instância com nome novo e atualiza <span class="mono">EVOLUTION_INSTANCE</span> no dispatcher e no CRM</li>
+        <li>Mostra o QR pra você ler com o celular do número</li>
+      </ul>
+    </div>
+    <div>
+      <div class="prompt">Troque o motor desse número de Evolution API para whatsapp-web.js.</div>
+      <p class="mono mute" style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;margin:10px 0 6px">o que ele faz</p>
+      <ul class="b" style="font-size:12px;color:var(--text-2)">
+        <li>Reescreve o transporte de envio do dispatcher pro whatsapp-web.js</li>
+        <li>Gera o QR no terminal pra conectar o número</li>
+        <li>Use só no número que voltou de restrição</li>
+        <li>Confira a entrega (dois tiques) nos primeiros envios</li>
+      </ul>
+    </div>
+    <div>
+      <div class="prompt">O WhatsApp da automação caiu. Me ajuda a entender se é sessão, restrição ou banimento?</div>
+      <p class="mono mute" style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;margin:10px 0 6px">o que ele faz</p>
+      <ul class="b" style="font-size:12px;color:var(--text-2)">
+        <li>Lê o estado da instância e o log do dispatcher</li>
+        <li>Pergunta o que aparece no celular</li>
+        <li>Diz em qual dos três casos você está e o próximo passo</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot"><span>ZX LAB · ZX CONTROL 7 · SETUP 17</span><span>10</span></div>
+</section>
+
+<!-- 11. LEADS -->
+<section class="page">
+  <span class="kicker">10 · Os leads</span>
+  <h2>O que acontece com os leads na troca</h2>
+  <div class="stack">
+    <div class="card" style="border-color:var(--ok-b)">
+      <span class="tag ok">não se perde nada</span>
+      <ul class="b" style="margin-top:12px">
+        <li>Histórico, status, cadência e opt-out ficam no <span class="mono">pipeline/</span> do kit, não no número</li>
+        <li>Mensagem que não saiu por causa da queda <b>não avança a cadência</b>: o lead recebe o toque certo quando o número novo conectar</li>
+        <li>Quem pediu pra parar continua bloqueado, em qualquer número</li>
+      </ul>
+    </div>
+    <div class="card" style="border-color:var(--amber-b)">
+      <span class="tag">o que pede atenção sua</span>
+      <ul class="b" style="margin-top:12px">
+        <li><b>Leads que já conversavam</b> com o número antigo vão receber mensagem de um número que não conhecem. Mande você mesmo um aviso curto antes de a conversa seguir: <i>"Oi, aqui é o Lucas, troquei de número."</i></li>
+        <li><b>Modo automático:</b> pausa sozinho enquanto não houver conexão. Depois da troca, confira a aba Prospecção Fria antes de deixar ele seguir.</li>
+        <li><b>Reunião já marcada:</b> o convite do Google Calendar continua valendo. Se for falar com o lead antes da call, avise da troca de número na mesma mensagem.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note" style="margin-top:16px"><b>Instância nova reduz o cruzamento com o número antigo. Não garante.</b> O que mais pesa pra um número durar continua sendo o comportamento de envio: volume baixo, mensagem relevante e respeito a quem pede pra parar.</div>
+  <div class="foot"><span>ZX LAB · ZX CONTROL 7 · SETUP 17</span><span>11</span></div>
+</section>
+
+<!-- 12. RESUMO -->
+<section class="page">
+  <span class="kicker">11 · Cola rápida</span>
+  <h2>Resumo por situação</h2>
+
+  <div class="sitcard" style="border-color:var(--warn-b)">
+    <span class="tag warn">erro de sessão</span>
+    <div class="row"><span>Sinal</span><span>desconectou, app normal</span></div>
+    <div class="row"><span>Espera</span><span style="color:var(--text)">24 horas</span></div>
+    <div class="row"><span>Número</span><span>entra o reserva</span></div>
+    <div class="row"><span>Instância</span><span>Evolution zerada</span></div>
+  </div>
+
+  <div class="sitcard" style="border-color:var(--warn-b)">
+    <span class="tag warn">restrição</span>
+    <div class="row"><span>Sinal</span><span>aviso de conta restrita</span></div>
+    <div class="row"><span>Espera</span><span style="color:var(--text)">24 a 48 horas</span></div>
+    <div class="row"><span>Número</span><span>reserva assume; restrito volta depois</span></div>
+    <div class="row"><span>Instância</span><span>nova pro reserva; restrito volta limpa, com whatsapp-web.js</span></div>
+  </div>
+
+  <div class="sitcard" style="border-color:var(--bad-b)">
+    <span class="tag bad">banimento</span>
+    <div class="row"><span>Sinal</span><span>número não pode mais usar o WhatsApp</span></div>
+    <div class="row"><span>Espera</span><span style="color:var(--text)">não volta</span></div>
+    <div class="row"><span>Número</span><span>abandona; entra o reserva</span></div>
+    <div class="row"><span>Instância</span><span>Evolution nova, do zero</span></div>
+  </div>
+
+  <div class="sitcard">
+    <span class="tag">número novo</span>
+    <div class="row"><span>Sinal</span><span>cadastro no Business travou</span></div>
+    <div class="row"><span>Espera</span><span style="color:var(--text)">3 dias de uso</span></div>
+    <div class="row"><span>Número</span><span>WhatsApp comum → Business</span></div>
+    <div class="row"><span>Instância</span><span>nenhuma até virar reserva e ser chamado</span></div>
+  </div>
+
+  <div class="flow" style="margin-top:18px">
+    <div class="node ok"><b>Sempre 2 números</b>um ativo, um aquecendo</div>
+    <div class="vline"></div>
+    <div class="node amber"><b>Número novo = instância nova</b>nunca reaproveite a da queda</div>
+    <div class="vline"></div>
+    <div class="node amber"><b>Usou o reserva?</b>comece o próximo no mesmo dia</div>
+  </div>
+  <div class="foot"><span>ZX LAB · ZX CONTROL 7 · SETUP 17</span><span>12</span></div>
+</section>
+
+</body>
+</html>

@@ -396,6 +396,18 @@ async function phase2(rl) {
     'America/Sao_Paulo'
   );
 
+  // País padrão dos telefones dos leads (código de 2 letras). Número escrito com "+"
+  // (ex.: +351...) vale em qualquer país; este só decide como ler número sem "+".
+  let DEFAULT_COUNTRY = '';
+  while (!/^[A-Za-z]{2}$/.test(DEFAULT_COUNTRY)) {
+    DEFAULT_COUNTRY = (await askWithDefault(
+      rl,
+      'País padrão dos telefones dos leads (2 letras: BR, PT, US...)?',
+      'BR'
+    )).trim();
+  }
+  DEFAULT_COUNTRY = DEFAULT_COUNTRY.toUpperCase();
+
   const WINDOW_START_HOUR = await askWithDefault(
     rl,
     'Hora início de envio?',
@@ -460,6 +472,7 @@ async function phase2(rl) {
 
   return {
     TIMEZONE,
+    DEFAULT_COUNTRY,
     WINDOW_START_HOUR,
     WINDOW_END_HOUR,
     DAILY_NEW_CAP,
@@ -1679,6 +1692,7 @@ TRANSCRIBE_MIN_CONFIDENCE=0.5
 function generateDispatcherEnv(vars) {
   const {
     TIMEZONE,
+    DEFAULT_COUNTRY = 'BR',
     WINDOW_START_HOUR,
     WINDOW_END_HOUR,
     INTERVAL_MIN_SECONDS,
@@ -1690,6 +1704,8 @@ function generateDispatcherEnv(vars) {
   } = vars;
 
   return `TIMEZONE=${TIMEZONE}
+# País padrão dos telefones dos leads (2 letras). Lido pelo build-pool.py e pelo enrich-sites.py.
+DEFAULT_COUNTRY=${DEFAULT_COUNTRY}
 WINDOW_START_HOUR=${WINDOW_START_HOUR}
 WINDOW_END_HOUR=${WINDOW_END_HOUR}
 WORKING_DAYS=1,2,3,4,5
@@ -2117,6 +2133,7 @@ async function main() {
     // Merge with safe defaults
     const vars = {
       TIMEZONE: 'America/Sao_Paulo',
+      DEFAULT_COUNTRY: 'BR',
       WINDOW_START_HOUR: '10',
       WINDOW_END_HOUR: '18',
       DAILY_NEW_CAP: '10',
@@ -2126,6 +2143,13 @@ async function main() {
       EVOLUTION_INSTANCE: 'bdr-instance',
       ...rawConfig,
     };
+
+    // País padrão dos telefones: 2 letras (BR, PT, US...).
+    vars.DEFAULT_COUNTRY = String(vars.DEFAULT_COUNTRY || 'BR').trim().toUpperCase();
+    if (!/^[A-Z]{2}$/.test(vars.DEFAULT_COUNTRY)) {
+      console.error(c.red(`\n✗ DEFAULT_COUNTRY inválido: "${vars.DEFAULT_COUNTRY}". Use o código de 2 letras do país (BR, PT, US...).\n`));
+      process.exit(1);
+    }
 
     // Aceita nomes alternativos (NICHO/POSICIONAMENTO) como aliases dos campos
     // que os geradores realmente consomem — evita quebrar configs antigos.

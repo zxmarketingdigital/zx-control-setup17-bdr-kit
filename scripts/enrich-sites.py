@@ -27,6 +27,8 @@ import argparse
 from datetime import date
 from pathlib import Path
 
+import phone_utils
+
 # Evita UnicodeEncodeError ao imprimir símbolos no console padrão do Windows
 # (cp1252). Sem efeito em Mac/Linux, que já usam UTF-8.
 if hasattr(sys.stdout, 'reconfigure'):
@@ -85,8 +87,6 @@ def build_blocklist() -> set:
     # Python puro, sem `grep` do sistema (não existe no PowerShell/cmd do
     # Windows). Aceita celular e fixo: em modo B2B o pool também tem fixo.
     phones = set()
-    pattern = re.compile(r'\+55\d{10,11}')
-    valid = re.compile(r'^\+55\d{2}(9\d{8}|[2-5]\d{7})$')
     sources = (
         list(PIPELINE_DIR.glob("leads-master.json"))
         + list(PIPELINE_DIR.glob("log-disparos.json"))
@@ -97,9 +97,7 @@ def build_blocklist() -> set:
             text = source.read_text(encoding='utf-8', errors='ignore')
         except OSError:
             continue
-        for match in pattern.findall(text):
-            if valid.match(match):
-                phones.add(match)
+        phones |= phone_utils.find_known_phones(text, accept_landline=True)
     return phones
 
 

@@ -118,6 +118,8 @@ python3 scripts/build-pool.py pipeline/dataset-2026-06-02.json
 
 > No Windows, use `python` no lugar de `python3` se o segundo não for reconhecido.
 
+**Leads de fora do Brasil:** o setup pergunta o país padrão dos telefones (`DEFAULT_COUNTRY`, padrão `BR`; `PT` para Portugal). Número escrito com `+` (por exemplo `+351 912 345 678`) vale em qualquer país, e o `build-pool.py` mostra no fim quantos leads foram descartados por telefone.
+
 Faça isso uma vez por lote — não é necessário diariamente.
 
 ### Rotina diária

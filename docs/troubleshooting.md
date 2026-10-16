@@ -140,11 +140,12 @@ Confirme que o `APIFY_ACTOR_ID` em `.claude/contexto-local.md` está correto. Vo
 **d) Dataset do actor:**
 O actor precisa ter rodado pelo menos uma vez e gerado resultados. Acesse o Apify Console, abra o actor, vá em **Last Run** e confira se há itens no dataset.
 
-**e) Formato do celular:**
-O sistema filtra apenas leads com celular no formato brasileiro (`+55` seguido de DDD + número com 9 dígitos). Se os leads no dataset estão com formato diferente (sem `+55`, com espaços, etc.), o filtro vai descartar todos.
+**e) Formato e país do telefone:**
+O `build-pool.py` aceita telefone de qualquer país, em formato internacional (`+55...`, `+351...`, `+1...`), e valida celular x fixo pelas regras do país do número. No fim ele mostra quantos leads foram descartados por telefone (sem telefone, inválido, não é celular).
 
-Formato aceito: `+5511999990000`, `+5521987654321`
-Formato rejeitado: `11999990000`, `(11) 99999-0000`, `55 11 99999-0000`
+Número escrito **com `+`** vale em qualquer país: `+5511999990000`, `+351912345678`. Número escrito **sem `+`** é lido no país padrão, definido no setup em `DEFAULT_COUNTRY` (2 letras, padrão `BR`, no `dispatcher/.env`). Para prospectar em Portugal, por exemplo, use `DEFAULT_COUNTRY=PT`: `912345678` e `+351 912 345 678` passam. Para testar sem mudar o `.env`: `DEFAULT_COUNTRY=PT python scripts/build-pool.py <dataset>` (no Windows PowerShell: `$env:DEFAULT_COUNTRY='PT'; python scripts/build-pool.py <dataset>`).
+
+Se o relatório mostra muitos "Phone inválido", confira se `DEFAULT_COUNTRY` é o país dos seus leads e se o dataset traz o número completo (com DDD ou código de área).
 
 **f) Se enriqueceu pelo Claude Code (navegador dele) e o arquivo saiu incompleto:**
 Peça pra ele conferir de novo os leads que ficaram com `followers`/`meta_ads`

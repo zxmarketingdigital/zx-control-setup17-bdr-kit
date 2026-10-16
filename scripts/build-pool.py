@@ -21,6 +21,8 @@ from datetime import date
 from pathlib import Path
 from collections import Counter
 
+import phone_utils
+
 # Evita UnicodeEncodeError ao imprimir símbolos (✓, ⚠️, →) no console padrão
 # do Windows (cp1252). Sem efeito em Mac/Linux, que já usam UTF-8.
 if hasattr(sys.stdout, 'reconfigure'):
@@ -31,8 +33,8 @@ PIPELINE_DIR = Path(__file__).parent.parent / "pipeline"
 POOL_FILE = PIPELINE_DIR / "pool-prequalificados.json"
 ICP_FILE = PIPELINE_DIR / "icp-config.json"
 
-CELL_PATTERN = re.compile(r'^\+55\d{2}9\d{8}$')
-LANDLINE_PATTERN = re.compile(r'^\+55\d{2}[2-5]\d{7}$')
+# Telefones: formato internacional (E.164), validado por país em scripts/phone_utils.py.
+# O país padrão (DEFAULT_COUNTRY, padrão BR) só decide como ler número escrito sem "+".
 
 
 # ---------------------------------------------------------------------------
@@ -91,8 +93,6 @@ def build_blocklist(include_landline: bool = False) -> set:
     mesmo comportamento que o antigo `grep -ohP` tinha, só que sem shell out.
     """
     phones = set()
-    pattern = re.compile(r'\+55\d{10,11}')
-
     sources = (
         list(PIPELINE_DIR.glob("leads-master.json"))
         + list(PIPELINE_DIR.glob("log-disparos.json"))
@@ -108,9 +108,7 @@ def build_blocklist(include_landline: bool = False) -> set:
             text = source.read_text(encoding='utf-8', errors='ignore')
         except OSError:
             continue
-        for match in pattern.findall(text):
-            if CELL_PATTERN.match(match) or (include_landline and LANDLINE_PATTERN.match(match)):
-                phones.add(match)
+        phones |= phone_utils.find_known_phones(text, accept_landline=include_landline)
 
     print(f"[build-pool] Blocklist: {len(phones)} telefones conhecidos")
     return phones
@@ -120,17 +118,9 @@ def build_blocklist(include_landline: bool = False) -> set:
 # Normalização e filtros básicos
 # ---------------------------------------------------------------------------
 
-def normalize_phone(ph: str) -> str | None:
-    if not ph:
-        return None
-    digits = re.sub(r'\D', '', ph)
-    if digits.startswith('55') and len(digits) in [12, 13]:
-        return '+' + digits
-    return None
-
-
-def is_cellphone(ph: str) -> bool:
-    return bool(ph and CELL_PATTERN.match(ph))
+def parse_phone(ph, country: str):
+    """(e164, kind, motivo): kind é 'celular', 'fixo' ou None; motivo é 'vazio' ou 'invalido'."""
+    return phone_utils.parse_phone(ph, country)
 
 
 def has_digital_presence(item: dict) -> bool:
@@ -271,6 +261,7 @@ def main():
         dataset = json.load(f)
     print(f"[build-pool] {len(dataset)} itens no dataset")
 
+    country = phone_utils.default_country()
     icp = load_icp_config()
     b2b = icp['business_type'] == 'b2b'
     accept_landline = b2b and icp.get('accept_landline', True)
@@ -292,19 +283,19 @@ def main():
         print(f"[build-pool] Pool existente: {len(pool)} leads ({sum(1 for l in pool if l['status']=='pending')} pending)")
 
     # Processar dataset
-    stats = {k: 0 for k in ['no_phone', 'not_cell', 'blocklist', 'duplicate', 'no_presence', 'excluded', 'landline', 'niche_match', 'added']}
+    stats = {k: 0 for k in ['no_phone', 'invalid_phone', 'not_cell', 'blocklist', 'duplicate', 'no_presence', 'excluded', 'landline', 'niche_match', 'added']}
     added = []
     today = str(date.today())
 
     for item in dataset:
-        phone = normalize_phone(item.get('phone') or '')
+        phone, kind, why = parse_phone(item.get('phone') or '', country)
 
         if not phone:
-            stats['no_phone'] += 1
+            stats['no_phone' if why == 'vazio' else 'invalid_phone'] += 1
             continue
         phone_type = 'celular'
-        if not is_cellphone(phone):
-            if accept_landline and LANDLINE_PATTERN.match(phone):
+        if kind != phone_utils.CELULAR:
+            if accept_landline and kind == phone_utils.FIXO:
                 phone_type = 'fixo'
             else:
                 stats['not_cell'] += 1
@@ -365,7 +356,9 @@ def main():
 
     # Relatório
     print(f"\n[build-pool] Resultado:")
+    print(f"  País padrão dos telefones: {country}")
     print(f"  Sem phone:        {stats['no_phone']}")
+    print(f"  Phone inválido:   {stats['invalid_phone']}")
     print(f"  Não é celular:    {stats['not_cell']}")
     print(f"  Blocklist:        {stats['blocklist']}")
     print(f"  Já no pool:       {stats['duplicate']}")

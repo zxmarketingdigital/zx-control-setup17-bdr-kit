@@ -3,6 +3,7 @@ import path from 'node:path';
 import { config } from './config.js';
 import { logger } from './log.js';
 import { addWorkingDays, todayStr } from './window.js';
+import { localToDate, toIso } from './tz.js';
 import { writeJsonAtomic } from './fs-atomic.js';
 
 const MOD = 'master';
@@ -51,7 +52,7 @@ export async function recordTouchSent(leadId, touch, copy, queueEntry) {
 
   const nextTouch = touch + 1;
   const nextTouchDueAt = nextTouch <= 6
-    ? addWorkingDays(today, TOUCH_OFFSETS[nextTouch] - TOUCH_OFFSETS[touch]) + 'T10:00:00-03:00'
+    ? toIso(localToDate(addWorkingDays(today, TOUCH_OFFSETS[nextTouch] - TOUCH_OFFSETS[touch]), '10:00'))
     : null;
 
   if (!master[leadId]) {

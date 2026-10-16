@@ -101,6 +101,15 @@ if (fs.existsSync(rel('setup', 'config.json'))) {
 }
 
 // ── Etapa 7: conexões ──────────────────────────────────────────────────────
+// ── Fuso horário: precisa ser o mesmo no dispatcher e no CRM (agenda e janela de envio) ──
+const validTz = (tz) => { try { new Intl.DateTimeFormat('en-US', { timeZone: tz }); return !!tz; } catch { return false; } };
+const cEnv = parseEnv(rel('crm', '.env'));
+if (!dEnv.TIMEZONE) warn('TIMEZONE não está no dispatcher/.env', 'Vale America/Sao_Paulo. Rode a Etapa 6 de novo para escolher o seu fuso.');
+else if (!validTz(dEnv.TIMEZONE)) fail(`TIMEZONE inválido no dispatcher/.env: ${dEnv.TIMEZONE}`, 'Use um nome IANA, como America/Sao_Paulo ou Europe/Lisbon.');
+else if (cEnv.TIMEZONE && cEnv.TIMEZONE !== dEnv.TIMEZONE) warn(`Fuso diferente: dispatcher ${dEnv.TIMEZONE}, CRM ${cEnv.TIMEZONE}`, 'Deixe o mesmo TIMEZONE nos dois .env, senão a agenda e a janela de envio não batem.');
+else if (!cEnv.TIMEZONE) warn(`Fuso do dispatcher: ${dEnv.TIMEZONE}, mas o crm/.env não tem TIMEZONE`, 'Acrescente TIMEZONE=' + dEnv.TIMEZONE + ' no crm/.env (agenda do Google e modo automático).');
+else ok(`Fuso horário: ${dEnv.TIMEZONE} (dispatcher e CRM)`);
+
 section('Conexões (Etapa 7)');
 
 if (!dEnv.EVOLUTION_API_URL || !dEnv.EVOLUTION_API_KEY) {

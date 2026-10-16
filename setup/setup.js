@@ -56,6 +56,18 @@ function writeFileRecursive(filePath, content) {
   fs.writeFileSync(filePath, content, 'utf8');
 }
 
+// Nome IANA de fuso horário válido (America/Sao_Paulo, Europe/Lisbon...).
+// (O mesmo teste de dispatcher/src/tz.js; o wizard é CommonJS e aquele é ESM.)
+function isValidTimezone(tz) {
+  if (!tz || typeof tz !== 'string') return false;
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: tz });
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 // ─── Prerequisites check ───────────────────────────────────────────────────────
 function checkPrerequisites() {
   console.log('\n' + c.cyan('Verificando pré-requisitos...\n'));
@@ -390,11 +402,17 @@ async function phase2(rl) {
   console.log(c.green('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'));
   console.log(c.dim('  (Enter para aceitar o valor padrão)\n'));
 
-  const TIMEZONE = await askWithDefault(
-    rl,
-    'Fuso horário?',
-    'America/Sao_Paulo'
-  );
+  // Fuso do seu negócio (nome IANA): America/Sao_Paulo, Europe/Lisbon, America/New_York...
+  // Vale pra janela de envio, follow-ups, agenda do Google e modo automático.
+  let TIMEZONE = '';
+  while (!isValidTimezone(TIMEZONE)) {
+    if (TIMEZONE) console.log(c.red(`  ✗ "${TIMEZONE}" não é um fuso válido. Exemplos: America/Sao_Paulo, Europe/Lisbon, America/New_York.`));
+    TIMEZONE = (await askWithDefault(
+      rl,
+      'Fuso horário (ex.: America/Sao_Paulo, Europe/Lisbon)?',
+      'America/Sao_Paulo'
+    )).trim();
+  }
 
   // País padrão dos telefones dos leads (código de 2 letras). Número escrito com "+"
   // (ex.: +351...) vale em qualquer país; este só decide como ler número sem "+".
@@ -1727,8 +1745,12 @@ ${transcriptionEnvBlock(vars)}`;
 }
 
 function generateCrmEnv(vars) {
-  const { EVOLUTION_API_URL, EVOLUTION_API_KEY, EVOLUTION_INSTANCE } = vars;
+  const { EVOLUTION_API_URL, EVOLUTION_API_KEY, EVOLUTION_INSTANCE, TIMEZONE = 'America/Sao_Paulo' } = vars;
   return `CRM_PORT=3001
+
+# Fuso horário: o mesmo do dispatcher/.env. A agenda do Google, os horários livres e o
+# modo automático usam este fuso (nome IANA, ex.: America/Sao_Paulo, Europe/Lisbon).
+TIMEZONE=${TIMEZONE}
 
 # Horário em que você aceita reunião (modo automático só oferece/agenda aqui,
 # em dia útil e em horário livre na agenda do Google)
@@ -2143,6 +2165,12 @@ async function main() {
       EVOLUTION_INSTANCE: 'bdr-instance',
       ...rawConfig,
     };
+
+    // Fuso horário: nome IANA válido (America/Sao_Paulo, Europe/Lisbon...).
+    if (!isValidTimezone(vars.TIMEZONE)) {
+      console.error(c.red(`\n✗ TIMEZONE inválido: "${vars.TIMEZONE}". Use um nome IANA, como America/Sao_Paulo ou Europe/Lisbon.\n`));
+      process.exit(1);
+    }
 
     // País padrão dos telefones: 2 letras (BR, PT, US...).
     vars.DEFAULT_COUNTRY = String(vars.DEFAULT_COUNTRY || 'BR').trim().toUpperCase();

@@ -1177,7 +1177,7 @@ async function submitSchedule(id){
   const meet=document.getElementById('sch-meet').checked,notes=document.getElementById('sch-notes').value.trim();
   const err=document.getElementById('sch-err');err.classList.add('hidden');
   if(!date||!time){err.textContent='Data e hora obrigatórias';err.classList.remove('hidden');return;}
-  const iso=`${date}T${time}:00-03:00`;
+  const iso=`${date}T${time}:00`; // sem deslocamento: o servidor aplica o fuso configurado (TIMEZONE)
   const btn=document.getElementById('sch-submit');btn.disabled=true;btn.textContent='Criando…';
   try{
     await fetchJson(`/api/leads/${id}/meeting`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scheduled_at:iso,duration_minutes:dur,notes,add_google_meet:meet})});
@@ -1188,7 +1188,7 @@ async function rescheduleMeeting(id){
   const lead=LEADS.find(l=>l.id===id);if(!lead?.meeting)return;
   const date=prompt('Nova data (YYYY-MM-DD):',lead.meeting.scheduled_at.split('T')[0]);if(!date)return;
   const time=prompt('Nova hora (HH:MM):',lead.meeting.scheduled_at.split('T')[1].slice(0,5));if(!time)return;
-  try{await fetchJson(`/api/leads/${id}/meeting`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({scheduled_at:`${date}T${time}:00-03:00`})});await loadLeads();openPanel(id);}catch(e){alert(e.message);}
+  try{await fetchJson(`/api/leads/${id}/meeting`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({scheduled_at:`${date}T${time}:00`})});await loadLeads();openPanel(id);}catch(e){alert(e.message);}
 }
 async function updateMeetingStatus(id,status){
   if(status==='no_show'&&!confirm('Marcar no-show?'))return;

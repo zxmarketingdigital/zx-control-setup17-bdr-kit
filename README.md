@@ -118,6 +118,8 @@ python3 scripts/build-pool.py pipeline/dataset-2026-06-02.json
 
 > No Windows, use `python` no lugar de `python3` se o segundo não for reconhecido.
 
+**Fuso horário:** o setup pergunta o seu fuso (`TIMEZONE`, padrão `America/Sao_Paulo`; Portugal: `Europe/Lisbon`) e grava no `.env` do dispatcher e do CRM. Ele vale para a janela de envio, os follow-ups, a agenda do Google (a reunião marcada às 10h aparece às 10h no seu fuso, com horário de verão) e o modo automático.
+
 **Leads de fora do Brasil:** o setup pergunta o país padrão dos telefones (`DEFAULT_COUNTRY`, padrão `BR`; `PT` para Portugal). Número escrito com `+` (por exemplo `+351 912 345 678`) vale em qualquer país, e o `build-pool.py` mostra no fim quantos leads foram descartados por telefone.
 
 Faça isso uma vez por lote — não é necessário diariamente.

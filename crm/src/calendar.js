@@ -6,13 +6,15 @@ import { google } from 'googleapis';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getTimezone, zonedParts, localToDate, toIso } from '../../dispatcher/src/tz.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const CRM_ROOT = path.resolve(path.dirname(__filename), '..');
 const CREDENTIALS_PATH = path.join(CRM_ROOT, 'google-credentials.json');
 const TOKEN_PATH = path.join(CRM_ROOT, 'google-token.json');
 const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3001/auth/google/callback';
-const TIMEZONE = 'America/Sao_Paulo';
+// Fuso do aluno (TIMEZONE no crm/.env). A agenda do Google exibe o evento nesse fuso.
+const TIMEZONE = getTimezone();
 
 const SCOPES = ['https://www.googleapis.com/auth/calendar.events'];
 
@@ -124,17 +126,19 @@ function buildEventDescription(lead, notes) {
   return lines.join('\n');
 }
 
-export async function createMeeting({ lead, startTime, durationMinutes = 30, notes = '', addMeet = true }) {
-  const calendar = await getCalendar();
+// Corpo do evento no Google Agenda. Puro, separado pra dar pra testar sem Google.
+// start/end vão em UTC (instante exato) com timeZone = fuso do aluno, então a agenda
+// mostra o horário certo (10h em Lisboa é 10h em Lisboa, não 13h).
+export function buildEventBody({ lead, startTime, durationMinutes = 30, notes = '', timezone = TIMEZONE }) {
   const startMs = new Date(startTime).getTime();
   if (Number.isNaN(startMs)) throw new Error(`startTime inválido: ${startTime}`);
   const endMs = startMs + durationMinutes * 60_000;
 
-  const event = {
+  return {
     summary: `Call BDR — ${lead.marca || lead.name || lead.id}`,
     description: buildEventDescription(lead, notes),
-    start: { dateTime: new Date(startMs).toISOString(), timeZone: TIMEZONE },
-    end: { dateTime: new Date(endMs).toISOString(), timeZone: TIMEZONE },
+    start: { dateTime: new Date(startMs).toISOString(), timeZone: timezone },
+    end: { dateTime: new Date(endMs).toISOString(), timeZone: timezone },
     reminders: {
       useDefault: false,
       overrides: [
@@ -143,6 +147,11 @@ export async function createMeeting({ lead, startTime, durationMinutes = 30, not
       ],
     },
   };
+}
+
+export async function createMeeting({ lead, startTime, durationMinutes = 30, notes = '', addMeet = true }) {
+  const calendar = await getCalendar();
+  const event = buildEventBody({ lead, startTime, durationMinutes, notes });
 
   const params = {
     calendarId: 'primary',
@@ -207,8 +216,6 @@ export async function deleteMeeting(eventId) {
 // Usa events.list (coberto pelo escopo calendar.events que o CRM já pede) em
 // vez de freebusy.query, que exigiria reautorizar o OAuth. Evento marcado
 // como "livre" (transparent) não bloqueia; dia inteiro "ocupado" bloqueia o dia.
-const SP_OFFSET_MS = 3 * 3600 * 1000; // America/Sao_Paulo sem horário de verão desde 2019
-
 async function listBusy(timeMinISO, timeMaxISO) {
   const calendar = await getCalendar();
   const res = await calendar.events.list({
@@ -223,7 +230,7 @@ async function listBusy(timeMinISO, timeMaxISO) {
     .filter((e) => e.status !== 'cancelled' && e.transparency !== 'transparent')
     .map((e) => (e.start?.dateTime
       ? { start: new Date(e.start.dateTime).getTime(), end: new Date(e.end.dateTime).getTime() }
-      : { start: new Date(`${e.start.date}T00:00:00-03:00`).getTime(), end: new Date(`${e.end.date}T00:00:00-03:00`).getTime() }));
+      : { start: localToDate(e.start.date, '00:00', TIMEZONE).getTime(), end: localToDate(e.end.date, '00:00', TIMEZONE).getTime() }));
 }
 
 export async function isSlotFree(startISO, durationMinutes = 30) {
@@ -237,10 +244,11 @@ export async function isSlotFree(startISO, durationMinutes = 30) {
 // `nowMs + minLeadMinutes`. Puro — separado pra dar pra testar sem Google.
 export function buildSlotCandidates({
   nowMs = Date.now(), days = 4, durationMinutes = 30, startHour = 9, endHour = 18,
-  workingDays = [1, 2, 3, 4, 5], minLeadMinutes = 120,
+  workingDays = [1, 2, 3, 4, 5], minLeadMinutes = 120, timezone = TIMEZONE,
 } = {}) {
   const earliest = nowMs + minLeadMinutes * 60_000;
-  const spToday = new Date(nowMs - SP_OFFSET_MS); // relógio de SP nos getters UTC
+  const p = zonedParts(new Date(nowMs), timezone); // relógio do fuso do aluno
+  const spToday = new Date(Date.UTC(p.year, p.month - 1, p.day)); // só a data, nos getters UTC
   const candidates = [];
   let checkedDays = 0;
   for (let d = 0; checkedDays < days && d < days + 7; d++) {
@@ -251,8 +259,8 @@ export function buildSlotCandidates({
     for (let minutes = startHour * 60; minutes + durationMinutes <= endHour * 60; minutes += 30) {
       const hh = String(Math.floor(minutes / 60)).padStart(2, '0');
       const mm = String(minutes % 60).padStart(2, '0');
-      const iso = `${ymd}T${hh}:${mm}:00-03:00`;
-      if (new Date(iso).getTime() >= earliest) candidates.push(iso);
+      const when = localToDate(ymd, `${hh}:${mm}`, timezone);
+      if (when.getTime() >= earliest) candidates.push(toIso(when, timezone));
     }
   }
   return candidates;
@@ -278,7 +286,7 @@ export function pickFreeSlots(candidates, busy, { durationMinutes = 30, max = 6 
   return free;
 }
 
-// Próximos horários livres de verdade na agenda do Google. ISO com -03:00.
+// Próximos horários livres de verdade na agenda do Google. ISO no fuso do aluno (com o deslocamento dele).
 export async function getFreeSlots({ durationMinutes = 30, max = 6, ...opts } = {}) {
   const candidates = buildSlotCandidates({ durationMinutes, ...opts });
   if (!candidates.length) return [];

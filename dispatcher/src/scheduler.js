@@ -3,6 +3,7 @@ import path from 'node:path';
 import { config } from './config.js';
 import { logger } from './log.js';
 import { todayStr, addWorkingDays } from './window.js';
+import { localToDate, toIso } from './tz.js';
 import { loadMaster, alreadySentTouch, isLeadSendable } from './master.js';
 import { getAutoModeState } from './auto-mode-config.js';
 
@@ -50,7 +51,7 @@ export async function rebuildSchedule() {
       schedule.push({
         lead_id: leadId,
         next_touch: touchNum,
-        due_at: dueDate + 'T10:00:00-03:00',
+        due_at: toIso(localToDate(dueDate, '10:00')),
       });
       break; // only the immediately next touch per lead
     }

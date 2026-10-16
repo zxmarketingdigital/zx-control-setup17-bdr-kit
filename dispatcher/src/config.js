@@ -1,11 +1,12 @@
 import 'dotenv/config';
+import { getTimezone } from './tz.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const config = {
-  timezone: process.env.TIMEZONE ?? 'America/Sao_Paulo',
+  timezone: getTimezone(),
   windowStartHour: parseInt(process.env.WINDOW_START_HOUR ?? '10', 10),
   windowEndHour: parseInt(process.env.WINDOW_END_HOUR ?? '18', 10),
   workingDays: (process.env.WORKING_DAYS ?? '1,2,3,4,5').split(',').map(Number),

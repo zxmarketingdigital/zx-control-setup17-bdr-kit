@@ -283,6 +283,7 @@ Peça **uma de cada vez**, dizendo onde pegar:
 | `APIFY_TOKEN` | Console da Apify → Settings → API & Integrations (em algumas contas aparece só como Integrations) → token pessoal (começa com `apify_api_`). É secreto: não repita em voz alta nem cole em outro lugar |
 | `EVOLUTION_API_KEY` | **Não pergunte e deixe o campo de fora do config**: o setup gera sozinho uma chave aleatória de 48 caracteres. Explique que é a senha da API do WhatsApp local, que fica só na máquina dele. Chave vazia, curta ou de exemplo é recusada |
 | `EVOLUTION_INSTANCE` | Opcional. Padrão `bdr-instance` |
+| `TIMEZONE` | **Pergunte numa frase**: "Em que fuso horário você trabalha?". Padrão `America/Sao_Paulo`; Portugal: `Europe/Lisbon`; outros: nome IANA (ex.: `America/New_York`). Vai pro `.env` do dispatcher **e** do CRM. Define a janela de envio, os follow-ups, a agenda do Google e o modo automático |
 | `DEFAULT_COUNTRY` | **Pergunte numa frase**: "Os leads que você vai prospectar são do Brasil ou de outro país?". Padrão `BR`; `PT` para Portugal. É o código de 2 letras do país dos telefones que vêm **sem** `+` nos datasets; número com `+` vale em qualquer país |
 
 Opcionais com padrão (só pergunte se ele quiser mudar): `WINDOW_START_HOUR` (10),

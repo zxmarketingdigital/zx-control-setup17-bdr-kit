@@ -20,6 +20,7 @@ import { resolveClaudeBin } from '../dispatcher/src/claude-cli.js';
 import { hostGuard } from './src/host-guard.js';
 import { runClaudeSandboxed, loadSkillText } from '../dispatcher/src/claude-sandbox.js';
 import { collectSecretValues, checkOutgoing } from '../dispatcher/src/outbound-guard.js';
+import { parseScheduledAt, toIso } from '../dispatcher/src/tz.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PIPELINE_DIR = path.resolve(__dirname, '..', 'pipeline');
@@ -546,6 +547,10 @@ app.get('/api/calendar/free-slots', async (req, res) => {
 app.post('/api/leads/:id/meeting', async (req, res) => {
   const { scheduled_at, duration_minutes = 30, notes = '', add_google_meet = true, require_free = false } = req.body;
   if (!scheduled_at) return res.status(400).json({ error: 'scheduled_at required' });
+  // Horário sem deslocamento ("2026-10-20T10:00") vale no fuso configurado (TIMEZONE).
+  const when = parseScheduledAt(scheduled_at);
+  if (!when) return res.status(400).json({ error: 'scheduled_at inválido' });
+  const startISO = toIso(when);
   const master = await readJson('leads-master.json', {}) ?? {};
   const lead = master[req.params.id];
   if (!lead) return res.status(404).json({ error: 'Lead not found' });
@@ -556,7 +561,7 @@ app.post('/api/leads/:id/meeting', async (req, res) => {
   // (O agendamento manual pela tela continua livre — quem agenda na mão sabe da própria agenda.)
   if (require_free) {
     try {
-      if (!(await cal.isSlotFree(scheduled_at, duration_minutes))) {
+      if (!(await cal.isSlotFree(startISO, duration_minutes))) {
         return res.status(409).json({ error: 'Horário ocupado na agenda', code: 'slot_busy' });
       }
     } catch (err) {
@@ -566,10 +571,10 @@ app.post('/api/leads/:id/meeting', async (req, res) => {
   try {
     const calEvent = await cal.createMeeting({
       lead: { id: req.params.id, ...lead },
-      startTime: scheduled_at, durationMinutes: duration_minutes, notes, addMeet: add_google_meet,
+      startTime: startISO, durationMinutes: duration_minutes, notes, addMeet: add_google_meet,
     });
     lead.meeting = {
-      scheduled_at: calEvent.start_time, end_time: calEvent.end_time, duration_minutes,
+      scheduled_at: toIso(new Date(calEvent.start_time)), end_time: toIso(new Date(calEvent.end_time)), duration_minutes,
       calendar_event_id: calEvent.calendar_event_id, calendar_html_link: calEvent.calendar_html_link,
       google_meet_url: calEvent.google_meet_url, status: 'scheduled',
       created_at: new Date().toISOString(), confirmation_sent_at: null, notes: notes || null,
@@ -587,20 +592,22 @@ app.patch('/api/leads/:id/meeting', async (req, res) => {
   const lead = master[req.params.id];
   if (!lead || !lead.meeting) return res.status(404).json({ error: 'Meeting not found' });
   const { scheduled_at, duration_minutes, notes, status, confirmed_at } = req.body;
+  const newStart = scheduled_at ? parseScheduledAt(scheduled_at) : null;
+  if (scheduled_at && !newStart) return res.status(400).json({ error: 'scheduled_at inválido' });
   try {
     if (scheduled_at || notes !== undefined) {
       await cal.updateMeeting({
         eventId: lead.meeting.calendar_event_id,
-        startTime: scheduled_at || lead.meeting.scheduled_at,
+        startTime: newStart ? toIso(newStart) : lead.meeting.scheduled_at,
         durationMinutes: duration_minutes || lead.meeting.duration_minutes,
         notes: notes !== undefined ? notes : lead.meeting.notes,
         lead: { id: req.params.id, ...lead },
       });
       if (scheduled_at) {
-        const startMs = new Date(scheduled_at).getTime();
+        const startMs = newStart.getTime();
         const dur = duration_minutes || lead.meeting.duration_minutes || 30;
-        lead.meeting.scheduled_at = new Date(startMs).toISOString();
-        lead.meeting.end_time = new Date(startMs + dur * 60_000).toISOString();
+        lead.meeting.scheduled_at = toIso(new Date(startMs));
+        lead.meeting.end_time = toIso(new Date(startMs + dur * 60_000));
       }
       if (duration_minutes) lead.meeting.duration_minutes = duration_minutes;
       if (notes !== undefined) lead.meeting.notes = notes;

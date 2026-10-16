@@ -19,6 +19,7 @@ import { loadBookingRules, saveBookingRules, parseRevenueBR, qualificationStatus
 import { resolveClaudeBin } from '../dispatcher/src/claude-cli.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { hostGuard } from './src/host-guard.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PIPELINE_DIR = path.resolve(__dirname, '..', 'pipeline');
@@ -34,6 +35,8 @@ const execFileAsync = promisify(execFile);
 const CLAUDE_SUGGEST_TIMEOUT_MS = 180_000;
 
 const app = express();
+// Antes de qualquer rota: recusa Host/Origin que não sejam do próprio computador.
+app.use(hostGuard(PORT));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -763,8 +766,10 @@ app.get('/api/dashboard/executive', async (req, res) => res.json(await dashboard
 app.get('/api/dashboard/financial', async (req, res) => res.json(await dashboard.financial({ monthRef: req.query.month_ref })));
 
 // ============================================================
-app.listen(PORT, () => {
-  console.log(`CRM running at http://localhost:${PORT}`);
+// Só no próprio computador: sem host, o Express escutaria em todas as interfaces
+// e qualquer pessoa na mesma rede (Wi-Fi de coworking) alcançaria o CRM.
+app.listen(PORT, '127.0.0.1', () => {
+  console.log(`CRM running at http://localhost:${PORT} (só neste computador)`);
   console.log(`Reading pipeline from: ${PIPELINE_DIR}`);
   console.log(`Calendar OAuth: http://localhost:${PORT}/auth/google`);
 });

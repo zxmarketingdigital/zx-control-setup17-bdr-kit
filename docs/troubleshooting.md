@@ -269,8 +269,10 @@ você precisa fazer, é só configurar:
 - **Mais de um número:** suba outra instância na mesma Evolution
   (`http://localhost:8080/manager` → nova instância) e configure um segundo
   dispatcher apontando `EVOLUTION_INSTANCE` pra ela.
-- **Mais de uma pessoa usando:** o CRM (`cd crm && npm start`) já é
-  compartilhável na rede local; pra acesso remoto, hospede a Evolution e o CRM
-  num servidor (VPS) em vez de rodar local.
+- **Mais de uma pessoa usando:** o CRM (`cd crm && npm start`) e a Evolution API
+  atendem **só neste computador** (`127.0.0.1`), de propósito: o CRM não tem login,
+  e quem alcançasse a porta pela rede conseguiria enviar WhatsApp pelo seu número.
+  Para mais de uma pessoa, hospede os dois num servidor (VPS) atrás de um proxy
+  com autenticação. Não abra as portas 3001 e 8080 para a rede.
 - **Volume alto num único número:** o risco de restrição sobe com o volume.
   Veja o item 7 e `docs/BDR-Kit-Contingencia-WhatsApp.pdf` antes de escalar.

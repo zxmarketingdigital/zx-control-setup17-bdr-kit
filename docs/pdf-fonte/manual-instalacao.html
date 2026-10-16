@@ -44,23 +44,23 @@
   <h2>Software necessário</h2>
   <table class="cols-fixed">
     <tr><th>Ferramenta</th><th>Versão mínima</th><th>Como instalar</th></tr>
-    <tr><td>Claude para Desktop</td><td>qualquer</td><td>claude.ai/download. Já vem com o Code integrado, não precisa de terminal.</td></tr>
-    <tr><td>Node.js</td><td>18 ou superior</td><td>nodejs.org, baixe a versão LTS.</td></tr>
-    <tr><td>Docker Desktop</td><td>qualquer</td><td>docker.com/products/docker-desktop. Abra o programa depois de instalar.</td></tr>
-    <tr><td>Python</td><td>3.10 ou superior</td><td>python.org/downloads (no Windows marque "Add python.exe to PATH") ou <code>brew install python@3.11</code> no Mac.</td></tr>
+    <tr><td>Claude para Desktop</td><td>qualquer</td><td>claude.ai/download. Já vem com o Code integrado, não precisa de terminal. Se o app não existir para o seu sistema (por exemplo, Linux), instale o Claude Code pelo terminal: <code>npm install -g @anthropic-ai/claude-code</code> e depois <code>claude login</code>.</td></tr>
+    <tr><td>Node.js</td><td>18 ou superior</td><td>nodejs.org, baixe a versão LTS (Windows, Mac e Linux). No Mac também serve <code>brew install node</code>. No Linux, pelo gerenciador da distribuição, conferindo que a versão seja 18 ou maior.</td></tr>
+    <tr><td>Docker</td><td>qualquer</td><td><b>Windows e Mac:</b> Docker Desktop em docker.com/products/docker-desktop. No Windows, aceite a instalação do WSL2 quando o instalador pedir, e abra o programa depois de instalar. <b>Linux:</b> Docker Engine com o plugin Compose (docs.docker.com/engine/install).</td></tr>
+    <tr><td>Python</td><td>3.10 ou superior</td><td><b>Windows:</b> python.org/downloads, marcando "Add python.exe to PATH". <b>Mac:</b> python.org/downloads ou <code>brew install python@3.11</code>. <b>Linux:</b> <code>sudo apt install python3 python3-pip</code> (Debian e Ubuntu) ou o equivalente da sua distribuição.</td></tr>
   </table>
 
   <div class="callout atencao"><span class="h">Atenção</span>
     <ul>
-      <li>O Code já vem no app Claude para Desktop. Você não instala o Claude Code separado.</li>
-      <li>O Docker Desktop precisa estar <b>aberto</b> (ícone da baleia na barra de tarefas) antes de começar.</li>
+      <li>No Windows e no Mac, o Code já vem no app Claude para Desktop: você não instala o Claude Code separado. No Linux, use o Claude Code pelo terminal, como na tabela acima.</li>
+      <li>No Windows e no Mac, o Docker Desktop precisa estar <b>aberto</b> (ícone da baleia na barra de tarefas ou na barra de menus) antes de começar. No Linux, o serviço do Docker precisa estar ativo: <code>sudo systemctl start docker</code>.</li>
       <li>Use um número de WhatsApp <b>dedicado à prospecção</b>, de preferência um chip separado do pessoal.</li>
     </ul>
   </div>
 
   <h2>Quando você vai precisar do terminal</h2>
   <p>Na <b>instalação, nunca</b>: o Claude roda os comandos por você, dentro do app. Na rotina do dia a dia o terminal serve pra deixar o dispatcher (envio) e o CRM rodando, e para os scripts de enriquecimento, que são opcionais.</p>
-  <p><b>Windows:</b> Win + R, digite <code>cmd</code> e Enter (ou busque "Prompt de Comando"). <b>Mac:</b> Cmd + Espaço, digite <code>Terminal</code> e Enter.</p>
+  <p><b>Windows:</b> Win + R, digite <code>cmd</code> e Enter (ou busque "Prompt de Comando" ou "PowerShell"). <b>Mac:</b> Cmd + Espaço, digite <code>Terminal</code> e Enter. <b>Linux:</b> Ctrl + Alt + T (ou busque "Terminal").</p>
 </section>
 
 <!-- ===================== COMO FUNCIONA ===================== -->
@@ -101,14 +101,15 @@
   <p>Você recebeu um arquivo <code>.zip</code>. Extraia numa <b>pasta permanente</b>, não na pasta Downloads, que o sistema pode limpar.</p>
   <table class="cols-fixed">
     <tr><th>Sistema</th><th>Sugestão de pasta</th></tr>
-    <tr><td>Mac</td><td><code>~/Documentos/zx-control-setup17</code> ou <code>~/ZX-Control-Setup17</code></td></tr>
+    <tr><td>Mac e Linux</td><td><code>~/Documentos/zx-control-setup17</code> ou <code>~/ZX-Control-Setup17</code></td></tr>
     <tr><td>Windows</td><td><code>C:\ZX-Control-Setup17</code> ou <code>C:\Documentos\zx-control-setup17</code></td></tr>
   </table>
-  <p><b>Windows:</b> botão direito no zip, "Extrair tudo...", escolha a pasta. <b>Mac:</b> dois cliques no zip e depois mova a pasta extraída pro local definitivo.</p>
+  <p><b>Windows:</b> botão direito no zip, "Extrair tudo...", escolha a pasta. <b>Mac:</b> dois cliques no zip e depois mova a pasta extraída pro local definitivo. <b>Linux:</b> <code>unzip arquivo.zip -d ~/ZX-Control-Setup17</code> ou o gerenciador de arquivos ("Extrair aqui").</p>
   <p>Anote o caminho completo até a pasta <code>bdr-template-self</code>. Você vai usar no Passo 3.</p>
   <table class="cols-fixed">
     <tr><th>Sistema</th><th>Exemplo de caminho</th></tr>
     <tr><td>Mac</td><td><code>/Users/Carlos/Documentos/zx-control-setup17/bdr-template-self</code></td></tr>
+    <tr><td>Linux</td><td><code>/home/carlos/Documentos/zx-control-setup17/bdr-template-self</code></td></tr>
     <tr><td>Windows</td><td><code>C:\Users\Carlos\Documentos\zx-control-setup17\bdr-template-self</code></td></tr>
   </table>
   <div class="callout info"><span class="h">Informação</span>
@@ -133,14 +134,15 @@
   <h1 class="t">Passo 3. Dar a partida no Setup</h1>
   <p>No chat do Code, cole o comando abaixo, trocando o caminho pelo local onde você extraiu o kit (anotado no Passo 1).</p>
   <div class="cmd"><div class="lab">Mac</div><pre>instale esse setup através do repositório localizado em /Users/Carlos/Documentos/zx-control-setup17/bdr-template-self</pre></div>
+  <div class="cmd"><div class="lab">Linux</div><pre>instale esse setup através do repositório localizado em /home/carlos/Documentos/zx-control-setup17/bdr-template-self</pre></div>
   <div class="cmd"><div class="lab">Windows</div><pre>instale esse setup através do repositório localizado em C:\Users\Carlos\Documentos\zx-control-setup17\bdr-template-self</pre></div>
   <p>O Claude abre com o quadro ZX LAB, mostra o mapa das 8 etapas e começa. As próximas páginas mostram o que ele pergunta em cada uma e o que você responde.</p>
 
   <div class="etapa"><span class="n">ETAPA 1 DE 8</span><h2>Boas-vindas e pré-requisitos</h2><span class="t">2 min</span></div>
   <p>O Claude se apresenta, explica o kit em três linhas e confere no seu computador:</p>
   <div class="cmd"><div class="lab">O Claude roda por você</div><pre>node --version     <span class="c"># precisa ser 18+</span>
-docker --version   <span class="c"># e o Docker Desktop precisa estar aberto</span>
-python --version   <span class="c"># 3.10+ (no Mac costuma ser python3)</span></pre></div>
+docker --version   <span class="c"># Windows e Mac: com o Docker Desktop aberto. Linux: com o serviço ativo</span>
+python --version   <span class="c"># 3.10+ (no Mac e no Linux o comando costuma ser python3)</span></pre></div>
   <p>Se faltar alguma ferramenta, ele explica o que instalar e <b>espera você confirmar</b> antes de seguir.</p>
 
   <div class="etapa"><span class="n">ETAPA 2 DE 8</span><h2>Seu negócio</h2><span class="t">3 min</span></div>

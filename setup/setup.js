@@ -2015,7 +2015,7 @@ function printFinalInstructions(vars) {
 
   console.log(c.dim('Rotina completa: docs/operacao-diaria.md'));
   console.log(c.dim('Manual de uso:   docs/manual-uso-setup17.pdf'));
-  console.log('\n' + c.dim('Dúvidas? docs/troubleshooting.md') + '\n');
+  console.log('\n' + c.dim('Dúvidas? docs/troubleshooting.md · Suporte ZX LAB: https://suporte.zxlab.com.br/hub') + '\n');
 }
 
 // ─── Qualificação antes de agendar: lê o faturamento mínimo em texto livre ─────

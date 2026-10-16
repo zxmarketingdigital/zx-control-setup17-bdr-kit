@@ -78,8 +78,8 @@
     <tr><td>5</td><td>Encerrar o dia</td><td>Terminal</td><td>1 min</td></tr>
   </table>
 
-  <div class="callout info"><span class="h">Windows e Mac</span>
-    <p>Os comandos de Python aparecem como <code>python3</code>, que é o nome no Mac. No Windows, use <code>python</code> no lugar. O arquivo <code>docs/comandos-diarios.md</code>, gerado na instalação, já vem com o comando certo pro seu sistema.</p>
+  <div class="callout info"><span class="h">Mac, Windows e Linux</span>
+    <p>Os comandos de Python aparecem como <code>python3</code>, que é o nome no Mac e no Linux. No Windows, use <code>python</code> no lugar. O arquivo <code>docs/comandos-diarios.md</code>, gerado na instalação, já vem com o comando certo pro seu sistema.</p>
   </div>
 
   <div class="etapa"><span class="n">1</span><h2>Enriquecer os leads</h2><span class="t">2 a 5 min</span></div>
@@ -112,7 +112,7 @@ python3 scripts/enrich-instagram.py</pre></div>
 
 <section class="sec">
   <div class="etapa"><span class="n">3</span><h2>Iniciar o dispatcher</h2><span class="t">1 min</span></div>
-  <p>O dispatcher é o único componente que precisa ficar com o terminal aberto, porque trabalha o dia todo. Com o Docker Desktop aberto, rode na pasta <code>dispatcher</code>:</p>
+  <p>O dispatcher é o único componente que precisa ficar com o terminal aberto, porque trabalha o dia todo. Com o Docker pronto (Docker Desktop aberto no Windows e no Mac; serviço ativo no Linux), rode na pasta <code>dispatcher</code>:</p>
   <div class="cmd"><div class="lab">Terminal, na pasta dispatcher</div><pre>docker compose up -d
 npm start</pre></div>
   <p>O primeiro comando garante que a Evolution API (a ponte com o WhatsApp) está de pé. O segundo inicia o envio. Se você começar antes das 10h, ele espera a janela abrir.</p>
@@ -296,7 +296,7 @@ npm start</pre></div>
   <p>Nada sobe sozinho quando o computador liga. Os dados (leads, histórico, fila) e a sessão do WhatsApp ficam salvos em disco, então normalmente você <b>não precisa escanear o QR de novo</b>.</p>
   <table>
     <tr><th style="width:7%">#</th><th style="width:30%">O que fazer</th><th>Como</th></tr>
-    <tr><td>1</td><td>Abrir o Docker Desktop</td><td>Espere o ícone da baleia ficar verde (30 a 60 segundos). Dá pra ligar a opção "Start Docker Desktop when you sign in".</td></tr>
+    <tr><td>1</td><td>Abrir o Docker</td><td><b>Windows e Mac:</b> abra o Docker Desktop e espere o ícone da baleia ficar verde (30 a 60 segundos); dá pra ligar a opção "Start Docker Desktop when you sign in". <b>Linux:</b> o serviço sobe com o sistema; confira com <code>docker ps</code> ou inicie com <code>sudo systemctl start docker</code>.</td></tr>
     <tr><td>2</td><td>Subir a Evolution API</td><td>Terminal 1, pasta <code>dispatcher</code>: <code>docker compose up -d</code></td></tr>
     <tr><td>3</td><td>Conferir o WhatsApp</td><td>No mesmo terminal: <code>npm run setup</code>. Deve responder "instância conectada (state: open)".</td></tr>
     <tr><td>4</td><td>Iniciar o dispatcher</td><td>No mesmo terminal: <code>npm start</code>. Deixe a janela aberta.</td></tr>
@@ -323,7 +323,7 @@ npm start</pre></div>
     <tr><th style="width:30%">Sintoma</th><th style="width:30%">Causa provável</th><th>O que fazer</th></tr>
     <tr><td>Nada sai, mesmo com o dispatcher rodando</td><td>Fora da janela 10h às 18h, fim de semana, copies sem aprovar, ou WhatsApp desconectado</td><td>Confira o horário, rode <code>npm run status</code> e <code>npm run setup</code>. Veja se a fila do dia existe.</td></tr>
     <tr><td>WhatsApp desconectou no meio do dia</td><td>Celular sem internet ou sessão expirada</td><td>Reconecte em <code>localhost:8080/manager</code>, como descrito acima.</td></tr>
-    <tr><td>Evolution API offline ao iniciar</td><td>Docker Desktop fechado</td><td>Abra o Docker, aguarde 15 segundos e rode <code>docker compose up -d</code> na pasta <code>dispatcher</code>.</td></tr>
+    <tr><td>Evolution API offline ao iniciar</td><td>Docker fechado ou parado</td><td>Abra o Docker Desktop (ou, no Linux, inicie o serviço), aguarde 15 segundos e rode <code>docker compose up -d</code> na pasta <code>dispatcher</code>.</td></tr>
     <tr><td>Mensagem duplicada</td><td>Dois dispatchers rodando</td><td>Feche todos os terminais e abra um só.</td></tr>
     <tr><td>Lead respondeu e continua recebendo toques</td><td>Você não marcou a resposta</td><td>No CRM, <b>Puxar conversa do WhatsApp</b> ou <b>Marcar respondido</b>.</td></tr>
     <tr><td>"Gerar sugestão" não funciona</td><td>Claude Code CLI não instalado</td><td>Use <b>Copiar prompt</b> e cole no Code, ou instale o CLI (<code>docs/modo-automatico.md</code>).</td></tr>

@@ -203,4 +203,10 @@ O wizard gera uma skill genérica com critérios e ângulos padrão. Para melhor
 
 - Critérios de ICP específicos do seu nicho
 - Tabela gargalo → ângulo adaptada ao que você oferece
-- Exemplos de copy no seu tom de 
+- Exemplos de copy no seu tom de voz
+
+---
+
+## Suporte
+
+Suporte oficial da ZX LAB: https://suporte.zxlab.com.br/hub · contato@zxlab.com.br

@@ -276,3 +276,9 @@ você precisa fazer, é só configurar:
   com autenticação. Não abra as portas 3001 e 8080 para a rede.
 - **Volume alto num único número:** o risco de restrição sobe com o volume.
   Veja o item 7 e `docs/Contingencia-WhatsApp-Setup17.pdf` antes de escalar.
+
+---
+
+## Suporte
+
+Não resolveu? Fale com o suporte oficial da ZX LAB: https://suporte.zxlab.com.br/hub ou contato@zxlab.com.br. Inclua a saída de `node setup/smoke.mjs` e de `npm run status` (na pasta `dispatcher`).

@@ -1,6 +1,6 @@
 # BDR Kit — Self-Install v1.0.10
 
-Sistema de prospecção outbound via WhatsApp com qualificação de leads por IA e cadência de 6 toques em 5 dias úteis. O comprador instala, configura com os dados do próprio negócio e opera de forma independente.
+Sistema de prospecção outbound via WhatsApp com qualificação de leads por IA e cadência de 6 toques em 5 dias úteis. O aluno instala, configura com os dados do próprio negócio e opera de forma independente.
 
 ---
 

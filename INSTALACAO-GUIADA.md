@@ -2,7 +2,7 @@
 
 > Você (Claude Code) está dentro do repositório de um **produto pronto e testado**: o
 > **BDR Kit**, da ZX LAB, um sistema de prospecção por WhatsApp com qualificação por
-> IA. O dono deste computador é um **comprador do kit** que vai instalar e operar o
+> IA. O dono deste computador é um **aluno do ZX Control** que vai instalar e operar o
 > produto no negócio dele. Este arquivo é o roteiro da instalação.
 
 ## 🎯 Seu papel aqui: CONFIGURAR, nunca programar
@@ -10,17 +10,17 @@
 - A lógica do kit (dispatcher, CRM, scripts e o wizard) é **congelada e validada**.
   Você **NUNCA edita** `dispatcher/`, `crm/`, `scripts/` nem `setup/setup.js`. Não
   "melhore", não "ajuste", não reescreva nada disso.
-- Seu trabalho é **só configurar o kit pro negócio do comprador**: coletar as
+- Seu trabalho é **só configurar o kit pro negócio do aluno**: coletar as
   respostas, gravar a config, rodar o setup, conectar o WhatsApp e validar.
 - Se achar que falta algo no código, **é problema do mantenedor (ZX LAB), não tarefa
-  sua**: avise o comprador pra reportar e não conserte aqui. A skill gerada em
+  sua**: avise o aluno pra reportar e não conserte aqui. A skill gerada em
   `.claude/skills/bdr-*/` é conteúdo do negócio dele: ajustar é permitido **se ele
   pedir, depois da instalação** (`docs/personalizando-skill.md`).
-- Tudo roda na máquina e nas contas do próprio comprador (WhatsApp dele, Apify dele).
+- Tudo roda na máquina e nas contas do próprio aluno (WhatsApp dele, Apify dele).
 
 > ⚠️ **O JEITO ZX LAB É A CONVERSA, NÃO O SCRIPT.** Existe um wizard interativo
 > (`node setup/setup.js`) como alternativa pra quem prefere responder no terminal, mas
-> o **formato padrão** é você conduzir tudo aqui no chat. O comprador **não precisa
+> o **formato padrão** é você conduzir tudo aqui no chat. O aluno **não precisa
 > saber programar**: faça **uma pergunta por vez**, em linguagem simples, e **rode você
 > os comandos** (não peça pra ele abrir terminal). Como o wizard é interativo, você usa
 > o modo `--config`: coleta as respostas no chat, grava um JSON e roda o wizard com ele.
@@ -29,7 +29,7 @@
 
 ## Como apresentar: é o Setup ZX LAB
 
-Assim que o comprador pedir pra instalar, **abra com este quadro** (copie como está) e
+Assim que o aluno pedir pra instalar, **abra com este quadro** (copie como está) e
 logo abaixo o mapa das etapas:
 
 ```
@@ -64,7 +64,7 @@ B2B soma o briefing), e a etapa 7 é à parte, cerca de 10 minutos.
 
 ## Retomar de onde parou
 
-Se a conversa caiu no meio e o comprador disser "continuar a instalação", **não
+Se a conversa caiu no meio e o aluno disser "continuar a instalação", **não
 recomece**. Confira o que já existe e retome da etapa certa (nunca refaça o que está
 pronto):
 
@@ -243,7 +243,7 @@ depois que ele entender o primeiro.
 **1. Modo automático.** Explique em duas frases: existe um modo em que o próprio
 BDR continua a conversa depois que o lead responde, e agenda a call sozinho. Antes de
 responder ele espera 9 segundos, porque lead costuma emendar várias mensagens: ele lê
-todas juntas e responde uma vez só. Vem **desligado por padrão**; o comprador liga
+todas juntas e responde uma vez só. Vem **desligado por padrão**; o aluno liga
 quando quiser, depois, na aba **Prospecção Fria** do CRM (não é algo que se configura
 aqui no wizard). Precisa do Claude Code CLI instalado à parte do app Desktop. Detalhes
 em `docs/modo-automatico.md`, exemplos de conversa em `docs/simulacoes-atendimento.md`.
@@ -331,7 +331,7 @@ Ele só lê, não altera nem envia nada. Confere os arquivos gerados, as chaves,
 dependências, que o `setup/config.json` foi apagado, se a Evolution API responde e se o
 WhatsApp está conectado.
 
-- **Algum `✗`:** **pare e mostre o erro pro comprador.** Resolva e rode de novo. Não
+- **Algum `✗`:** **pare e mostre o erro pro aluno.** Resolva e rode de novo. Não
   entregue quebrado.
 - **Só `!` (avisos):** são pendências ou itens opcionais (ex.: WhatsApp ainda sem QR,
   Claude Code CLI ausente sem modo automático ligado). Diga o que cada um significa e
@@ -341,13 +341,13 @@ WhatsApp está conectado.
 
 ---
 
-## Como o comprador opera depois (ensine isso a ele)
+## Como o aluno opera depois (ensine isso a ele)
 
 Rotina do dia, nesta ordem:
 
 1. **Enriquecer** os leads do dia (script, ou pedindo ao Claude Code).
 2. **Gerar as mensagens:** abrir o Claude Code e dizer "roda o pipeline". Ele
-   qualifica, escreve e mostra cada mensagem; **o comprador aprova** antes de qualquer envio.
+   qualifica, escreve e mostra cada mensagem; **o aluno aprova** antes de qualquer envio.
 3. **Enviar:** `cd dispatcher && npm start` (deixar aberto até o fim da janela).
 4. **Atender as respostas:** `cd crm && npm start`, abrir `http://localhost:3001`, aba
    **Prospecção Fria**. O botão **✨ Gerar sugestão** escreve a próxima resposta.
@@ -355,7 +355,7 @@ Rotina do dia, nesta ordem:
 > ⚠️ **AÇÃO HUMANA QUE NÃO PODE PULAR: marcar quem respondeu.** No modo manual o kit
 > **não detecta sozinho** quando um lead responde. Quem respondeu e não foi marcado
 > **continua recebendo os próximos toques da cadência**, o que parece insistência e
-> queima o contato. Depois de olhar as respostas, o comprador abre o lead no CRM
+> queima o contato. Depois de olhar as respostas, o aluno abre o lead no CRM
 > (aba Prospecção Fria) e clica em **"📥 Puxar conversa do WhatsApp"**: isso registra a
 > resposta, marca o lead como respondido e cancela o próximo toque. Quem respondeu
 > por fora do WhatsApp (e-mail, ligação) ele marca à mão (`docs/operacao-diaria.md`).

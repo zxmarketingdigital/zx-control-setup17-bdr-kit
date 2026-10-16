@@ -1,7 +1,7 @@
 // dispatcher/src/inbound-poller.js
 // Polling de mensagens novas na Evolution API pros leads ativos.
 //
-// Sem webhook: o kit roda local, na máquina do comprador, sem URL pública pra
+// Sem webhook: o kit roda local, na máquina do aluno, sem URL pública pra
 // receber callback — então polling é o único jeito que funciona no self-install.
 // Só entra em ação quando o modo automático está ligado (ver auto-mode-config.js).
 

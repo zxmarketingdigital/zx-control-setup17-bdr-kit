@@ -2058,7 +2058,7 @@ function saveConfig(vars) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 async function main() {
   // ── Non-interactive mode: node setup/setup.js --config path/to/config.json ──
-  // Used by Claude Code during guided installation (buyer says "instala").
+  // Used by Claude Code during guided installation (o aluno pede "instala").
   const configArgIdx = process.argv.indexOf('--config');
   if (configArgIdx !== -1 && process.argv[configArgIdx + 1]) {
     const configPath = process.argv[configArgIdx + 1];

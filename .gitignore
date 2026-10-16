@@ -25,10 +25,6 @@ setup/setup-config.json
 CLAUDE.md
 .claude/skills/
 
-# Ferramentas de administração (só para uso do autor)
-grant-access.js
-buyers.json
-
 # OS
 .DS_Store
 Thumbs.db

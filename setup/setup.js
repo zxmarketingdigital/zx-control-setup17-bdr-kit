@@ -5,6 +5,7 @@ const readline = require('readline');
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const { generateEvolutionKey, evolutionKeyProblem } = require('./evolution-key');
 
 // ─── ANSI color helpers ────────────────────────────────────────────────────────
 const c = {
@@ -415,10 +416,21 @@ async function phase2(rl) {
     'http://localhost:8080'
   );
 
-  const EVOLUTION_API_KEY = await ask(
+  let EVOLUTION_API_KEY = (await ask(
     rl,
-    c.cyan('? ') + 'API key da Evolution API (definida no docker-compose): '
-  );
+    c.cyan('? ') + 'API key da Evolution API (Enter para gerar uma aleatória, recomendado): '
+  )).trim();
+  if (!EVOLUTION_API_KEY) {
+    EVOLUTION_API_KEY = generateEvolutionKey();
+    console.log(c.dim('  Chave gerada e gravada em dispatcher/.env. Você não precisa guardar.'));
+  }
+  for (let problem = evolutionKeyProblem(EVOLUTION_API_KEY); problem; problem = evolutionKeyProblem(EVOLUTION_API_KEY)) {
+    console.log(c.red(`  ✗ Essa chave ${problem}. Ela protege o envio de WhatsApp pelo seu número.`));
+    EVOLUTION_API_KEY = (await ask(
+      rl,
+      c.cyan('? ') + 'Digite outra chave (24+ caracteres) ou Enter para gerar: '
+    )).trim() || generateEvolutionKey();
+  }
 
   const EVOLUTION_INSTANCE = await askWithDefault(
     rl,
@@ -2089,6 +2101,19 @@ async function main() {
     else {
       console.error(c.red(`\n✗ BUSINESS_TYPE inválido: "${vars.BUSINESS_TYPE}". Use "agencia" ou "b2b".\n`));
       process.exit(1);
+    }
+
+    // Chave da Evolution API: gera se não veio; recusa vazio/placeholder/curta.
+    if (!String(vars.EVOLUTION_API_KEY ?? '').trim()) {
+      vars.EVOLUTION_API_KEY = generateEvolutionKey();
+      console.log(c.dim('  EVOLUTION_API_KEY não informada: gerada automaticamente (48 caracteres).'));
+    } else {
+      const keyProblem = evolutionKeyProblem(vars.EVOLUTION_API_KEY);
+      if (keyProblem) {
+        console.error(c.red(`\n✗ EVOLUTION_API_KEY inválida: ${keyProblem}.`));
+        console.error(c.yellow('  Apague o campo do config para o setup gerar uma chave segura, ou informe uma com 24+ caracteres.\n'));
+        process.exit(1);
+      }
     }
 
     // Validate required fields — nomes têm que bater com os usados em

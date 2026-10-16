@@ -9,6 +9,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createRequire } from 'node:module';
+
+const { evolutionKeyProblem } = createRequire(import.meta.url)('./evolution-key.js');
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const rel = (...p) => path.join(ROOT, ...p);
@@ -71,7 +74,12 @@ if (!fs.existsSync(rel('dispatcher', '.env'))) fail('dispatcher/.env não existe
 else {
   const missing = ['EVOLUTION_API_URL', 'EVOLUTION_API_KEY', 'EVOLUTION_INSTANCE'].filter((k) => !dEnv[k]);
   if (missing.length) fail(`dispatcher/.env sem: ${missing.join(', ')}`, 'Rode a Etapa 6 de novo.');
-  else ok('dispatcher/.env com a chave e a instância da Evolution');
+  else {
+    ok('dispatcher/.env com a chave e a instância da Evolution');
+    const keyProblem = evolutionKeyProblem(dEnv.EVOLUTION_API_KEY);
+    if (keyProblem) fail(`Chave da Evolution fraca: ${keyProblem}`, 'Apague EVOLUTION_API_KEY do config e rode a Etapa 6 de novo: o setup gera uma chave segura.');
+    else ok('Chave da Evolution forte (gerada pelo setup)');
+  }
 }
 
 if (fs.existsSync(rel('crm', '.env'))) ok('crm/.env');

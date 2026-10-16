@@ -278,7 +278,7 @@ Peça **uma de cada vez**, dizendo onde pegar:
 |---|---|
 | `APIFY_ACTOR_ID` | Console da Apify: abra o Actor que você vai usar; o ID fica na URL da página dele |
 | `APIFY_TOKEN` | Console da Apify → Settings → API & Integrations (em algumas contas aparece só como Integrations) → token pessoal (começa com `apify_api_`). É secreto: não repita em voz alta nem cole em outro lugar |
-| `EVOLUTION_API_KEY` | **Não pergunte**: gere uma chave aleatória de 32 caracteres (`node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"`) e explique que é a senha da API do WhatsApp local, que fica só na máquina dele |
+| `EVOLUTION_API_KEY` | **Não pergunte e deixe o campo de fora do config**: o setup gera sozinho uma chave aleatória de 48 caracteres. Explique que é a senha da API do WhatsApp local, que fica só na máquina dele. Chave vazia, curta ou de exemplo é recusada |
 | `EVOLUTION_INSTANCE` | Opcional. Padrão `bdr-instance` |
 
 Opcionais com padrão (só pergunte se ele quiser mudar): `WINDOW_START_HOUR` (10),

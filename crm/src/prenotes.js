@@ -35,8 +35,8 @@ export async function generate({ client_id, ref_month, custom_description = null
   );
 
   const description = custom_description || (
-    pkg ? `${pkg.name} — ${pkg.scope || pkg.description || 'serviços de marketing digital'}`
-        : 'Serviços de marketing digital'
+    pkg ? `${pkg.name} — ${pkg.scope || pkg.description || 'serviços prestados'}`
+        : 'Serviços prestados'
   );
 
   const today = new Date().toISOString().slice(0, 10);
@@ -72,15 +72,15 @@ ${client.notes ? `\n**Observações do contrato:** ${client.notes}\n` : ''}
 
 | Item | Valor |
 |---|---|
-| Serviços de marketing digital — ${monthLabel(ref_month)} | ${brl(amount)} |
+| Serviços prestados — ${monthLabel(ref_month)} | ${brl(amount)} |
 | **TOTAL** | **${brl(amount)}** |
 
 ---
 
 ## INSTRUÇÕES PARA EMISSÃO DA NFS-E
 
-- **Discriminação sugerida:** "Serviços de marketing digital e estratégia de comunicação — ${monthLabel(ref_month)} — referente a contrato firmado com ${client.name}."
-- **Código de serviço (LC 116/03):** 17.06 — Propaganda e publicidade ou 17.20 — Pesquisas de mercado (conforme sua tipificação).
+- **Discriminação sugerida:** "Serviços prestados — ${monthLabel(ref_month)} — referente a contrato firmado com ${client.name}."
+- **Código de serviço (LC 116/03):** confirme com o seu contador qual item da lista se aplica à sua atividade.
 - **ISS:** verificar alíquota municipal aplicável.
 
 ---

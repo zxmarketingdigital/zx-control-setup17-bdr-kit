@@ -186,7 +186,10 @@ const MEETING_STATUS_LABELS={scheduled:'Agendada',confirmed:'Confirmada',complet
 const OUTCOME_LABELS={reuniao_agendada:'Reunião agendada',cliente_convertido:'Cliente convertido',proposta_aceita:'Proposta aceita',proposta_recusada:'Proposta recusada',no_show:'No-show'};
 const OUTCOME_ICONS={reuniao_agendada:'📅',cliente_convertido:'💼',proposta_aceita:'✓',proposta_recusada:'✗',no_show:'👻'};
 const CLIENT_STATUS_LABELS={ativo:'Ativo',em_risco:'Em risco',pausado:'Pausado',churn:'Churn'};
-const ROLE_LABELS={vendedor:'Vendedor',conta:'Gestor de conta',trafego:'Tráfego',edicao:'Edição',social:'Social media',gestor:'Gestor',outro:'Outro'};
+const ROLE_LABELS={vendedor:'Vendedor',conta:'Gestor de conta',operacao:'Operação',suporte:'Suporte',gestor:'Gestor',outro:'Outro'};
+// Funções de instalações antigas (não são mais oferecidas, mas continuam aparecendo certo).
+const LEGACY_ROLE_LABELS={trafego:'Tráfego',edicao:'Edição',social:'Social media'};
+const roleLabel=k=>ROLE_LABELS[k]||LEGACY_ROLE_LABELS[k]||k;
 const BILLING_LABELS={mensal:'Mensal',unico:'Pagamento único',personalizado:'Personalizado'};
 const INVOICE_STATUS_LABELS={pendente:'Pendente',pago:'Pago',atrasado:'Atrasado',cancelado:'Cancelado'};
 const COST_CAT_LABELS={equipe:'Equipe',assinatura:'Assinatura',imposto:'Imposto',marketing:'Marketing',infraestrutura:'Infraestrutura',outro:'Outro'};
@@ -1311,7 +1314,7 @@ async function openClientForm(clientId=null,fromLeadId=null){
       </div>
 
       <div><label class="label block mb-1">Membros da equipe (Ctrl+click p/ múltiplos)</label>
-        <select id="cl-team" class="select" multiple size="3">${TEAM.map(t=>`<option value="${t.id}" ${(c.team_member_ids||[]).includes(t.id)?'selected':''}>${escapeHtml(t.name)} (${ROLE_LABELS[t.role]||t.role})</option>`).join('')}</select>
+        <select id="cl-team" class="select" multiple size="3">${TEAM.map(t=>`<option value="${t.id}" ${(c.team_member_ids||[]).includes(t.id)?'selected':''}>${escapeHtml(t.name)} (${roleLabel(t.role)})</option>`).join('')}</select>
       </div>
 
       <div class="border-t border-line pt-4">
@@ -1415,7 +1418,7 @@ async function renderTeam(view){
             ${TEAM.length===0?`<tr><td colspan="6" class="text-center text-ink-dim py-8">Ninguém cadastrado. <button onclick="openTeamForm()" class="text-accent-light underline ml-2">Adicionar</button></td></tr>`:TEAM.map(t=>`
               <tr onclick="openTeamForm('${t.id}')">
                 <td class="font-medium text-ink">${escapeHtml(t.name)}</td>
-                <td><span class="badge badge-neutral">${ROLE_LABELS[t.role]||t.role}</span></td>
+                <td><span class="badge badge-neutral">${roleLabel(t.role)}</span></td>
                 <td class="text-ink-dim">${escapeHtml(t.email||'—')}</td>
                 <td class="text-ink-dim mono text-xs">${t.phone||'—'}</td>
                 <td>${t.active!==false?'<span class="badge badge-ok">Ativo</span>':'<span class="badge badge-neutral">Inativo</span>'}</td>
@@ -1435,7 +1438,7 @@ function openTeamForm(id=null){
     <div class="p-6 space-y-4">
       <div><label class="label block mb-1">Nome *</label><input id="tm-name" class="input" value="${escapeHtml(t.name||'')}"></div>
       <div class="grid grid-cols-2 gap-3">
-        <div><label class="label block mb-1">Função</label><select id="tm-role" class="select">${Object.entries(ROLE_LABELS).map(([k,v])=>`<option value="${k}" ${t.role===k?'selected':''}>${v}</option>`).join('')}</select></div>
+        <div><label class="label block mb-1">Função</label><select id="tm-role" class="select">${Object.entries({...ROLE_LABELS,...(LEGACY_ROLE_LABELS[t.role]?{[t.role]:LEGACY_ROLE_LABELS[t.role]}:{})}).map(([k,v])=>`<option value="${k}" ${t.role===k?'selected':''}>${v}</option>`).join('')}</select></div>
         <div><label class="label block mb-1">Status</label><select id="tm-active" class="select"><option value="1" ${t.active!==false?'selected':''}>Ativo</option><option value="0" ${t.active===false?'selected':''}>Inativo</option></select></div>
       </div>
       <div class="grid grid-cols-2 gap-3">

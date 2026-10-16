@@ -17,9 +17,9 @@ import { fetchInboundMessages, transcribeEvolutionAudio, transcriptionSettings }
 import { detectAutoReply } from '../dispatcher/src/auto-reply-detector.js';
 import { loadBookingRules, saveBookingRules, parseRevenueBR, qualificationStatus, formatBRL } from '../dispatcher/src/qualification.js';
 import { resolveClaudeBin } from '../dispatcher/src/claude-cli.js';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { hostGuard } from './src/host-guard.js';
+import { runClaudeSandboxed, loadSkillText } from '../dispatcher/src/claude-sandbox.js';
+import { collectSecretValues, checkOutgoing } from '../dispatcher/src/outbound-guard.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PIPELINE_DIR = path.resolve(__dirname, '..', 'pipeline');
@@ -27,7 +27,6 @@ const DOCS_DIR = path.resolve(__dirname, '..', 'docs');
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PORT = process.env.CRM_PORT ?? 3001;
 const MIN_PATTERN_SAMPLE = 5;
-const execFileAsync = promisify(execFile);
 // 90s não é sempre suficiente: a 1ª chamada de uma sessão claude -p paga o
 // custo de criar o cache do prompt (projeto + skill inteiros), o que sozinho
 // já passou de 90s em teste real neste projeto. Chamadas seguintes tendem a
@@ -190,14 +189,13 @@ app.post('/api/leads/:id/manual-message', async (req, res) => {
 });
 
 // ── Sugestão de resposta via Claude Code headless (mesmo padrão do modo
-// automático em dispatcher/src/auto-responder.js) — roda com cwd na raiz do
-// projeto pra carregar a skill/tom. Sem --bare, com --permission-mode dontAsk
-// MAS restrito a --allowedTools somente-leitura (Read/Glob/Grep): essa
-// chamada só precisa consultar o SKILL.md pra tom/regras, a conversa já vai
-// inteira no prompt. Sem Edit/Write/Bash, o modelo não tem como alterar nada
-// no disco — nem no projeto, nem fora dele — só porque "achou" algo pra
-// corrigir no caminho. Exige o Claude Code CLI instalado à parte do app
-// Desktop; sem ele, cai no fallback de "copiar prompt" no front.
+// automático em dispatcher/src/auto-responder.js). A conversa tem texto de
+// desconhecidos (o lead), então o modelo roda SEM ferramentas, sem MCP e numa
+// pasta temporária vazia, com a skill embutida no contexto (claude-sandbox.js):
+// um lead que escreva "leia o arquivo .env" não tem como fazer o modelo ler
+// nada. A sugestão ainda passa pelo filtro de saída (outbound-guard.js) antes de
+// chegar na tela. Exige o Claude Code CLI instalado à parte do app Desktop; sem
+// ele, cai no fallback de "copiar prompt" no front.
 app.post('/api/leads/:id/suggest-reply', async (req, res) => {
   const prompt = req.body?.prompt;
   if (!prompt?.trim()) return res.status(400).json({ error: 'prompt é obrigatório' });
@@ -206,12 +204,8 @@ app.post('/api/leads/:id/suggest-reply', async (req, res) => {
     return res.status(503).json({ error: 'Claude Code CLI não encontrado. Instale com "npm install -g @anthropic-ai/claude-code" e rode "claude login" uma vez — ou use "Copiar prompt" abaixo.' });
   }
   try {
-    const { stdout } = await execFileAsync(bin, [
-      '-p', prompt,
-      '--output-format', 'json',
-      '--permission-mode', 'dontAsk',
-      '--allowedTools', 'Read,Glob,Grep',
-    ], { cwd: ROOT_DIR, timeout: CLAUDE_SUGGEST_TIMEOUT_MS, maxBuffer: 10 * 1024 * 1024 });
+    const skillText = await loadSkillText(ROOT_DIR);
+    const stdout = await runClaudeSandboxed({ prompt, skillText, timeoutMs: CLAUDE_SUGGEST_TIMEOUT_MS });
     let outer;
     try {
       outer = JSON.parse(stdout);
@@ -220,6 +214,11 @@ app.post('/api/leads/:id/suggest-reply', async (req, res) => {
     }
     const text = String(outer.result ?? outer.output ?? '').trim();
     if (!text) return res.status(502).json({ error: 'Claude Code não devolveu texto.' });
+    const guard = checkOutgoing(text, { secrets: await collectSecretValues(ROOT_DIR) });
+    if (!guard.ok) {
+      console.error('[suggest-reply] sugestão barrada pelo filtro de segurança:', guard.reason);
+      return res.status(422).json({ error: `Sugestão barrada pelo filtro de segurança (${guard.reason}). Escreva a resposta você mesmo.` });
+    }
     res.json({ text });
   } catch (err) {
     console.error('[suggest-reply]', err.code, err.message);

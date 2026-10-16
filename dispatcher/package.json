@@ -10,7 +10,8 @@
     "start": "node src/index.js",
     "setup": "node scripts/setup.js",
     "status": "node scripts/status.js",
-    "logout": "node scripts/logout.js"
+    "logout": "node scripts/logout.js",
+    "test": "node --test"
   },
   "dependencies": {
     "chalk": "^5.3.0",

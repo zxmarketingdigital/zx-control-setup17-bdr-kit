@@ -52,10 +52,14 @@ console.log(dim('Só leitura: nada é alterado nem enviado.'));
 // ── Etapa 6: instalação ────────────────────────────────────────────────────
 section('Instalação (Etapa 6)');
 
-const claudeMd = rel('CLAUDE.md');
-if (!fs.existsSync(claudeMd)) fail('CLAUDE.md não existe', 'Rode a Etapa 6 (node setup/setup.js --config setup/config.json).');
-else if (fs.readFileSync(claudeMd, 'utf8').includes('o setup ainda não foi rodado')) fail('CLAUDE.md ainda é o texto padrão (o setup não rodou)', 'Rode a Etapa 6.');
-else ok('CLAUDE.md gerado com o contexto do seu negócio');
+const contexto = rel('.claude', 'contexto-local.md');
+if (!fs.existsSync(contexto)) fail('.claude/contexto-local.md não existe', 'Rode a Etapa 6 (node setup/setup.js --config setup/config.json).');
+else ok('.claude/contexto-local.md com o contexto do seu negócio');
+
+const claudeMdPath = rel('CLAUDE.md');
+if (!fs.existsSync(claudeMdPath) || !fs.readFileSync(claudeMdPath, 'utf8').includes('@.claude/contexto-local.md')) {
+  fail('CLAUDE.md não importa o contexto do seu negócio', 'Restaure o arquivo do repositório: git checkout -- CLAUDE.md');
+} else ok('CLAUDE.md importa .claude/contexto-local.md');
 
 const skillsDir = rel('.claude', 'skills');
 const skillDirs = fs.existsSync(skillsDir) ? fs.readdirSync(skillsDir).filter((d) => d.startsWith('bdr-')) : [];

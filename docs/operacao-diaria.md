@@ -103,7 +103,7 @@ o que antes precisava de um navegador à parte.
 claude --model claude-sonnet-4-6
 ```
 
-3. Aguarde o Claude Code carregar (ele vai reconhecer o `CLAUDE.md` do projeto automaticamente).
+3. Aguarde o Claude Code carregar (ele vai reconhecer o `CLAUDE.md` do projeto e o contexto do seu negócio, em `.claude/contexto-local.md`, automaticamente).
 4. Confirme que o arquivo de leads enriquecidos existe:
 
 ```bash

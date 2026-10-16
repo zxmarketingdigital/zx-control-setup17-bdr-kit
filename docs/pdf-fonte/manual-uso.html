@@ -349,6 +349,9 @@ npm start</pre></div>
     <tr><td>Marcar uma resposta</td><td>"marca o lead [nome] como respondido"</td></tr>
   </table>
 
+  <h2>Atualizar o setup</h2>
+  <p>Quando a ZX LAB publicar uma versão nova, na pasta do setup rode <code>git pull</code> e depois <code>node setup/smoke.mjs</code>. Os seus dados não são mexidos: leads, <code>.env</code>, a skill do seu negócio e o contexto gerado ficam fora do git. Se o <code>git pull</code> reclamar de arquivo que você alterou, rode <code>git stash</code> antes e <code>git stash pop</code> depois.</p>
+
   <h2>Documentação e suporte</h2>
   <table class="cols-fixed">
     <tr><th>Arquivo</th><th>O que tem</th></tr>

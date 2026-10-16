@@ -132,10 +132,10 @@ cat pipeline/pool-prequalificados.json | grep -c '"status": "pending"'
 Se der 0, rode a Fase 0 com um novo dataset da Apify antes de continuar.
 
 **b) Token da Apify (só importa na Fase 0, ao rodar `build-pool.py`):**
-Verifique se o token está configurado corretamente no `CLAUDE.md` do projeto. O token começa com `apify_api_...`.
+Verifique o token em `docs/comandos-diarios.md` (arquivo gerado pelo setup, só seu). O token começa com `apify_api_...`.
 
 **c) Actor ID:**
-Confirme que o `APIFY_ACTOR_ID` no `CLAUDE.md` está correto. Você encontra o ID na URL do actor na Apify: `apify.com/actors/{actor-id}`.
+Confirme que o `APIFY_ACTOR_ID` em `.claude/contexto-local.md` está correto. Você encontra o ID na URL do actor na Apify: `apify.com/actors/{actor-id}`.
 
 **d) Dataset do actor:**
 O actor precisa ter rodado pelo menos uma vez e gerado resultados. Acesse o Apify Console, abra o actor, vá em **Last Run** e confira se há itens no dataset.

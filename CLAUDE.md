@@ -1,10 +1,18 @@
-# CLAUDE.md
+# ZX Control 7 · Setup 17
 
-Este arquivo é gerado automaticamente pelo wizard de instalação (`setup/setup.js`).
+Este arquivo é **versionado**: o `git pull` pode atualizá-lo. O contexto do negócio do
+aluno (nome, nicho, posicionamento, regras de operação) fica em
+`.claude/contexto-local.md`, que o setup gera e que **não** sobe para o git. Ele é
+importado logo abaixo; enquanto não existir, o setup ainda não foi rodado.
 
-Se você está vendo este texto, o setup ainda não foi rodado.
+@.claude/contexto-local.md
 
-**Claude Code:** se o usuário pediu pra instalar, siga o roteiro em
-`INSTALACAO-GUIADA.md` (a primeira pergunta é se o negócio é uma agência de
-marketing ou outro B2B). O wizard vai sobrescrever este arquivo com o contexto
-operacional personalizado do ZX Control 7 · Setup 17.
+## Instalação (Claude Code: leia isto primeiro)
+
+Se `.claude/contexto-local.md` **não existe** e o usuário pediu pra instalar (por
+exemplo, "instale esse setup"), siga o roteiro em `INSTALACAO-GUIADA.md` (a primeira
+pergunta é se o negócio é uma agência de marketing ou outro B2B). Durante a instalação o
+`setup/setup.js` cria `.claude/contexto-local.md`; **não edite este `CLAUDE.md`**.
+
+Se `.claude/contexto-local.md` já existe, a instalação foi feita: siga o contexto
+importado acima e a skill do negócio em `.claude/skills/`.

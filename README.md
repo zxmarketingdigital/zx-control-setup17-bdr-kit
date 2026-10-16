@@ -27,19 +27,21 @@ Crie as contas e instale as ferramentas abaixo **antes** de iniciar a instalaç�
 | Conta | Onde criar | Para que serve |
 |---|---|---|
 | **Claude Pro ou Max** | [claude.ai](https://claude.ai) | Qualificação de leads e geração de copy |
-| **Conta Apify** | [apify.com](https://apify.com) | Fonte dos datasets de leads |
+| **Conta Apify** | [apify.com](https://apify.com) | Fonte dos datasets de leads. O plano gratuito tem créditos mensais para começar; o custo de cada lote depende do Actor escolhido, veja o preço na página do Actor antes de rodar |
 
 ### Software necessário
 
 | Ferramenta | Verificar no terminal | Como instalar |
 |---|---|---|
-| **Claude para Desktop** | — | [claude.ai/download](https://claude.ai/download) — já vem com o Code integrado |
+| **Git** (ou **GitHub CLI**, `gh`) | `git --version` ou `gh --version` | [git-scm.com](https://git-scm.com/downloads) ou [cli.github.com](https://cli.github.com). Para baixar o setup |
+| **Claude Code** | `claude --version` | App **Claude para Desktop** ([claude.ai/download](https://claude.ai/download), Windows e Mac), que já vem com o Code. No Linux, ou se preferir o terminal: `npm install -g @anthropic-ai/claude-code` e depois `claude login`. O comando `claude` (CLI) também é **obrigatório pra ligar o modo automático** |
 | **Node.js ≥ 18** | `node --version` | [nodejs.org](https://nodejs.org/en/download/) |
-| **Docker Desktop** | `docker --version` | [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop) |
+| **Docker** | `docker --version` | **Windows e Mac:** [Docker Desktop](https://www.docker.com/products/docker-desktop) (no Windows aceite o WSL2 e reinicie se o instalador pedir). **Linux:** [Docker Engine](https://docs.docker.com/engine/install/) com o plugin Compose |
 | **Python ≥ 3.10** | `python3 --version` (Mac/Linux) ou `python --version` (Windows) | [python.org/downloads](https://python.org/downloads) |
+| **ffmpeg** (opcional) | `ffmpeg -version` | Só pra transcrever áudio de lead (veja `docs/transcricao-audio.md`) |
 
 > O wizard verifica Node.js, Docker e Python automaticamente e para se algum estiver faltando.
-> Certifique-se de que o **Docker Desktop está aberto** antes de iniciar a instalação.
+> No Windows e no Mac, deixe o **Docker Desktop aberto** antes de iniciar a instalação. No Linux, o serviço do Docker precisa estar ativo.
 
 ---
 
@@ -47,34 +49,38 @@ Crie as contas e instale as ferramentas abaixo **antes** de iniciar a instalaç�
 
 A instalação é o **Setup ZX LAB**: o Code do app Claude conduz você, conversando, em 8 etapas. Você faz uma vez.
 
-### Passo 1 — Extraia o zip
+### Passo 1 — Baixe o setup
 
-Extraia o arquivo `.zip` numa pasta permanente — não a pasta Downloads, que pode ser limpa pelo sistema.
+Escolha uma pasta permanente (não a pasta Downloads, que pode ser limpa pelo sistema) e abra o terminal nela:
 
-Sugestões: `~/Documentos/zx-control-setup17` ou `~/ZX-Control-Setup17`
-
-Anote o caminho completo da pasta extraída. Você vai precisar dele no próximo passo.
-
-**Exemplo:** `/Users/Carlos/Documentos/zx-control-setup17/bdr-template-self`
-
-### Passo 2 — Abra o Code no app Claude
-
-No app Claude para Desktop, clique no botão **`</> Code`** (canto inferior esquerdo) para iniciar uma nova sessão Code.
-
-> Você já está autenticado — não precisa abrir terminal, não precisa fazer login.
-
-### Passo 3 — Cole o comando de instalação
-
-No chat do Code, cole o comando abaixo substituindo o caminho pelo local onde você extraiu o kit:
-
-```
-instale esse setup através do repositório localizado em /Users/Carlos/Documentos/zx-control-setup17/bdr-template-self
+```bash
+gh repo clone zxmarketingdigital/zx-control-setup17-bdr-kit
+cd zx-control-setup17-bdr-kit
 ```
 
-**No Windows**, o caminho usa barras invertidas:
+Sem o `gh`, use o Git: `git clone https://github.com/zxmarketingdigital/zx-control-setup17-bdr-kit.git`.
+
+### Passo 2 — Abra o Claude Code nessa pasta
+
+No terminal, dentro da pasta, rode:
+
+```bash
+claude
 ```
-instale esse setup através do repositório localizado em C:\Users\Carlos\Documentos\zx-control-setup17\bdr-template-self
+
+Ou, no app Claude para Desktop, clique em **`</> Code`** (canto inferior esquerdo) e escolha a pasta `zx-control-setup17-bdr-kit`.
+
+> Você já está autenticado com o seu plano Claude. Só precisa fazer `claude login` na primeira vez se estiver usando o terminal.
+
+### Passo 3 — Peça a instalação
+
+No chat do Code, escreva:
+
 ```
+instale esse setup
+```
+
+**Só pelo app, sem terminal?** Escreva no chat do Code: `instale o setup do repositório github.com/zxmarketingdigital/zx-control-setup17-bdr-kit`. O Code baixa e instala.
 
 O Code abre com o quadro **ZX LAB · ZX Control 7 · Setup 17** e segue o roteiro em `INSTALACAO-GUIADA.md`, uma pergunta por vez:
 
@@ -93,7 +99,7 @@ O Code abre com o quadro **ZX LAB · ZX Control 7 · Setup 17** e segue o roteir
 
 Se a conversa cair no meio, diga "continuar a instalação": o Code confere o que já está pronto e retoma da etapa certa.
 
-**Tempo estimado:** 10–20 minutos nas etapas 1 a 6, incluindo respostas às perguntas (no B2B soma o briefing, 15–20 minutos). A etapa 7 leva cerca de 10 minutos.
+**Tempo estimado (estimativa):** com Node.js, Docker e Python já instalados, de 45 a 90 minutos na primeira vez. A conversa das etapas 1 a 6 leva de 10 a 20 minutos na agência (no B2B soma o briefing, de 15 a 20 minutos) e a etapa 7 leva de 10 a 15 minutos. Se você ainda não tem nada instalado, reserve de 2 a 3 horas: o Docker Desktop no Windows inclui o WSL2 e pode pedir reinício.
 
 ---
 
@@ -130,6 +136,19 @@ Veja o guia completo em `docs/manual-uso-setup17.pdf`.
 
 ---
 
+## Como atualizar
+
+Quando a ZX LAB publicar uma versão nova, na pasta do setup:
+
+```bash
+git pull
+node setup/smoke.mjs
+```
+
+Os seus dados não são mexidos: leads (`pipeline/`), `dispatcher/.env`, `crm/.env`, a skill do seu negócio (`.claude/skills/`) e o contexto gerado (`.claude/contexto-local.md`) ficam fora do git. Se o `git pull` reclamar de arquivo que você alterou (por exemplo um script), rode `git stash` antes e `git stash pop` depois. Se a atualização trouxer dependências novas, rode `npm install` nas pastas `dispatcher` e `crm`.
+
+---
+
 ## CRM
 
 O kit inclui um CRM local que roda em `http://localhost:3001`. Ele lê os mesmos arquivos do pipeline — leads, toques enviados, respostas recebidas — sem nenhuma configuração adicional.
@@ -147,9 +166,10 @@ Tem também um **modo automático opcional** (desligado por padrão) que continu
 ## Estrutura do projeto
 
 ```
-bdr-template-self/
+zx-control-setup17-bdr-kit/
 ├── INSTALACAO-GUIADA.md               ← Setup ZX LAB: roteiro de 8 etapas que o Claude Code segue (agência ou B2B)
-├── CLAUDE.md                          ← Gerado pelo wizard (contexto operacional)
+├── CLAUDE.md                          ← Versionado: dispara o roteiro de instalação e importa o contexto abaixo
+├── .claude/contexto-local.md          ← Gerado pelo wizard (contexto do seu negócio, fora do git)
 ├── .claude/
 │   └── skills/
 │       └── bdr-{seu-slug}/

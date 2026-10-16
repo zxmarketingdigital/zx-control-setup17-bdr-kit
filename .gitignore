@@ -12,17 +12,22 @@ docs/comandos-diarios.md
 pipeline/.meta_token
 scripts/.instagram-session.json
 
-# Pipeline — dados de leads (privados, não commitar)
-pipeline/
+# Pipeline — dados de leads (privados, não commitar). Só a pasta fica no git.
+pipeline/*
+!pipeline/.gitkeep
 
 # Logs
 dispatcher/dispatcher.log
 
-# Config do wizard (contém token mascarado — opcional commitar)
+# Config do wizard: setup/config.json tem o token da Apify em texto puro (o Claude apaga
+# no fim da instalação); setup-config.json tem o token mascarado. Nenhum dos dois sobe.
+setup/config.json
 setup/setup-config.json
 
-# Arquivos gerados pelo wizard (não commitar — regenerar com setup.js)
-CLAUDE.md
+# Arquivos gerados pelo wizard (não commitar — regenerar com setup.js).
+# O CLAUDE.md é versionado (stub que dispara o roteiro); o contexto do aluno vai em
+# .claude/contexto-local.md, importado por ele.
+.claude/contexto-local.md
 .claude/skills/
 
 # OS

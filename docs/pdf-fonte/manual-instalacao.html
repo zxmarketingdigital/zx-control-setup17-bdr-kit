@@ -38,21 +38,23 @@
   <table class="cols-fixed">
     <tr><th>Conta</th><th>Onde criar</th><th>Para que serve</th></tr>
     <tr><td>Claude Pro ou Max</td><td>claude.ai</td><td>Qualifica os leads e escreve as mensagens. Sem esse plano o kit não funciona.</td></tr>
-    <tr><td>Conta Apify</td><td>apify.com</td><td>Fonte dos datasets de leads. O plano gratuito serve pra começar.</td></tr>
+    <tr><td>Conta Apify</td><td>apify.com</td><td>Fonte dos datasets de leads. O plano gratuito tem créditos mensais pra começar; o custo de cada lote depende do Actor escolhido, veja o preço na página do Actor antes de rodar.</td></tr>
   </table>
 
   <h2>Software necessário</h2>
   <table class="cols-fixed">
     <tr><th>Ferramenta</th><th>Versão mínima</th><th>Como instalar</th></tr>
-    <tr><td>Claude para Desktop</td><td>qualquer</td><td>claude.ai/download. Já vem com o Code integrado, não precisa de terminal. Se o app não existir para o seu sistema (por exemplo, Linux), instale o Claude Code pelo terminal: <code>npm install -g @anthropic-ai/claude-code</code> e depois <code>claude login</code>.</td></tr>
+    <tr><td>Git ou GitHub CLI</td><td>qualquer</td><td>git-scm.com/downloads ou cli.github.com. Serve para baixar o setup.</td></tr>
+    <tr><td>Claude Code</td><td>qualquer</td><td>App Claude para Desktop (claude.ai/download, Windows e Mac), que já vem com o Code. No Linux, ou se preferir o terminal: <code>npm install -g @anthropic-ai/claude-code</code> e depois <code>claude login</code>. O comando <code>claude</code> também é <b>obrigatório para ligar o modo automático</b>.</td></tr>
     <tr><td>Node.js</td><td>18 ou superior</td><td>nodejs.org, baixe a versão LTS (Windows, Mac e Linux). No Mac também serve <code>brew install node</code>. No Linux, pelo gerenciador da distribuição, conferindo que a versão seja 18 ou maior.</td></tr>
     <tr><td>Docker</td><td>qualquer</td><td><b>Windows e Mac:</b> Docker Desktop em docker.com/products/docker-desktop. No Windows, aceite a instalação do WSL2 quando o instalador pedir, e abra o programa depois de instalar. <b>Linux:</b> Docker Engine com o plugin Compose (docs.docker.com/engine/install).</td></tr>
     <tr><td>Python</td><td>3.10 ou superior</td><td><b>Windows:</b> python.org/downloads, marcando "Add python.exe to PATH". <b>Mac:</b> python.org/downloads ou <code>brew install python@3.11</code>. <b>Linux:</b> <code>sudo apt install python3 python3-pip</code> (Debian e Ubuntu) ou o equivalente da sua distribuição.</td></tr>
+      <tr><td>ffmpeg <span class="small">(opcional)</span></td><td>qualquer</td><td>Só para transcrever áudio de lead (<code>docs/transcricao-audio.md</code>).</td></tr>
   </table>
 
   <div class="callout atencao"><span class="h">Atenção</span>
     <ul>
-      <li>No Windows e no Mac, o Code já vem no app Claude para Desktop: você não instala o Claude Code separado. No Linux, use o Claude Code pelo terminal, como na tabela acima.</li>
+      <li>Instalar o setup não pede terminal além do <code>git clone</code> do Passo 1: depois disso o Claude roda os comandos por você.</li>
       <li>No Windows e no Mac, o Docker Desktop precisa estar <b>aberto</b> (ícone da baleia na barra de tarefas ou na barra de menus) antes de começar. No Linux, o serviço do Docker precisa estar ativo: <code>sudo systemctl start docker</code>.</li>
       <li>Use um número de WhatsApp <b>dedicado à prospecção</b>, de preferência um chip separado do pessoal.</li>
     </ul>
@@ -80,7 +82,7 @@
     <tr><td>7</td><td>Conexões</td><td>WhatsApp (QR), Instagram, Google Calendar e primeiro lote de leads.</td><td>cerca de 10 min</td></tr>
     <tr><td>8</td><td>Teste final</td><td>Um teste que só lê e confere se ficou tudo de pé.</td><td>1 min</td></tr>
   </table>
-  <p>As etapas 1 a 6 levam de 10 a 20 minutos na agência. No B2B soma o briefing da etapa 3. A etapa 7 é à parte, cerca de 10 minutos.</p>
+  <p>Com Node.js, Docker e Python já instalados, a primeira vez leva de 45 a 90 minutos (estimativa). A conversa das etapas 1 a 6 leva de 10 a 20 minutos na agência, e no B2B soma o briefing da etapa 3 (15 a 20 minutos). A etapa 7 leva de 10 a 15 minutos. <b>Se você ainda não tem nada instalado, reserve de 2 a 3 horas</b>: o Docker Desktop no Windows inclui o WSL2 e pode pedir reinício.</p>
 
   <h2>Como o Claude conduz</h2>
   <ul class="b">
@@ -97,45 +99,32 @@
 
 <!-- ===================== PASSOS 1 a 3 ===================== -->
 <section class="sec">
-  <h1 class="t">Passo 1. Extrair o kit</h1>
-  <p>Você recebeu um arquivo <code>.zip</code>. Extraia numa <b>pasta permanente</b>, não na pasta Downloads, que o sistema pode limpar.</p>
-  <table class="cols-fixed">
-    <tr><th>Sistema</th><th>Sugestão de pasta</th></tr>
-    <tr><td>Mac e Linux</td><td><code>~/Documentos/zx-control-setup17</code> ou <code>~/ZX-Control-Setup17</code></td></tr>
-    <tr><td>Windows</td><td><code>C:\ZX-Control-Setup17</code> ou <code>C:\Documentos\zx-control-setup17</code></td></tr>
-  </table>
-  <p><b>Windows:</b> botão direito no zip, "Extrair tudo...", escolha a pasta. <b>Mac:</b> dois cliques no zip e depois mova a pasta extraída pro local definitivo. <b>Linux:</b> <code>unzip arquivo.zip -d ~/ZX-Control-Setup17</code> ou o gerenciador de arquivos ("Extrair aqui").</p>
-  <p>Anote o caminho completo até a pasta <code>bdr-template-self</code>. Você vai usar no Passo 3.</p>
-  <table class="cols-fixed">
-    <tr><th>Sistema</th><th>Exemplo de caminho</th></tr>
-    <tr><td>Mac</td><td><code>/Users/Carlos/Documentos/zx-control-setup17/bdr-template-self</code></td></tr>
-    <tr><td>Linux</td><td><code>/home/carlos/Documentos/zx-control-setup17/bdr-template-self</code></td></tr>
-    <tr><td>Windows</td><td><code>C:\Users\Carlos\Documentos\zx-control-setup17\bdr-template-self</code></td></tr>
-  </table>
+  <h1 class="t">Passo 1. Baixar o setup</h1>
+  <p>O setup fica num repositório público da ZX LAB. Escolha uma <b>pasta permanente</b> (não a pasta Downloads, que o sistema pode limpar), abra o terminal nela e rode:</p>
+  <div class="cmd"><div class="lab">Terminal (Windows, Mac e Linux)</div><pre>gh repo clone zxmarketingdigital/zx-control-setup17-bdr-kit
+cd zx-control-setup17-bdr-kit</pre></div>
+  <p>Sem o GitHub CLI (<code>gh</code>), use o Git: <code>git clone https://github.com/zxmarketingdigital/zx-control-setup17-bdr-kit.git</code>.</p>
   <div class="callout info"><span class="h">Informação</span>
     <ul>
-      <li>O caminho não pode ter acentos, espaços ou caracteres especiais. Se tiver, renomeie a pasta antes de continuar.</li>
+      <li>O caminho da pasta não pode ter acentos nem caracteres especiais. Evite pastas com espaço no nome.</li>
       <li>Não mova a pasta depois de instalar: o sistema guarda o caminho do projeto.</li>
     </ul>
   </div>
 
-  <h1 class="t" style="margin-top:12mm">Passo 2. Abrir o Code no app Claude</h1>
+  <h1 class="t" style="margin-top:12mm">Passo 2. Abrir o Claude Code na pasta</h1>
   <ol class="steps">
-    <li>Abra o app <b>Claude para Desktop</b>.</li>
-    <li>No canto inferior esquerdo, clique no botão <b>&lt;/&gt; Code</b>.</li>
-    <li>Uma sessão Code abre dentro do app. É ali que você instala o kit.</li>
+    <li><b>Pelo terminal:</b> dentro da pasta, rode <code>claude</code>. Na primeira vez, faça <code>claude login</code> com o seu plano Claude.</li>
+    <li><b>Pelo app Claude para Desktop (Windows e Mac):</b> clique em <b>&lt;/&gt; Code</b>, no canto inferior esquerdo, e escolha a pasta <code>zx-control-setup17-bdr-kit</code>.</li>
   </ol>
-  <div class="callout info"><span class="h">Informação</span>
-    <p>Você já está autenticado com o seu plano Claude: não precisa de login extra nem de terminal. Também não precisa navegar até a pasta do kit antes, porque o comando de instalação já informa o caminho.</p>
+  <div class="callout info"><span class="h">Só pelo app, sem terminal</span>
+    <p>No chat do Code, escreva <code>instale o setup do repositório github.com/zxmarketingdigital/zx-control-setup17-bdr-kit</code>. O Code baixa e instala por você.</p>
   </div>
 </section>
 
 <section class="sec">
   <h1 class="t">Passo 3. Dar a partida no Setup</h1>
-  <p>No chat do Code, cole o comando abaixo, trocando o caminho pelo local onde você extraiu o kit (anotado no Passo 1).</p>
-  <div class="cmd"><div class="lab">Mac</div><pre>instale esse setup através do repositório localizado em /Users/Carlos/Documentos/zx-control-setup17/bdr-template-self</pre></div>
-  <div class="cmd"><div class="lab">Linux</div><pre>instale esse setup através do repositório localizado em /home/carlos/Documentos/zx-control-setup17/bdr-template-self</pre></div>
-  <div class="cmd"><div class="lab">Windows</div><pre>instale esse setup através do repositório localizado em C:\Users\Carlos\Documentos\zx-control-setup17\bdr-template-self</pre></div>
+  <p>No chat do Code, escreva:</p>
+  <div class="cmd"><div class="lab">No chat do Code</div><pre>instale esse setup</pre></div>
   <p>O Claude abre com o quadro ZX LAB, mostra o mapa das 8 etapas e começa. As próximas páginas mostram o que ele pergunta em cada uma e o que você responde.</p>
 
   <div class="etapa"><span class="n">ETAPA 1 DE 8</span><h2>Boas-vindas e pré-requisitos</h2><span class="t">2 min</span></div>
@@ -216,7 +205,7 @@ python --version   <span class="c"># 3.10+ (no Mac e no Linux o comando costuma 
   </ol>
   <table>
     <tr><th style="width:44%">Arquivo gerado</th><th>Para que serve</th></tr>
-    <tr><td><code>CLAUDE.md</code></td><td>Contexto do projeto com os seus dados. O Code lê na operação diária.</td></tr>
+    <tr><td><code>.claude/contexto-local.md</code></td><td>Contexto do projeto com os seus dados, importado pelo <code>CLAUDE.md</code>. Fica fora do git. O Code lê na operação diária.</td></tr>
     <tr><td><code>.claude/skills/bdr-{slug}/SKILL.md</code></td><td>Skill de prospecção configurada pro seu nicho.</td></tr>
     <tr><td><code>pipeline/followup-templates.json</code></td><td>Templates dos toques 2 a 6 (um jogo pro modo manual e outro pro automático).</td></tr>
     <tr><td><code>pipeline/icp-config.json</code></td><td>Tipo de negócio e categorias-alvo, usados no ranking do pool.</td></tr>

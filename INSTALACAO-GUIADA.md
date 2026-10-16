@@ -50,8 +50,10 @@ logo abaixo o mapa das etapas:
 | 7 | Conexões | WhatsApp (QR), Instagram, Calendar e primeiro lote | cerca de 10 min |
 | 8 | Teste final | confere se ficou tudo de pé | 1 min |
 
-Diga o tempo total em uma frase: etapas 1 a 6 levam de 10 a 20 minutos na agência (no
-B2B soma o briefing), e a etapa 7 é à parte, cerca de 10 minutos.
+Diga o tempo total em uma frase: a conversa das etapas 1 a 6 leva de 10 a 20 minutos na
+agência (no B2B soma o briefing), e a etapa 7 é à parte, de 10 a 15 minutos. Se faltar
+instalar Docker, Node ou Python, conte mais tempo (o Docker no Windows pode pedir
+reinício); avise antes, pra ele não achar que travou.
 
 **Em toda etapa, siga sempre o mesmo ritmo:**
 
@@ -70,7 +72,7 @@ pronto):
 
 | O que você encontra | Significa | Retome em |
 |---|---|---|
-| `CLAUDE.md` ainda diz "o setup ainda não foi rodado" | a instalação nunca rodou | Etapa 2 |
+| `.claude/contexto-local.md` não existe | a instalação nunca rodou | Etapa 2 |
 | `dispatcher/.env` e `.claude/skills/bdr-*` existem | etapas 1 a 6 prontas | Etapa 7 |
 | `setup/config.json` ainda existe, com o resto pronto | só faltou limpar | Etapa 6, passo 4 |
 | `node setup/smoke.mjs` só reclama do WhatsApp | falta conectar | Etapa 7, passo 1 |

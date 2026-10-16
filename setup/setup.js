@@ -484,9 +484,9 @@ function generateClaudeMd(vars) {
   } = vars;
   const isB2B = BUSINESS_TYPE === 'b2b';
 
-  return `# CLAUDE.md
+  return `# Contexto do negócio (gerado pelo setup; fica fora do git)
 
-This file provides guidance to Claude Code when working in this repository.
+Este arquivo é importado pelo CLAUDE.md do repositório. Ele guia o Claude Code ao trabalhar neste projeto.
 
 ## Project overview
 
@@ -1711,10 +1711,11 @@ ${transcriptionEnvBlock(vars)}`;
 function writeFiles(vars) {
   console.log('\n' + c.cyan('Gerando arquivos...\n'));
 
-  // 1. CLAUDE.md — project root
-  const claudeMdPath = path.join(ROOT_DIR, 'CLAUDE.md');
-  writeFileRecursive(claudeMdPath, generateClaudeMd(vars));
-  console.log(c.green('✓') + ' CLAUDE.md');
+  // 1. .claude/contexto-local.md — contexto do negócio do aluno. O CLAUDE.md do repo
+  //    (versionado) importa este arquivo; assim o git pull nunca conflita com o setup.
+  const contextoPath = path.join(ROOT_DIR, '.claude', 'contexto-local.md');
+  writeFileRecursive(contextoPath, generateClaudeMd(vars));
+  console.log(c.green('✓') + ' .claude/contexto-local.md (contexto do seu negócio)');
 
   // 2. .claude/skills/bdr-{slug}/SKILL.md — project root
   const skillPath = path.join(ROOT_DIR, '.claude', 'skills', `bdr-${vars.AGENT_SLUG}`, 'SKILL.md');

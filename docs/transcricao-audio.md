@@ -34,7 +34,7 @@ Foto, vídeo e arquivo continuam indo sempre pra você.
 
 1. Instale o transcritor (uma vez):
    ```bash
-   python -m pip install faster-whisper
+   python -m pip install -r scripts/requirements-audio.txt
    ```
 2. Baixe o modelo (uma vez, ~500 MB pro `small`, alguns minutos):
    ```bash

@@ -44,8 +44,8 @@ def ensure_playwright():
     except ImportError:
         import subprocess
         print("Instalando playwright...")
-        subprocess.run([sys.executable, "-m", "pip", "install", "playwright",
-                        "--break-system-packages", "-q"], check=True)
+        subprocess.run([sys.executable, "-m", "pip", "install", "-r",
+                        str(SCRIPTS_DIR / "requirements-instagram.txt"), "-q"], check=True)
         subprocess.run([sys.executable, "-m", "playwright", "install", "chromium",
                         "--with-deps"], check=True)
         print("Playwright instalado.")

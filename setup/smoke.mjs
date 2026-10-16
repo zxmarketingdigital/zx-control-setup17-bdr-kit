@@ -139,7 +139,7 @@ if (/^(1|true|sim|yes|on)$/i.test(dEnv.TRANSCRIBE_AUDIO || '')) {
     execFileSync(py, ['-c', 'import faster_whisper'], { stdio: 'ignore' });
     ok('Transcrição de áudio: faster-whisper instalado');
   } catch {
-    fail('Transcrição de áudio ligada, mas o faster-whisper não está instalado', `${py} -m pip install faster-whisper   (depois: ${py} scripts/transcribe-audio.py --warmup --model ${dEnv.WHISPER_MODEL || 'small'})`);
+    fail('Transcrição de áudio ligada, mas o faster-whisper não está instalado', `${py} -m pip install -r scripts/requirements-audio.txt   (depois: ${py} scripts/transcribe-audio.py --warmup --model ${dEnv.WHISPER_MODEL || 'small'})`);
   }
 } else {
   ok('Transcrição de áudio desligada (áudio de lead vai pra você ouvir)');

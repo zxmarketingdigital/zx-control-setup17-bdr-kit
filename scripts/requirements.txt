@@ -1,0 +1,9 @@
+# Dependências dos scripts Python do ZX Control 7 · Setup 17.
+# Versões fixas e testadas: o setup instala com 'pip install -r scripts/requirements.txt'.
+# Pra atualizar uma, troque o número aqui e rode o teste final (node setup/smoke.mjs).
+requests==2.34.2
+urllib3==2.8.0
+# Dependências do requests, também fixas:
+certifi==2026.7.22
+charset-normalizer==3.5.2
+idna==3.20

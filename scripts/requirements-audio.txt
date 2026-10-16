@@ -1,0 +1,2 @@
+# Só pra quem liga a transcrição de áudio dos leads (docs/transcricao-audio.md).
+faster-whisper==1.2.1

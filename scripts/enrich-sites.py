@@ -37,9 +37,11 @@ try:
     import requests
     from requests.exceptions import RequestException
 except ImportError:
-    print("Instalando requests...")
+    print("Instalando as dependências (scripts/requirements.txt)...")
     import subprocess
-    subprocess.run([sys.executable, "-m", "pip", "install", "requests", "--break-system-packages", "-q"])
+    if subprocess.run([sys.executable, "-m", "pip", "install", "-r",
+                       str(Path(__file__).parent / "requirements.txt"), "-q"]).returncode != 0:
+        sys.exit("Não consegui instalar as dependências. Rode: python -m pip install -r scripts/requirements.txt")
     import requests
     from requests.exceptions import RequestException
 

@@ -4,7 +4,7 @@
 const readline = require('readline');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execSync, spawnSync } = require('child_process');
 const { generateEvolutionKey, evolutionKeyProblem } = require('./evolution-key');
 
 // ─── ANSI color helpers ────────────────────────────────────────────────────────
@@ -73,16 +73,35 @@ function checkPrerequisites() {
   }
   console.log(c.green(`✓ Node.js ${nodeVersion}`));
 
-  // Check Docker
+  // Check Docker: o programa, o Compose v2 (docker compose) e se está rodando
   try {
     const dockerVersion = execSync('docker --version', { encoding: 'utf8' }).trim();
     console.log(c.green(`✓ ${dockerVersion}`));
   } catch (_) {
     console.error(c.red('✗ Docker não encontrado (necessário para a Evolution API).'));
-    console.error(c.yellow('\nComo instalar Docker Desktop:'));
-    console.error('  • Download: https://www.docker.com/products/docker-desktop');
-    console.error('  • Após instalar, abra o Docker Desktop antes de continuar.\n');
+    console.error(c.yellow('\nComo instalar:'));
+    console.error('  • Windows/Mac: Docker Desktop, https://www.docker.com/products/docker-desktop');
+    console.error('                 (no Windows aceite o WSL2 e reinicie se o instalador pedir)');
+    console.error('  • Linux:       Docker Engine com o plugin Compose, https://docs.docker.com/engine/install/');
+    console.error('  • Depois de instalar, abra o Docker Desktop (ou inicie o serviço) e rode o setup de novo.\n');
     process.exit(1);
+  }
+  try {
+    const composeVersion = execSync('docker compose version', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+    console.log(c.green(`✓ ${composeVersion}`));
+  } catch (_) {
+    console.error(c.red('✗ Docker Compose v2 não encontrado (o comando "docker compose").'));
+    console.error(c.yellow('\nComo resolver:'));
+    console.error('  • Windows/Mac: atualize o Docker Desktop (ele já traz o Compose).');
+    console.error('  • Linux:       instale o plugin, por exemplo "sudo apt install docker-compose-plugin".\n');
+    process.exit(1);
+  }
+  try {
+    execSync('docker info', { stdio: 'ignore', timeout: 20000 });
+    console.log(c.green('✓ Docker em execução'));
+  } catch (_) {
+    console.log(c.yellow('! Docker instalado, mas não está rodando. Você vai precisar dele na Etapa 7:'));
+    console.log(c.yellow('  abra o Docker Desktop (Windows/Mac) ou rode "sudo systemctl start docker" (Linux).'));
   }
 
   // Check Python 3.10+
@@ -92,7 +111,8 @@ function checkPrerequisites() {
   let pyVersion = null;
   for (const candidate of ['python3', 'python']) {
     try {
-      pyVersion = execSync(`${candidate} --version`, { encoding: 'utf8' }).trim();
+      // stdio com pipe: o atalho "python3" da Microsoft Store (Windows) imprime um aviso confuso
+      pyVersion = execSync(`${candidate} --version`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
       pythonCmd = candidate;
       break;
     } catch (_) {
@@ -1647,7 +1667,7 @@ const isOn = (v) => v === true || /^(1|true|sim|s|yes|y|on)$/i.test(String(v ?? 
 function transcriptionEnvBlock(vars) {
   return `
 # Transcrição de áudio dos leads — local (faster-whisper), o áudio não sai da máquina.
-# Requer: ${vars.PYTHON_CMD || 'python'} -m pip install faster-whisper
+# Requer: ${vars.PYTHON_CMD || 'python'} -m pip install -r scripts/requirements-audio.txt
 # Modelo: tiny | base | small (padrão, bom em português) | medium (melhor, mais lento)
 TRANSCRIBE_AUDIO=${isOn(vars.TRANSCRIBE_AUDIO) ? 'true' : 'false'}
 PYTHON_CMD=${vars.PYTHON_CMD || 'python'}
@@ -1892,29 +1912,46 @@ function installDepsInDir(label, dirName) {
     return;
   }
 
-  console.log('\n' + c.cyan(`Instalando dependências do ${label}...\n`));
+  // Com package-lock.json, usa "npm ci": instala exatamente as versões testadas.
+  const hasLock = fs.existsSync(path.join(dir, 'package-lock.json'));
+  const cmd = hasLock ? 'npm ci' : 'npm install';
+  console.log('\n' + c.cyan(`Instalando dependências do ${label}${hasLock ? ' (versões fixas)' : ''}...\n`));
   try {
-    execSync('npm install', { cwd: dir, stdio: 'inherit' });
-    console.log('\n' + c.green(`✓ ${label}: npm install concluído.`));
+    execSync(cmd, { cwd: dir, stdio: 'inherit' });
+    console.log('\n' + c.green(`✓ ${label}: ${cmd} concluído.`));
   } catch (err) {
-    console.error('\n' + c.red(`✗ ${label}: npm install falhou:`), err.message);
-    console.log(c.yellow(`  Rode manualmente: cd ${dirName} && npm install\n`));
+    console.error('\n' + c.red(`✗ ${label}: ${cmd} falhou:`), err.message);
+    console.log(c.yellow(`  Rode manualmente: cd ${dirName} && ${cmd}\n`));
+  }
+}
+
+// pip install -r <arquivo>: versões fixas. Em Linux com Python "gerenciado pelo
+// sistema" (Debian/Ubuntu), o pip recusa instalar fora de um venv: nesse caso repete
+// instalando só pro usuário (--user), sem tocar nos pacotes do sistema.
+function installPythonFile(vars, file, label) {
+  const py = vars.PYTHON_CMD || 'python';
+  console.log('\n' + c.cyan(`Instalando dependências Python ${label} (${file})...\n`));
+  const run = (extra = []) => spawnSync(py, ['-m', 'pip', 'install', '-r', file, ...extra], { cwd: ROOT_DIR, encoding: 'utf8' });
+  let r = run();
+  if (r.status !== 0 && /externally-managed-environment/.test(`${r.stderr}`)) {
+    console.log(c.dim('  O Python do sistema é gerenciado pelo sistema operacional; instalando só pro seu usuário (--user).'));
+    r = run(['--user', '--break-system-packages']);
+  }
+  if (r.status === 0) {
+    console.log(c.green(`✓ ${file} instalado.`));
+  } else {
+    console.error(c.red(`✗ pip install -r ${file} falhou:`));
+    console.error(c.dim(`${r.stderr || r.error?.message || ''}`.trim().split('\n').slice(-6).join('\n')));
+    console.log(c.yellow(`  Rode manualmente: ${py} -m pip install -r ${file}\n`));
   }
 }
 
 function installDependencies(vars = {}) {
   installDepsInDir('dispatcher', 'dispatcher');
   installDepsInDir('CRM', 'crm');
+  installPythonFile(vars, 'scripts/requirements.txt', 'dos scripts');
   if (isOn(vars.TRANSCRIBE_AUDIO)) {
-    const py = vars.PYTHON_CMD || 'python';
-    console.log('\n' + c.cyan('Instalando o transcritor de áudio (faster-whisper)...\n'));
-    try {
-      execSync(`${py} -m pip install faster-whisper`, { cwd: ROOT_DIR, stdio: 'inherit' });
-      console.log('\n' + c.green('✓ faster-whisper instalado.'));
-    } catch (err) {
-      console.error('\n' + c.red('✗ pip install faster-whisper falhou:'), err.message);
-      console.log(c.yellow(`  Rode manualmente: ${py} -m pip install faster-whisper\n`));
-    }
+    installPythonFile(vars, 'scripts/requirements-audio.txt', 'do transcritor de áudio (faster-whisper)');
   }
 }
 

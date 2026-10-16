@@ -1,0 +1,3 @@
+# Só pra quem usa o script de enriquecimento do Instagram (scripts/enrich-instagram.py).
+# Depois: python -m playwright install chromium
+playwright==1.64.0

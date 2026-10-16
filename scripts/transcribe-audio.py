@@ -19,7 +19,7 @@ Saída: uma linha JSON no stdout.
 (0 a 1). "no_speech" é a chance média de o trecho não ter fala. Quem chama
 decide o corte (o dispatcher usa TRANSCRIBE_MIN_CONFIDENCE).
 
-Instalação (uma vez): python -m pip install faster-whisper
+Instalação (uma vez): python -m pip install -r scripts/requirements-audio.txt
 """
 import argparse
 import json
@@ -44,7 +44,7 @@ def main():
     try:
         from faster_whisper import WhisperModel
     except ImportError:
-        out({"ok": False, "error": "faster-whisper não instalado. Rode: python -m pip install faster-whisper"}, 2)
+        out({"ok": False, "error": "faster-whisper não instalado. Rode: python -m pip install -r scripts/requirements-audio.txt"}, 2)
 
     try:
         model = WhisperModel(args.model, device="cpu", compute_type="int8")

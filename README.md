@@ -145,7 +145,7 @@ git pull
 node setup/smoke.mjs
 ```
 
-Os seus dados não são mexidos: leads (`pipeline/`), `dispatcher/.env`, `crm/.env`, a skill do seu negócio (`.claude/skills/`) e o contexto gerado (`.claude/contexto-local.md`) ficam fora do git. Se o `git pull` reclamar de arquivo que você alterou (por exemplo um script), rode `git stash` antes e `git stash pop` depois. Se a atualização trouxer dependências novas, rode `npm install` nas pastas `dispatcher` e `crm`.
+Os seus dados não são mexidos: leads (`pipeline/`), `dispatcher/.env`, `crm/.env`, a skill do seu negócio (`.claude/skills/`) e o contexto gerado (`.claude/contexto-local.md`) ficam fora do git. Se o `git pull` reclamar de arquivo que você alterou (por exemplo um script), rode `git stash` antes e `git stash pop` depois. Se a atualização trouxer dependências novas, rode `npm ci` nas pastas `dispatcher` e `crm` e `python -m pip install -r scripts/requirements.txt` (as versões são fixas: `package-lock.json` e `scripts/requirements*.txt`).
 
 ---
 

@@ -132,7 +132,7 @@ cat pipeline/pool-prequalificados.json | grep -c '"status": "pending"'
 Se der 0, rode a Fase 0 com um novo dataset da Apify antes de continuar.
 
 **b) Token da Apify (só importa na Fase 0, ao rodar `build-pool.py`):**
-Verifique o token em `docs/comandos-diarios.md` (arquivo gerado pelo setup, só seu). O token começa com `apify_api_...`.
+O setup não grava o token da Apify em arquivo: ele vem da variável de ambiente `APIFY_TOKEN`. Confira com `echo $APIFY_TOKEN` (Mac e Linux) ou `echo $env:APIFY_TOKEN` (PowerShell); deve começar com `apify_api_`. Se estiver vazia, crie de novo como mostra o `docs/comandos-diarios.md`, ou gere outro token no console da Apify.
 
 **c) Actor ID:**
 Confirme que o `APIFY_ACTOR_ID` em `.claude/contexto-local.md` está correto. Você encontra o ID na URL do actor na Apify: `apify.com/actors/{actor-id}`.

@@ -2,6 +2,8 @@
 
 Rotina completa para um dia útil de prospecção. Siga as fases na ordem — cada uma depende da anterior.
 
+> **Windows:** troque `python3` por `python` em todos os comandos deste documento. No Mac e no Linux, `python3`.
+
 > **Pré-requisito obrigatório:** Nunca inicie dois dispatchers ao mesmo tempo. Antes de começar, confirme que não há nenhuma instância do dispatcher rodando em outro terminal. Se houver dúvida, feche todos os terminais e reabra um novo.
 
 ---

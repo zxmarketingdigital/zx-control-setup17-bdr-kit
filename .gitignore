@@ -16,8 +16,12 @@ scripts/.instagram-session.json
 pipeline/*
 !pipeline/.gitkeep
 
-# Logs
+# Logs (o dispatcher gira o arquivo: dispatcher.log.1, .2, .3)
 dispatcher/dispatcher.log
+dispatcher/dispatcher.log.*
+
+# Cópias de segurança que o wizard faz antes de sobrescrever (podem ter chave de API)
+*.bak-*
 
 # Config do wizard: setup/config.json tem o token da Apify em texto puro (o Claude apaga
 # no fim da instalação); setup-config.json tem o token mascarado. Nenhum dos dois sobe.

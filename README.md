@@ -126,7 +126,7 @@ Este setup envia mensagem para quem **não pediu para receber**. Entenda o risco
 python3 scripts/build-pool.py pipeline/dataset-2026-06-02.json
 ```
 
-> No Windows, use `python` no lugar de `python3` se o segundo não for reconhecido.
+> **Windows:** use `python` no lugar de `python3` em todos os comandos deste README e dos documentos em `docs/`. No Mac e no Linux, `python3`.
 
 **Fuso horário:** o setup pergunta o seu fuso (`TIMEZONE`, padrão `America/Sao_Paulo`; Portugal: `Europe/Lisbon`) e grava no `.env` do dispatcher e do CRM. Ele vale para a janela de envio, os follow-ups, a agenda do Google (a reunião marcada às 10h aparece às 10h no seu fuso, com horário de verão) e o modo automático.
 

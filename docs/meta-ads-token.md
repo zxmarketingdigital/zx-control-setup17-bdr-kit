@@ -40,5 +40,7 @@ Se você configurou o token depois de já ter rodado a Fase 1a em alguns leads:
 python3 scripts/fill-meta-ads.py
 ```
 
+(No Windows, `python` no lugar de `python3`.)
+
 Ele varre o `enriched-leads-{data}.json` mais recente e preenche só quem estava
 com `meta_ads` nulo.

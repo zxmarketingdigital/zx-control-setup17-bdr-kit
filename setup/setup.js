@@ -51,8 +51,36 @@ function maskSecret(value) {
   return value.slice(0, 10) + '****' + value.slice(-4);
 }
 
+// AAAAMMDD-HHMMSS, pra nome de cópia de segurança.
+function backupStamp() {
+  return new Date().toISOString().replace(/[-:]/g, '').replace('T', '-').slice(0, 15);
+}
+
+// Valor de uma chave num .env que já existe (ou null).
+function existingEnvValue(relFile, key) {
+  try {
+    const text = fs.readFileSync(path.join(ROOT_DIR, relFile), 'utf8');
+    const m = new RegExp('^\s*' + key + '\s*=\s*(.*?)\s*$', 'm').exec(text);
+    return m ? m[1].replace(/^(['"])(.*)\1$/, '$2') : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+// Rodar o wizard de novo não pode apagar o que o aluno personalizou (a skill, os templates
+// de follow-up, as regras, os .env). Se o arquivo já existe e vai mudar, guarda antes uma
+// cópia <arquivo>.bak-AAAAMMDD-HHMMSS (o .gitignore ignora *.bak-*).
 function writeFileRecursive(filePath, content) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  if (fs.existsSync(filePath)) {
+    let before = null;
+    try { before = fs.readFileSync(filePath, 'utf8'); } catch (_) { /* ilegível: segue */ }
+    if (before !== null && before !== content) {
+      const bak = filePath + '.bak-' + backupStamp();
+      fs.copyFileSync(filePath, bak);
+      console.log(c.dim('    (já existia e mudou: cópia em ' + path.relative(ROOT_DIR, bak) + ')'));
+    }
+  }
   fs.writeFileSync(filePath, content, 'utf8');
 }
 
@@ -486,8 +514,14 @@ async function phase2(rl) {
     c.cyan('? ') + 'API key da Evolution API (Enter para gerar uma aleatória, recomendado): '
   )).trim();
   if (!EVOLUTION_API_KEY) {
-    EVOLUTION_API_KEY = generateEvolutionKey();
-    console.log(c.dim('  Chave gerada e gravada em dispatcher/.env. Você não precisa guardar.'));
+    const kept = existingEnvValue('dispatcher/.env', 'EVOLUTION_API_KEY');
+    if (kept && !evolutionKeyProblem(kept)) {
+      EVOLUTION_API_KEY = kept;
+      console.log(c.dim('  Mantida a chave que já está em dispatcher/.env (o WhatsApp conectado continua válido).'));
+    } else {
+      EVOLUTION_API_KEY = generateEvolutionKey();
+      console.log(c.dim('  Chave gerada e gravada em dispatcher/.env. Você não precisa guardar.'));
+    }
   }
   for (let problem = evolutionKeyProblem(EVOLUTION_API_KEY); problem; problem = evolutionKeyProblem(EVOLUTION_API_KEY)) {
     console.log(c.red(`  ✗ Essa chave ${problem}. Ela protege o envio de WhatsApp pelo seu número.`));
@@ -654,7 +688,7 @@ Actor ID: \`${APIFY_ACTOR_ID}\`
 
 Para usar: baixe o dataset do último run no painel da Apify e rode:
 \`\`\`
-${PYTHON_CMD} scripts/build-pool.py ~/Downloads/dataset-apify-YYYY-MM-DD.json
+${PYTHON_CMD} scripts/build-pool.py pipeline/dataset-YYYY-MM-DD.json
 \`\`\`
 
 ## Scripts
@@ -1854,14 +1888,14 @@ function writeFiles(vars) {
 // depende de outra ferramenta de IA: onde antes só dava pra enriquecer com um
 // browser separado, hoje o próprio Claude Code, com o navegador dele, resolve.
 function generateDailyCommands(vars) {
-  const { APIFY_ACTOR_ID, APIFY_TOKEN, DAILY_NEW_CAP, AGENT_NAME, PYTHON_CMD = 'python3' } = vars;
+  const { APIFY_ACTOR_ID, DAILY_NEW_CAP, AGENT_NAME, PYTHON_CMD = 'python3' } = vars;
 
   return `# Comandos Diários — ${AGENT_NAME}
 
 Referência rápida com os comandos prontos para cada fase da operação.
 Gerado automaticamente pelo wizard de instalação.
 
-> ⚠️ **Atenção:** Este arquivo contém seu token Apify. Não compartilhe este arquivo.
+> O token da Apify **não** fica neste arquivo (nem em nenhum arquivo do projeto): quando um comando precisar dele, use a variável de ambiente \`APIFY_TOKEN\`, como mostrado abaixo.
 
 Para a rotina completa, consulte \`docs/operacao-diaria.md\`.
 
@@ -1875,7 +1909,19 @@ Acesse o painel da Apify, abra o último run do seu actor e exporte o dataset co
 https://console.apify.com/actors/${APIFY_ACTOR_ID}/runs/last
 \`\`\`
 
-(ou via API: \`https://api.apify.com/v2/acts/${APIFY_ACTOR_ID}/runs/last/dataset/items?token=${APIFY_TOKEN}\`)
+Ou baixe pela API, com o token numa variável de ambiente (nunca colado em arquivo ou em URL):
+
+\`\`\`bash
+# Mac e Linux
+export APIFY_TOKEN="cole-o-token-aqui"
+curl -H "Authorization: Bearer $APIFY_TOKEN" -o pipeline/dataset-YYYY-MM-DD.json "https://api.apify.com/v2/acts/${APIFY_ACTOR_ID}/runs/last/dataset/items"
+
+# Windows (PowerShell)
+$env:APIFY_TOKEN = "cole-o-token-aqui"
+curl.exe -H "Authorization: Bearer $env:APIFY_TOKEN" -o pipeline/dataset-YYYY-MM-DD.json "https://api.apify.com/v2/acts/${APIFY_ACTOR_ID}/runs/last/dataset/items"
+\`\`\`
+
+O token fica em Settings, API & Integrations, no console da Apify. Se perder, gere outro lá.
 
 Depois adicione ao pool local:
 
@@ -2223,8 +2269,14 @@ async function main() {
 
     // Chave da Evolution API: gera se não veio; recusa vazio/placeholder/curta.
     if (!String(vars.EVOLUTION_API_KEY ?? '').trim()) {
-      vars.EVOLUTION_API_KEY = generateEvolutionKey();
-      console.log(c.dim('  EVOLUTION_API_KEY não informada: gerada automaticamente (48 caracteres).'));
+      const kept = existingEnvValue('dispatcher/.env', 'EVOLUTION_API_KEY');
+      if (kept && !evolutionKeyProblem(kept)) {
+        vars.EVOLUTION_API_KEY = kept;
+        console.log(c.dim('  EVOLUTION_API_KEY: mantida a que já está em dispatcher/.env (o WhatsApp conectado continua válido).'));
+      } else {
+        vars.EVOLUTION_API_KEY = generateEvolutionKey();
+        console.log(c.dim('  EVOLUTION_API_KEY não informada: gerada automaticamente (48 caracteres).'));
+      }
     } else {
       const keyProblem = evolutionKeyProblem(vars.EVOLUTION_API_KEY);
       if (keyProblem) {

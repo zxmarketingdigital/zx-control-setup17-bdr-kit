@@ -305,6 +305,12 @@ Opcionais com padrão (só pergunte se ele quiser mudar): `WINDOW_START_HOUR` (1
 5. Se o wizard apontar lacunas do briefing (B2B), mostre pra pessoa e diga que ela
    pode completar depois.
 
+> **Reinstalar por cima é seguro.** Se o aluno rodar o setup de novo, o wizard guarda uma
+> cópia `<arquivo>.bak-AAAAMMDD-HHMMSS` de tudo que já existia e vai mudar (a skill, os
+> templates de follow-up, as regras, os `.env`) e mantém a chave da Evolution, então o
+> WhatsApp conectado continua válido. Se ele personalizou a skill, a cópia está em
+> `.claude/skills/bdr-<nome>/`. Os arquivos `.bak-*` não sobem pro git.
+
 ## Etapa 7 — Conexões
 
 Guie **uma de cada vez**, confirmando cada uma antes da próxima:

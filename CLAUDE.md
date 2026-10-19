@@ -16,3 +16,8 @@ pergunta é se o negócio é uma agência de marketing ou outro B2B). Durante a 
 
 Se `.claude/contexto-local.md` já existe, a instalação foi feita: siga o contexto
 importado acima e a skill do negócio em `.claude/skills/`.
+
+Exceção: se o usuário pedir **explicitamente** para reinstalar ou refazer a instalação
+(por exemplo, "reinstale esse setup por cima"), siga o `INSTALACAO-GUIADA.md` mesmo com o
+contexto existente. Reinstalar por cima é seguro: o setup guarda uma cópia `.bak-*` de
+tudo que vai sobrescrever e mantém a chave da Evolution.

@@ -68,5 +68,7 @@ Primeira versão oficial do ZX Control 7 · Setup 17 (antes distribuído com out
 - Estimativa de custo da Apify por lote de 100 leads, no README.
 - Manuais de instalação e de uso, e guia de contingência do WhatsApp, em PDF (`docs/`).
 - Como publicar uma versão (`docs/release.md`).
+- Desinstalação e reinstalação por cima (`docs/desinstalar.md`) e roteiro de teste em máquina
+  limpa para Windows e Mac (`docs/teste-instalacao-limpa.md`).
 
 [1.0.0]: https://github.com/zxmarketingdigital/zx-control-setup17-bdr-kit/releases/tag/v1.0.0

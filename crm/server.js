@@ -22,6 +22,8 @@ import { runClaudeSandboxed, loadSkillText } from '../dispatcher/src/claude-sand
 import { collectSecretValues, checkOutgoing } from '../dispatcher/src/outbound-guard.js';
 import { parseScheduledAt, toIso } from '../dispatcher/src/tz.js';
 import { detectOptOut } from '../dispatcher/src/opt-out-detector.js';
+import { createAuth, countRealLeads } from './src/auth.js';
+import passwordRules from './src/password.cjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PIPELINE_DIR = path.resolve(__dirname, '..', 'pipeline');
@@ -38,10 +40,70 @@ const MIN_PATTERN_SAMPLE = 5;
 // ser bem mais rápidas (cache hit), mas o limite tem que cobrir a pior hora.
 const CLAUDE_SUGGEST_TIMEOUT_MS = 180_000;
 
+// ------- Login e modo demonstração -------
+// `npm start` pede senha (CRM_PASSWORD, em crm/.env). `npm run start:demo` abre SEM login,
+// para a demonstração com leads fictícios; por isso se recusa a rodar com lead real.
+const DEMO = process.argv.includes('--demo') || process.env.CRM_DEMO === '1';
+const ENV_FILE = path.join(__dirname, '.env');
+
+async function leadsReaisNoPipeline() {
+  try {
+    return countRealLeads(JSON.parse(await fs.readFile(path.join(PIPELINE_DIR, 'leads-master.json'), 'utf8')));
+  } catch {
+    return 0; // sem arquivo ou vazio
+  }
+}
+
+async function ensurePassword() {
+  let senha = (process.env.CRM_PASSWORD ?? '').trim();
+  if (!senha) {
+    // Instalação anterior ao login (ou .env sem a linha): cria uma senha forte e guarda no .env.
+    senha = passwordRules.generatePassword();
+    let atual = '';
+    try { atual = await fs.readFile(ENV_FILE, 'utf8'); } catch { /* .env novo */ }
+    const quebra = atual && !atual.endsWith('\n') ? '\n' : '';
+    try {
+      await fs.writeFile(ENV_FILE, `${atual}${quebra}\n# Senha de entrada no CRM (gerada automaticamente). Para trocar, edite aqui (12+ caracteres) e reinicie.\nCRM_PASSWORD=${senha}\n`, 'utf8');
+      console.log('\n🔐 O CRM agora pede senha. Criei uma e guardei em crm/.env (linha CRM_PASSWORD).');
+      console.log('   Para ver: cd crm && npm run senha\n');
+    } catch (err) {
+      console.log(`\n🔐 O CRM agora pede senha, mas não consegui gravar o crm/.env (${err.message}).`);
+      console.log(`   Senha desta execução: ${senha}  (defina CRM_PASSWORD no crm/.env para fixar)\n`);
+    }
+    process.env.CRM_PASSWORD = senha;
+    return senha;
+  }
+  const problema = passwordRules.passwordProblem(senha);
+  if (problema) {
+    console.error(`\n✗ CRM_PASSWORD (crm/.env) ${problema}.`);
+    console.error('  Apague a linha para o CRM criar uma senha forte, ou escreva uma com 12+ caracteres.\n');
+    process.exit(1);
+  }
+  return senha;
+}
+
+if (DEMO) {
+  const reais = await leadsReaisNoPipeline();
+  if (reais > 0) {
+    console.error(`\n✗ O modo demonstração abre o CRM SEM login e só roda com leads fictícios, mas há ${reais} lead(s) real(is) em pipeline/.`);
+    console.error('  Para usar o CRM de verdade: npm start (com senha).');
+    console.error('  Para uma demonstração: python scripts/seed-demo.py --limpar numa instalação separada.\n');
+    process.exit(1);
+  }
+}
+const auth = createAuth({ password: DEMO ? undefined : await ensurePassword(), demo: DEMO });
+
 const app = express();
 // Antes de qualquer rota: recusa Host/Origin que não sejam do próprio computador.
 app.use(hostGuard(PORT));
 app.use(express.json());
+// Depois do host-guard e antes de tudo que serve dado: sem login, só a tela de entrada
+// e os arquivos de /assets abrem (ver src/auth.js).
+app.use(auth.middleware);
+app.get('/login', (req, res) => (auth.isAuthorized(req) ? res.redirect(302, '/') : res.sendFile(path.join(__dirname, 'public', 'login.html'))));
+app.post('/api/login', auth.login);
+app.post('/api/logout', auth.logout);
+app.get('/api/session', auth.session);
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ------- File helpers (leads-master ainda lê/escreve direto aqui) -------
@@ -798,5 +860,8 @@ app.get('/api/dashboard/financial', async (req, res) => res.json(await dashboard
 app.listen(PORT, '127.0.0.1', () => {
   console.log(`CRM running at http://localhost:${PORT} (só neste computador)`);
   console.log(`Reading pipeline from: ${PIPELINE_DIR}`);
+  console.log(DEMO
+    ? '⚠  MODO DEMONSTRAÇÃO: o CRM está SEM LOGIN. Use só com os dados fictícios do seed-demo.py.'
+    : 'Login: ligado (senha em crm/.env, linha CRM_PASSWORD; para ver: npm run senha)');
   console.log(`Calendar OAuth: http://localhost:${PORT}/auth/google`);
 });

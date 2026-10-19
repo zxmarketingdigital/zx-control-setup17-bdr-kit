@@ -99,6 +99,12 @@ do próximo toque dele, sem precisar reinstalar nem editar nada.
 
 ## Pré-requisitos adicionais
 
+### CRM no ar, com a senha no `crm/.env`
+
+O modo automático consulta a agenda e marca reunião chamando o CRM. Como o CRM pede senha, o
+dispatcher lê a `CRM_PASSWORD` do `crm/.env` sozinho (não há nada para configurar). Se você mover
+as pastas ou apagar esse arquivo, o agendamento automático deixa de funcionar até a senha voltar.
+
 ### Claude Code CLI
 
 O app **Claude Desktop** (que você usa pra instalar o kit) **não é suficiente**: ele

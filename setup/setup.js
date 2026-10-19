@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync, spawnSync } = require('child_process');
 const { generateEvolutionKey, evolutionKeyProblem } = require('./evolution-key');
+const { generatePassword: generateCrmPassword, passwordProblem: crmPasswordProblem } = require('../crm/src/password.cjs');
 
 // ─── ANSI color helpers ────────────────────────────────────────────────────────
 const c = {
@@ -49,6 +50,13 @@ function csvToBullets(csv) {
 function maskSecret(value) {
   if (!value || value.length < 8) return '****';
   return value.slice(0, 10) + '****' + value.slice(-4);
+}
+
+// Senha de login do CRM: reinstalar não pode trocar a que o aluno já usa. Se não há (ou é
+// fraca), gera uma nova. Ela só é gravada no crm/.env, nunca mostrada na tela.
+function resolveCrmPassword() {
+  const kept = existingEnvValue('crm/.env', 'CRM_PASSWORD');
+  return kept && !crmPasswordProblem(kept) ? kept : generateCrmPassword();
 }
 
 // AAAAMMDD-HHMMSS, pra nome de cópia de segurança.
@@ -548,6 +556,7 @@ async function phase2(rl) {
     EVOLUTION_API_URL: EVOLUTION_API_URL.trim().replace(/\/$/, ''),
     EVOLUTION_API_KEY: EVOLUTION_API_KEY.trim(),
     EVOLUTION_INSTANCE: EVOLUTION_INSTANCE.trim(),
+    CRM_PASSWORD: resolveCrmPassword(),
   };
 }
 
@@ -1800,8 +1809,12 @@ ${transcriptionEnvBlock(vars)}`;
 }
 
 function generateCrmEnv(vars) {
-  const { EVOLUTION_API_URL, EVOLUTION_API_KEY, EVOLUTION_INSTANCE, TIMEZONE = 'America/Sao_Paulo' } = vars;
+  const { EVOLUTION_API_URL, EVOLUTION_API_KEY, EVOLUTION_INSTANCE, CRM_PASSWORD, TIMEZONE = 'America/Sao_Paulo' } = vars;
   return `CRM_PORT=3001
+
+# Senha de entrada no CRM (http://localhost:3001), gerada pelo setup. Para ver: cd crm && npm run senha.
+# Para trocar, edite aqui (12+ caracteres) e reinicie o CRM. O dispatcher usa esta mesma senha.
+CRM_PASSWORD=${CRM_PASSWORD}
 
 # Fuso horário: o mesmo do dispatcher/.env. A agenda do Google, os horários livres e o
 # modo automático usam este fuso (nome IANA, ex.: America/Sao_Paulo, Europe/Lisbon).
@@ -2105,7 +2118,7 @@ function printFinalInstructions(vars) {
 
   console.log(c.yellow('3. CONECTAR CRM AO GOOGLE CALENDAR (uma vez)'));
   console.log('   cd crm && npm start');
-  console.log('   Acesse: http://localhost:3001/auth/google');
+  console.log('   Entre no CRM com a senha (cd crm && npm run senha) e, na mesma janela, acesse: http://localhost:3001/auth/google');
   console.log(c.dim('   (Opcional no modo manual. Obrigatório pro modo automático agendar sozinho.)'));
   console.log(c.dim('   (Siga docs/crm-calendar-setup.md para configurar o projeto Google Cloud)\n'));
 
@@ -2128,6 +2141,7 @@ function printFinalInstructions(vars) {
   console.log('   Copies:          App Claude → </> Code → "roda o pipeline"');
   console.log('   Dispatcher:      cd dispatcher && npm start');
   console.log('   CRM:             cd crm && npm start  →  http://localhost:3001');
+  console.log('   Senha do CRM:    fica em crm/.env (para ver: cd crm && npm run senha)');
   console.log('   Respostas:       aba Prospecção Fria do CRM (sugestão de resposta + envio)');
   console.log(c.yellow('   ⚠ Marque quem respondeu: no modo manual o kit NÃO detecta resposta sozinho. Abra o lead e clique'));
   console.log(c.yellow('     em "Puxar conversa do WhatsApp"; senão ele continua recebendo os próximos toques.\n'));
@@ -2188,6 +2202,7 @@ function saveConfig(vars) {
   // Save a sanitized config (no token) for reference
   const configForRef = { ...vars };
   configForRef.APIFY_TOKEN = maskSecret(vars.APIFY_TOKEN);
+  if (configForRef.CRM_PASSWORD) configForRef.CRM_PASSWORD = '****';
 
   const configPath = path.join(ROOT_DIR, 'setup', 'setup-config.json');
   try {
@@ -2282,6 +2297,18 @@ async function main() {
       if (keyProblem) {
         console.error(c.red(`\n✗ EVOLUTION_API_KEY inválida: ${keyProblem}.`));
         console.error(c.yellow('  Apague o campo do config para o setup gerar uma chave segura, ou informe uma com 24+ caracteres.\n'));
+        process.exit(1);
+      }
+    }
+
+    // Senha de login do CRM: mantém a existente, gera se faltar, recusa fraca.
+    if (!String(vars.CRM_PASSWORD ?? '').trim()) {
+      vars.CRM_PASSWORD = resolveCrmPassword();
+    } else {
+      const pwProblem = crmPasswordProblem(vars.CRM_PASSWORD);
+      if (pwProblem) {
+        console.error(c.red(`\n✗ CRM_PASSWORD inválida: ${pwProblem}.`));
+        console.error(c.yellow('  Apague o campo do config para o setup gerar uma senha segura, ou informe uma com 12+ caracteres.\n'));
         process.exit(1);
       }
     }

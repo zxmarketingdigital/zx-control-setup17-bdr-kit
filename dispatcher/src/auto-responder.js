@@ -31,6 +31,7 @@ import { getTimezone, zonedParts, ymdInTz, weekdayInTz, localToDate, toIso } fro
 import {
   loadBookingRules, validateQualificationUpdate, qualificationStatus, looksLikeSlotOffer, formatBRL,
 } from './qualification.js';
+import { crmAuthHeaders } from './crm-auth.js';
 
 const execFileAsync = promisify(execFile);
 const MOD = 'auto-responder';
@@ -68,7 +69,7 @@ export async function checkClaudeCli() {
 // o prompt proíbe book_meeting.
 async function fetchFreeSlots() {
   try {
-    const res = await fetch(`${crmBase()}/api/calendar/free-slots?days=4&duration=30`);
+    const res = await fetch(`${crmBase()}/api/calendar/free-slots?days=4&duration=30`, { headers: crmAuthHeaders() });
     if (!res.ok) return { connected: false, slots: [], meeting_hours: [9, 18] };
     return await res.json();
   } catch {
@@ -217,7 +218,7 @@ export function validateBooking(decision, meetingHours = [9, 18]) {
 async function bookMeeting(leadId, decision) {
   const res = await fetch(`${crmBase()}/api/leads/${leadId}/meeting`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...crmAuthHeaders() },
     body: JSON.stringify({
       scheduled_at: toIso(localToDate(decision.date, decision.time)),
       duration_minutes: decision.duration_minutes || 30,

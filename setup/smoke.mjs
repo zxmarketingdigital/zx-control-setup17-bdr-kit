@@ -12,6 +12,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 
 const { evolutionKeyProblem } = createRequire(import.meta.url)('./evolution-key.js');
+const { passwordProblem } = createRequire(import.meta.url)('../crm/src/password.cjs');
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const rel = (...p) => path.join(ROOT, ...p);
@@ -91,8 +92,16 @@ else {
   }
 }
 
-if (fs.existsSync(rel('crm', '.env'))) ok('crm/.env');
-else fail('crm/.env não existe', 'Rode a Etapa 6.');
+if (fs.existsSync(rel('crm', '.env'))) {
+  ok('crm/.env');
+  const crmPassword = (parseEnv(rel('crm', '.env')).CRM_PASSWORD ?? '').replace(/^(['"])(.*)\1$/, '$2');
+  if (!crmPassword) warn('O CRM ainda não tem senha de login', 'Ela é criada na primeira vez que o CRM abre (cd crm && npm start). Para ver depois: cd crm && npm run senha.');
+  else {
+    const pwProblem = passwordProblem(crmPassword);
+    if (pwProblem) fail(`Senha do CRM fraca: ${pwProblem}`, 'Apague a linha CRM_PASSWORD do crm/.env e abra o CRM: ele cria uma senha forte. Ou escreva uma com 12+ caracteres.');
+    else ok('Senha de login do CRM definida (crm/.env)');
+  }
+} else fail('crm/.env não existe', 'Rode a Etapa 6.');
 
 for (const dir of ['dispatcher', 'crm']) {
   if (fs.existsSync(rel(dir, 'node_modules'))) ok(`${dir}: dependências instaladas`);

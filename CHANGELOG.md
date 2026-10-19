@@ -18,6 +18,10 @@ Primeira versão oficial do ZX Control 7 · Setup 17 (antes distribuído com out
   de exemplo é recusada.
 - O CRM escuta só em `127.0.0.1` e recusa requisições cujo `Host` ou `Origin` não sejam do
   próprio computador.
+- O CRM pede senha (`CRM_PASSWORD`, em `crm/.env`): o setup gera uma forte, mostra onde está e a
+  mantém ao reinstalar; quem atualiza recebe uma na primeira abertura. Sessão por cookie, limite
+  de tentativas e comando `npm run senha`. O dispatcher usa a mesma senha no modo automático.
+  `npm run start:demo` abre o CRM sem login, só com dados fictícios, para demonstração.
 - Modo automático e "Gerar sugestão": o Claude roda sem acesso ao computador (sem ferramentas,
   sem arquivos, sem MCP), a mensagem do lead é tratada como dado, nunca como instrução, e
   nenhuma resposta sai sem passar por um filtro que barra chaves e segredos do projeto.

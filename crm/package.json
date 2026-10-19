@@ -8,6 +8,8 @@
   },
   "scripts": {
     "start": "node server.js",
+    "start:demo": "node server.js --demo",
+    "senha": "node tools/senha.js",
     "dev": "node --watch server.js",
     "test": "node --test"
   },

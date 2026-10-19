@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ZX LAB · Entrar no CRM</title>
+<link rel="icon" type="image/png" href="assets/favicon-32.png">
+<link rel="stylesheet" href="assets/fonts.css">
+<style>
+  /* Mesmos tokens do CRM (index.html): fundo #0D0D0D, âmbar #D97706 como único acento. */
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100vh;background:#0D0D0D;color:#E2E8F0;font-family:'Inter',system-ui,sans-serif}
+  body{display:flex;align-items:center;justify-content:center;padding:24px;
+    background-image:linear-gradient(rgba(217,119,6,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(217,119,6,.025) 1px,transparent 1px);background-size:60px 60px}
+  ::selection{background:#D97706;color:#000}
+  .box{width:100%;max-width:380px;background:#1A1A1A;border:1px solid #2A2A2A;border-radius:14px;padding:28px}
+  .logo{height:40px;width:auto;display:block;margin-bottom:22px}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;color:#F59E0B;letter-spacing:.14em;text-transform:uppercase}
+  h1{margin:6px 0 18px;font-size:22px;font-weight:900;letter-spacing:-.02em}
+  label{display:block;margin-bottom:6px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#9CA3AF}
+  input{width:100%;background:#222222;border:1px solid #333333;color:#E2E8F0;border-radius:10px;padding:10px 12px;font-size:15px;font-family:inherit}
+  input:focus{outline:none;border-color:#D97706;box-shadow:0 0 0 2px rgba(217,119,6,.15)}
+  button{margin-top:14px;width:100%;background:#D97706;color:#000;border:0;border-radius:12px;padding:11px 14px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer}
+  button:hover{background:#F59E0B}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .erro{min-height:20px;margin:12px 0 0;font-size:13px;color:#fca5a5}
+  .ajuda{margin:14px 0 0;font-size:12px;line-height:1.55;color:#6B7280}
+  .ajuda code{font-family:'JetBrains Mono',monospace;color:#9CA3AF}
+</style>
+</head>
+<body>
+<main class="box">
+  <img src="assets/zxlab-logo.svg" alt="ZX LAB" class="logo">
+  <div class="eyebrow">ZX Control 7 · Setup 17</div>
+  <h1>Entrar no CRM</h1>
+  <form id="f" autocomplete="on">
+    <label for="senha">Senha</label>
+    <input id="senha" name="password" type="password" autocomplete="current-password" autofocus required>
+    <button id="entrar" type="submit">Entrar</button>
+    <p id="erro" class="erro" role="alert"></p>
+  </form>
+  <p class="ajuda">A senha está no arquivo <code>crm/.env</code>, na linha <code>CRM_PASSWORD</code>.
+  Para mostrá-la, abra o terminal na pasta do setup e rode <code>cd crm &amp;&amp; npm run senha</code>.</p>
+</main>
+<script>
+(function () {
+  var f = document.getElementById('f'), erro = document.getElementById('erro'), btn = document.getElementById('entrar');
+  f.addEventListener('submit', function (e) {
+    e.preventDefault();
+    erro.textContent = '';
+    btn.disabled = true;
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: document.getElementById('senha').value })
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, j: j }; });
+    }).then(function (res) {
+      if (res.ok) { location.href = '/'; return; }
+      erro.textContent = res.j.error || 'Não foi possível entrar.';
+      btn.disabled = false;
+      document.getElementById('senha').select();
+    }).catch(function () {
+      erro.textContent = 'O CRM não respondeu. Ele está aberto no terminal (cd crm && npm start)?';
+      btn.disabled = false;
+    });
+  });
+})();
+</script>
+</body>
+</html>

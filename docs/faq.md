@@ -1,6 +1,6 @@
 # Perguntas frequentes
 
-As 15 dúvidas mais prováveis, com a resposta curta. Para problemas passo a passo, veja o
+As dúvidas mais prováveis, com a resposta curta. Para problemas passo a passo, veja o
 [troubleshooting](troubleshooting.md); para o primeiro dia, o [guia de primeiro uso](primeiro-uso.md).
 
 > **Windows:** troque `python3` por `python` nos comandos.
@@ -89,4 +89,10 @@ Para atualizar: `git pull` e `node setup/smoke.mjs` (leads, `.env` e skill ficam
 Para mudar o fuso (`TIMEZONE`), o país dos telefones (`DEFAULT_COUNTRY`) ou o modelo do Claude
 (`CLAUDE_MODEL`), edite `dispatcher/.env` (o `TIMEZONE` também no `crm/.env`) e reinicie. Se
 rodar o setup de novo, ele guarda uma cópia `.bak-AAAAMMDD-HHMMSS` de tudo que já existia e vai
-mudar, inclusive a skill, e mantém a chave da Evolution.
+mudar, inclusive a skill, e mantém a chave da Evolution e a senha do CRM.
+
+## CRM
+
+**16. Qual é a senha do CRM?**
+Rode `cd crm && npm run senha`. Ela também está no `crm/.env`, linha `CRM_PASSWORD`. Para trocar, edite essa linha
+(12+ caracteres) e reinicie o CRM. Mais em [troubleshooting](troubleshooting.md), item 11.

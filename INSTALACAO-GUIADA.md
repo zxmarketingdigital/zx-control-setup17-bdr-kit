@@ -360,7 +360,8 @@ Rotina do dia, nesta ordem:
 2. **Gerar as mensagens:** abrir o Claude Code e dizer "roda o pipeline". Ele
    qualifica, escreve e mostra cada mensagem; **o aluno aprova** antes de qualquer envio.
 3. **Enviar:** `cd dispatcher && npm start` (deixar aberto até o fim da janela).
-4. **Atender as respostas:** `cd crm && npm start`, abrir `http://localhost:3001`, aba
+4. **Atender as respostas:** `cd crm && npm start`, abrir `http://localhost:3001` (pede a senha do
+   CRM, que o setup guardou no `crm/.env`: diga ao aluno para rodar `cd crm && npm run senha`), aba
    **Prospecção Fria**. O botão **✨ Gerar sugestão** escreve a próxima resposta.
 
 > ⚠️ **AÇÃO HUMANA QUE NÃO PODE PULAR: marcar quem respondeu.** No modo manual o kit

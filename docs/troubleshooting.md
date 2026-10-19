@@ -271,12 +271,26 @@ você precisa fazer, é só configurar:
   (`http://localhost:8080/manager` → nova instância) e configure um segundo
   dispatcher apontando `EVOLUTION_INSTANCE` pra ela.
 - **Mais de uma pessoa usando:** o CRM (`cd crm && npm start`) e a Evolution API
-  atendem **só neste computador** (`127.0.0.1`), de propósito: o CRM não tem login,
-  e quem alcançasse a porta pela rede conseguiria enviar WhatsApp pelo seu número.
-  Para mais de uma pessoa, hospede os dois num servidor (VPS) atrás de um proxy
-  com autenticação. Não abra as portas 3001 e 8080 para a rede.
+  atendem **só neste computador** (`127.0.0.1`), de propósito: quem alcançasse a porta
+  pela rede conseguiria enviar WhatsApp pelo seu número. O CRM tem uma senha só, a do
+  dono do computador, e não há contas por pessoa. Para mais de uma pessoa, hospede os
+  dois num servidor (VPS) atrás de um proxy com autenticação. Não abra as portas 3001
+  e 8080 para a rede.
 - **Volume alto num único número:** o risco de restrição sobe com o volume.
   Veja o item 7 e `docs/Contingencia-WhatsApp-Setup17.pdf` antes de escalar.
+
+---
+
+## 11. O CRM pede senha: esqueci, não entra ou travou
+
+- **Qual é a senha?** Na pasta `crm`, rode `npm run senha`. Ela está no arquivo `crm/.env`, na linha `CRM_PASSWORD` (arquivo oculto no Mac e no Linux; o comando evita procurá-lo).
+- **Atualizei e agora pede senha.** É o esperado: a versão com login cria uma senha na primeira vez que o CRM abre e a guarda no `crm/.env`. Rode `npm run senha`.
+- **"Senha incorreta" com a senha certa.** Copie e cole, sem espaço no começo ou no fim. Se você editou o `crm/.env`, reinicie o CRM (`Ctrl+C` e `npm start`): a senha é lida só na abertura.
+- **"Muitas tentativas".** Depois de 5 senhas erradas o login trava por 1 minuto. Espere e tente de novo.
+- **O CRM não abre e mostra "CRM_PASSWORD ... é curta demais".** A senha do `crm/.env` tem menos de 12 caracteres. Apague a linha e abra o CRM (ele cria uma forte) ou escreva uma com 12+ caracteres.
+- **Quero trocar a senha.** Edite `CRM_PASSWORD` no `crm/.env` (12+ caracteres) e reinicie o CRM.
+- **Modo automático parou de agendar reunião depois da atualização.** O dispatcher lê a senha do `crm/.env`; confira que o arquivo existe na pasta `crm` e reinicie o dispatcher.
+- **Entrei no CRM mas `http://localhost:3001/auth/google` voltou para a tela de entrada.** Entre primeiro em `http://localhost:3001`, depois abra o endereço do Google na mesma janela do navegador.
 
 ---
 

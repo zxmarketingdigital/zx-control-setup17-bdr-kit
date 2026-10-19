@@ -129,6 +129,7 @@
       <div class="flex items-center gap-2 text-xs text-ink-dim"><span class="pulse-dot status-active"></span>Sistema ativo</div>
       <p class="text-[10px] text-ink-mute mt-1 mono">localhost:3001</p>
       <p id="app-version" class="text-[10px] text-ink-mute mt-0.5 mono"></p>
+      <div id="session-box" class="mt-2"></div>
     </div>
   </aside>
 
@@ -182,7 +183,7 @@ const RECURRENCE_LABELS={mensal:'Mensal',anual:'Anual',unico:'Único'};
 let LEADS=[], CLIENTS=[], TEAM=[], PACKAGES=[], INVOICES=[], COSTS=[], PRENOTES=[];
 let LAST_PATTERNS=null;
 
-async function fetchJson(url,opts={}){const r=await fetch(url,opts);if(!r.ok){const t=await r.json().catch(()=>({error:r.statusText}));throw new Error(t.error||r.status);}return r.json();}
+async function fetchJson(url,opts={}){const r=await fetch(url,opts);if(r.status===401){location.href='/login';throw new Error('Sessão expirada. Entre de novo.');}if(!r.ok){const t=await r.json().catch(()=>({error:r.statusText}));throw new Error(t.error||r.status);}return r.json();}
 function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function fmtDate(iso){if(!iso)return'—';return new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}
 function fmtDateTime(iso){return fmtDate(iso);}
@@ -1784,6 +1785,8 @@ async function setInvoiceStatus(id,status){
 // =============================================================
 renderStats();
 activateRoute();
+async function logout(){try{await fetch('/api/logout',{method:'POST'});}catch(e){}location.href='/login';}
+fetch('/api/session').then(r=>r.json()).then(s=>{const box=document.getElementById('session-box');if(!box||!s)return;if(s.demo){box.innerHTML='<span class="badge badge-accent">Modo demonstração · sem login</span>';}else if(s.login){box.innerHTML='<button type="button" class="btn btn-ghost btn-sm" onclick="logout()">Sair</button>';}}).catch(()=>{});
 fetch('/api/version').then(r=>r.json()).then(v=>{if(v&&v.version)document.getElementById('app-version').textContent='ZX Control 7 · Setup 17 · v'+v.version;}).catch(()=>{});
 </script>
 </body>

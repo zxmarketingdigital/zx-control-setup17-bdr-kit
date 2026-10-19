@@ -131,7 +131,7 @@ cd crm
 npm start
 ```
 
-Abra `http://localhost:3001` e vá na aba **Prospecção Fria**.
+Abra `http://localhost:3001` e entre com a senha do CRM (para ver: `cd crm && npm run senha`; ela também está no `crm/.env`, linha `CRM_PASSWORD`). Depois vá na aba **Prospecção Fria**.
 
 **Atenção:** no modo manual (o padrão), o setup **não percebe sozinho** que o lead respondeu.
 Quem respondeu e não foi marcado continua recebendo os próximos toques. Quando alguém

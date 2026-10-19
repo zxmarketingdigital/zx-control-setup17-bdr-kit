@@ -29,8 +29,10 @@ a rodar se já houver lead real.
       ```
       (troque pelo número do segundo celular). Cria 9 leads fictícios em vários estágios e o
       "Lead de Teste", que é o seu número e o **único** na fila de hoje.
-- [ ] CRM no ar: `cd crm && npm start`. Abra `http://localhost:3001` no navegador que vai
-      usar na apresentação e confira que os leads aparecem.
+- [ ] CRM no ar **sem login**: `cd crm && npm run start:demo`. Abra `http://localhost:3001` no
+      navegador que vai usar na apresentação e confira que os leads aparecem e que a barra
+      lateral mostra "Modo demonstração · sem login". (O `npm start` normal pede senha; ele
+      se recusa a abrir em modo demonstração se houver lead real em `pipeline/`.)
 - [ ] Claude Code CLI instalado e logado (precisa para o botão "Gerar sugestão").
 - [ ] Janela de envio: o dispatcher só envia **segunda a sexta, das 10h às 18h** (no fuso
       configurado). Uma call às 17h tem **uma hora** de janela: faça o envio ao vivo logo no
@@ -63,6 +65,8 @@ aluno depois da call.
 | "WhatsApp desconectado" na Prospecção Fria | Docker parado ou sessão caída | `cd dispatcher && docker compose up -d`, espere 15 s, **↻ Atualizar**. Se pedir QR, reconecte em `http://localhost:8080/manager`. Se não resolver em 2 minutos, siga só pelo CRM e conte o passo do WhatsApp. |
 | A mensagem não chega no segundo celular | Fora da janela (seg a sex, 10h às 18h), dispatcher fechado ou fila vazia | **Plano B:** no CRM, **Prospecção Fria**, **Abordar** no Lead de Teste, digite a mensagem e **Enviar agora →** (envio direto, sem fila nem janela). Se a fila sumiu, rode o seed de novo (veja abaixo). |
 | **Gerar sugestão** demora muito ou dá erro | Claude CLI não instalado ou deslogado, ou internet lenta | Use **📋 Copiar prompt** ou escreva a resposta à mão e envie. |
+| O CRM pede senha | Foi aberto com `npm start` em vez de `npm run start:demo` | `Ctrl+C` no terminal do CRM e rode `npm run start:demo`. |
+| `npm run start:demo` não abre e fala em "leads reais" | Há lead real em `pipeline/` | Use uma instalação de demonstração separada, ou `python3 scripts/seed-demo.py --limpar` se só sobraram dados de teste. |
 | "Lead de demonstração: o envio está bloqueado" | Normal: leads fictícios não enviam | Use o **Lead de Teste**. |
 | A lista de leads está estranha ou vazia | Dados alterados durante o ensaio | `python3 scripts/seed-demo.py --limpar` e rode o seed de novo. |
 | O Docker não sobe | WSL ou memória do Windows | Veja `docs/faq.md`, pergunta 5. Reserve 10 minutos extras para isso na preparação. |

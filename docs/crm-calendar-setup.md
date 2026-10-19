@@ -44,7 +44,7 @@ O CRM cria reuniões direto no seu Google Calendar via OAuth2. Setup leva ~10 mi
 
 Com o CRM rodando (`npm start` em `crm/`):
 
-1. Abra `http://localhost:3001/auth/google` no navegador
+1. Entre no CRM (`http://localhost:3001`, com a senha de `npm run senha`) e, na mesma janela do navegador, abra `http://localhost:3001/auth/google`
 2. Aparecerá tela "Google não verificou esse app" → clique em "Avançado" → "Acessar bdr-crm-calendar (não seguro)"
 3. Aprove o acesso ao Calendar
 4. Será redirecionado pra `http://localhost:3001/auth/google/callback` com mensagem de sucesso

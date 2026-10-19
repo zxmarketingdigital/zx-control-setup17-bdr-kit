@@ -367,7 +367,7 @@ def main(argv=None):
         print(f"✓ Lead de Teste criado com {test_phone} e 1 item na fila de hoje (é o único que o dispatcher vai enviar).")
     else:
         print("  Sem --telefone-teste: nada foi colocado na fila de envio.")
-    print("  Abra o CRM: cd crm && npm start, depois http://localhost:3001")
+    print("  Abra o CRM sem login: cd crm && npm run start:demo, depois http://localhost:3001")
     print("  Para remover: python scripts/seed-demo.py --limpar")
     return 0
 

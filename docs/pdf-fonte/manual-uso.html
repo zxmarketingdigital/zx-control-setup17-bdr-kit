@@ -35,7 +35,7 @@
     <tr><td>Enriquecimento</td><td>Terminal (ou o próprio Code)</td><td>Levanta site, pixel, Instagram e anúncios de cada lead do dia.</td></tr>
     <tr><td>Qualificação e copies</td><td>App Claude, botão <b>&lt;/&gt; Code</b></td><td>Aplica a skill do seu nicho, escreve a mensagem do toque 1 e a ata pré-ligação. <b>Você aprova</b> cada uma.</td></tr>
     <tr><td>Dispatcher</td><td>Terminal (fica aberto)</td><td>Envia pelo WhatsApp dentro da janela de envio e cuida dos follow-ups.</td></tr>
-    <tr><td>CRM</td><td>Navegador, <code>localhost:3001</code></td><td>Acompanha os leads, registra respostas e resultados, e é onde você conduz a conversa.</td></tr>
+    <tr><td>CRM</td><td>Navegador, <code>localhost:3001</code> (com senha)</td><td>Acompanha os leads, registra respostas e resultados, e é onde você conduz a conversa.</td></tr>
   </table>
 
   <p class="small">Quer ver o produto antes de operar? A demonstração oficial está em <b>https://zxcontrol7-demo.zxlab.com.br/</b>, com dados fictícios.</p>
@@ -139,7 +139,7 @@ npm start</pre></div>
   <div class="etapa"><span class="n">4</span><h2>Abrir o CRM</h2><span class="t">ao longo do dia</span></div>
   <p>Em outro terminal, na pasta <code>crm</code>:</p>
   <div class="cmd"><div class="lab">Terminal, na pasta crm</div><pre>npm start</pre></div>
-  <p>Abra <code>http://localhost:3001</code> no navegador e deixe a aba aberta durante o dia. É ali que você acompanha os leads e atende quem respondeu. A próxima seção explica como.</p>
+  <p>Abra <code>http://localhost:3001</code> no navegador e entre com a senha do CRM. Ela foi criada na instalação e fica no arquivo <code>crm/.env</code> (linha <code>CRM_PASSWORD</code>); para ver, rode <code>npm run senha</code> na pasta <code>crm</code>. Deixe a aba aberta durante o dia. É ali que você acompanha os leads e atende quem respondeu. A próxima seção explica como.</p>
 
   <div class="etapa"><span class="n">5</span><h2>Encerrar o dia</h2><span class="t">1 min</span></div>
   <ol class="steps">
@@ -300,7 +300,7 @@ npm start</pre></div>
     <tr><td>2</td><td>Subir a Evolution API</td><td>Terminal 1, pasta <code>dispatcher</code>: <code>docker compose up -d</code></td></tr>
     <tr><td>3</td><td>Conferir o WhatsApp</td><td>No mesmo terminal: <code>npm run setup</code>. Deve responder "instância conectada (state: open)".</td></tr>
     <tr><td>4</td><td>Iniciar o dispatcher</td><td>No mesmo terminal: <code>npm start</code>. Deixe a janela aberta.</td></tr>
-    <tr><td>5</td><td>Iniciar o CRM</td><td>Terminal 2, pasta <code>crm</code>: <code>npm start</code>, e abra <code>localhost:3001</code>.</td></tr>
+    <tr><td>5</td><td>Iniciar o CRM</td><td>Terminal 2, pasta <code>crm</code>: <code>npm start</code>, e abra <code>localhost:3001</code> (senha: <code>npm run senha</code>).</td></tr>
   </table>
 
   <h2>Se o WhatsApp estiver desconectado</h2>

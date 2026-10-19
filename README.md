@@ -154,7 +154,7 @@ Enriquecimento:  Terminal → enrich-sites.py, depois enrich-instagram.py
                  (ou peça ao Claude Code: ele enriquece pelo navegador dele, sem script)
 Copies:          App Claude → </> Code → "roda o pipeline"
 Dispatcher:      cd dispatcher && npm start   (terminal, deixar aberto)
-CRM:             cd crm && npm start          (opcional, http://localhost:3001)
+CRM:             cd crm && npm start          (opcional, http://localhost:3001, pede a senha)
 ```
 
 Tudo roda local, pelo terminal ou pelo próprio Claude Code — nenhuma etapa depende de outra ferramenta de IA. Detalhes das duas formas de enriquecer em `docs/operacao-diaria.md`.
@@ -185,6 +185,10 @@ O kit inclui um CRM local que roda em `http://localhost:3001`. Ele lê os mesmos
 ```bash
 cd crm && npm start
 ```
+
+**Login.** O CRM pede uma senha. O setup gera uma e guarda no `crm/.env` (linha `CRM_PASSWORD`); para vê-la, rode `cd crm && npm run senha`. Quem atualizou de uma versão sem login recebe uma senha nova na primeira vez que o CRM abre. Para trocar, edite a linha (12+ caracteres) e reinicie. O dispatcher usa a mesma senha, sozinho, no modo automático. A senha protege a base de leads e o envio de WhatsApp de outros usuários do mesmo computador; o CRM continua escutando só em `127.0.0.1`.
+
+**Demonstração, sem login.** `cd crm && npm run start:demo` abre o CRM sem pedir senha, para mostrar o produto com os dados fictícios de `scripts/seed-demo.py` (`docs/demonstracao.md`). Um aviso âmbar na barra lateral lembra que está sem login, e ele se recusa a abrir se houver lead real em `pipeline/`.
 
 Funcionalidades: lista de leads com status e histórico de toques, a **ata pré-ligação** gerada na Fase 2 (sinais observados, pontos de melhoria, direção sugerida — nunca enviada ao lead) direto no painel de cada um, anotações por lead, agendamento de reuniões no Google Calendar (requer setup OAuth de ~10 minutos — veja `docs/crm-calendar-setup.md`), e a aba **Prospecção Fria** — status da Evolution, sugestão de resposta via Claude Code e envio direto do painel. Opcional: **"Qualificar antes de agendar"** faz o BDR só marcar call depois de saber o faturamento do negócio e quem decide (com faturamento mínimo configurável) — pré-configurável na instalação, mas só fica disponível dentro do card do modo automático quando ele está ligado (a cadência dos toques 2–6 também muda: pede um horário de ligação no manual, pede a resposta em si no automático). Áudio de lead pode ser transcrito localmente (opcional, `docs/transcricao-audio.md`): aparece como texto no CRM, entra na sugestão de resposta e, se você quiser, o modo automático responde a partir dele. A aba **Simulações** mostra conversas de exemplo (objeção, preço, recepção, pedido pra parar, agendamento) com a análise de copy de cada mensagem do agente, pra você calibrar o tom antes de ligar o modo automático.
 

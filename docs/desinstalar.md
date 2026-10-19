@@ -86,7 +86,7 @@ Com os passos 2 a 5 feitos, apague a pasta inteira do setup. Ela contém, entre 
 
 | Arquivo ou pasta | O que é |
 |---|---|
-| `dispatcher/.env`, `crm/.env` | configuração e chaves |
+| `dispatcher/.env`, `crm/.env` | configuração, chaves e a senha do CRM |
 | `.claude/contexto-local.md`, `.claude/skills/` | o contexto e a skill do seu negócio |
 | `pipeline/` | a base de leads |
 | `docs/comandos-diarios.md` | comandos personalizados |

@@ -5,29 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>ZX LAB · CRM</title>
 <link rel="icon" type="image/png" href="assets/favicon-32.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        bg:        { DEFAULT: '#0D0D0D', alt: '#0A0A0A' },
-        surface:   { DEFAULT: '#1A1A1A', 2: '#222222' },
-        line:      '#2A2A2A',
-        ink:       { DEFAULT: '#E2E8F0', dim: '#9CA3AF', mute: '#6B7280' },
-        accent:    { DEFAULT: '#D97706', light: '#F59E0B', bright: '#FCD34D' },
-        ok:        '#4ADE80',
-        bad:       '#EF4444',
-        warn:      '#FBBF24',
-      },
-      fontFamily: { sans: ['Inter','system-ui','sans-serif'], mono: ['"JetBrains Mono"','Menlo','monospace'] },
-    }
-  }
-};
-</script>
+<!-- Estilo e fontes são arquivos locais (nada é carregado da internet).
+     tailwind.css é gerado com crm/tools/css; as fontes estão em assets/fonts. -->
+<link rel="stylesheet" href="assets/fonts.css">
 <style>
   /* ZX LAB design tokens — ver zxlab-brand-kit/DESIGN.md. Âmbar #D97706 é o único acento. */
   html, body { background:#0D0D0D; color:#E2E8F0; font-family:'Inter',system-ui,sans-serif; }
@@ -100,6 +80,9 @@ tailwind.config = {
   .sim-chip-bad{color:#fca5a5;border-color:rgba(239,68,68,.4)}
   mark.sim-hit{background:rgba(239,68,68,.25);color:#fecaca;border-bottom:2px solid #EF4444;border-radius:2px;padding:0 1px}
 </style>
+<!-- Depois do <style> acima, como o Tailwind do CDN fazia: as classes utilitárias
+     (text-accent-light, w-auto...) ganham das classes próprias da página. -->
+<link rel="stylesheet" href="assets/tailwind.css">
 </head>
 <body class="bg-bg text-ink">
 <div class="flex min-h-screen">

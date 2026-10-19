@@ -3,10 +3,11 @@
 Roteiro para apresentar o ZX Control 7 · Setup 17 funcionando, com leads fictícios e um
 WhatsApp de teste, sem lead real e sem risco para nenhum número de verdade.
 
-> **Antes de tudo, o que a demonstração precisa de internet.** O WhatsApp, a sugestão de
-> resposta do Claude e até o visual do CRM (o estilo e as fontes são carregados da internet)
-> precisam de conexão. Leve a internet do celular como reserva. Os leads fictícios tiram a
-> dependência de lead real, não a de internet.
+> **O que a demonstração precisa de internet.** O envio ao vivo (WhatsApp), a sugestão de
+> resposta do Claude e a agenda do Google precisam de conexão. O CRM em si **não**: o estilo
+> e as fontes são arquivos locais, então o dashboard, os leads, a ata, a agenda de exemplo e
+> as simulações abrem mesmo sem rede. Leve a internet do celular como reserva para o envio ao
+> vivo e a sugestão.
 
 **Windows:** troque `python3` por `python`. No Mac e no Linux, `python3`.
 
@@ -28,8 +29,8 @@ a rodar se já houver lead real.
       ```
       (troque pelo número do segundo celular). Cria 9 leads fictícios em vários estágios e o
       "Lead de Teste", que é o seu número e o **único** na fila de hoje.
-- [ ] CRM no ar: `cd crm && npm start`. Abra `http://localhost:3001` **uma vez com internet**,
-      no navegador que vai usar na apresentação.
+- [ ] CRM no ar: `cd crm && npm start`. Abra `http://localhost:3001` no navegador que vai
+      usar na apresentação e confira que os leads aparecem.
 - [ ] Claude Code CLI instalado e logado (precisa para o botão "Gerar sugestão").
 - [ ] Janela de envio: o dispatcher só envia **segunda a sexta, das 10h às 18h** (no fuso
       configurado). Uma call às 17h tem **uma hora** de janela: faça o envio ao vivo logo no
@@ -58,7 +59,7 @@ aluno depois da call.
 
 | O que acontece | Causa provável | O que fazer na hora |
 |---|---|---|
-| O CRM abre sem layout, só texto | Sem internet (o estilo vem da internet) | Ligue a internet do celular, recarregue com `Ctrl+F5`. |
+| O CRM abre sem layout, só texto | Arquivos de `crm/public/assets` ausentes (atualização incompleta) | Na pasta do setup: `git checkout -- crm/public`, depois recarregue com `Ctrl+F5`. |
 | "WhatsApp desconectado" na Prospecção Fria | Docker parado ou sessão caída | `cd dispatcher && docker compose up -d`, espere 15 s, **↻ Atualizar**. Se pedir QR, reconecte em `http://localhost:8080/manager`. Se não resolver em 2 minutos, siga só pelo CRM e conte o passo do WhatsApp. |
 | A mensagem não chega no segundo celular | Fora da janela (seg a sex, 10h às 18h), dispatcher fechado ou fila vazia | **Plano B:** no CRM, **Prospecção Fria**, **Abordar** no Lead de Teste, digite a mensagem e **Enviar agora →** (envio direto, sem fila nem janela). Se a fila sumiu, rode o seed de novo (veja abaixo). |
 | **Gerar sugestão** demora muito ou dá erro | Claude CLI não instalado ou deslogado, ou internet lenta | Use **📋 Copiar prompt** ou escreva a resposta à mão e envie. |

@@ -55,6 +55,9 @@ Primeira versão oficial do ZX Control 7 · Setup 17 (antes distribuído com out
 - Modelo do Claude escolhido em um lugar só (`CLAUDE_MODEL`, opcional); a documentação não
   cita mais versão de modelo.
 - CRM com módulos de gestão genéricos, para agência ou qualquer negócio B2B.
+- O CRM abre sem internet: o estilo (Tailwind) e as fontes (Inter e JetBrains Mono, licença OFL)
+  passam a ser arquivos locais em `crm/public/assets`, em vez de vir de `cdn.tailwindcss.com` e
+  do Google Fonts. Como regenerar o CSS: `crm/tools/css/README.md`.
 
 ### Marca, licença e suporte
 

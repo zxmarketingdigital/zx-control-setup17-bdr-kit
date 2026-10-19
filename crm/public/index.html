@@ -747,6 +747,7 @@ async function pullWhatsApp(id){
   try{
     const r=await fetchJson(`/api/leads/${id}/pull-whatsapp`,{method:'POST'});
     if(!r.added){msg.textContent='Nenhuma mensagem nova do lead no WhatsApp.';msg.className='text-xs mt-2 text-ink-mute';btn.disabled=false;btn.textContent='📥 Puxar conversa do WhatsApp';return;}
+    if(r.opt_out_detected)alert('🚫 O lead pediu pra parar de receber mensagem. Marquei como opt-out: ele não recebe mais nenhum toque. Se foi engano, abra o lead e use "Desfazer opt-out".');
     closeModal();await openOutreachCompose(id);
     if(location.hash.replace(/^#/,'')==='/outreach')renderOutreachRoute();
   }catch(e){msg.textContent=e.message;msg.className='text-xs mt-2 text-bad';btn.disabled=false;btn.textContent='📥 Puxar conversa do WhatsApp';}
@@ -1078,7 +1079,11 @@ async function openPanel(id){
         </select>
         <button onclick="saveStatus('${id}')" class="btn btn-primary">Salvar</button>
         <button onclick="markResponded('${id}')" class="btn btn-surface">Marcar respondido</button>
+        ${lead.opt_out
+          ?`<button onclick="undoOptOut('${id}')" class="btn btn-ghost">Desfazer opt-out</button>`
+          :`<button onclick="markOptOut('${id}')" class="btn btn-ghost" title="O lead pediu pra parar: nunca mais recebe mensagem">🚫 Não contatar mais</button>`}
       </div>
+      ${lead.opt_out?'<p class="text-xs text-bad mt-2">🚫 Este lead pediu pra não ser contatado (opt-out). Nenhum toque é enviado e ele não volta pra fila nem por novo dataset.</p>':''}
     </section>
 
     <section>
@@ -1140,6 +1145,16 @@ async function openPanel(id){
 }
 function closePanel(){document.getElementById('panel-backdrop').classList.add('hidden');document.getElementById('panel').classList.add('hidden');}
 async function saveStatus(id){const status=document.getElementById('status-select').value;await fetchJson(`/api/leads/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});await loadLeads();renderLeadsTable();openPanel(id);}
+async function markOptOut(id){
+  if(!confirm('Marcar como opt-out? O lead pediu pra parar e NUNCA mais vai receber mensagem (nem toque da cadência, nem novo dataset).'))return;
+  await fetchJson(`/api/leads/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'cold',opt_out:true,closed_reason:'opt_out',closed_at:new Date().toISOString()})});
+  await loadLeads();renderLeadsTable();openPanel(id);
+}
+async function undoOptOut(id){
+  if(!confirm('Desfazer o opt-out? Só faça se foi engano. O lead volta pra "Precisa revisão" e você decide o que fazer.'))return;
+  await fetchJson(`/api/leads/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({opt_out:false,status:'needs_review',closed_reason:null})});
+  await loadLeads();renderLeadsTable();openPanel(id);
+}
 async function markResponded(id){await fetchJson(`/api/leads/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'responded',responded:true,responded_at:new Date().toISOString(),responded_via:'manual (CRM)'})});await loadLeads();renderLeadsTable();openPanel(id);}
 async function saveOutcome(id){const outcome=document.getElementById('outcome-select').value;await fetchJson(`/api/leads/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({outcome:outcome||null})});await loadLeads();renderLeadsTable();openPanel(id);}
 async function addAnnotation(id){const ta=document.getElementById('new-annotation');const text=ta.value.trim();if(!text)return;await fetchJson(`/api/leads/${id}/annotations`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});ta.value='';await loadLeads();openPanel(id);}

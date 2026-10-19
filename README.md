@@ -103,6 +103,16 @@ Se a conversa cair no meio, diga "continuar a instalação": o Code confere o qu
 
 ---
 
+## Antes de disparar: disparo frio, banimento e LGPD
+
+Este setup envia mensagem para quem **não pediu para receber**. Entenda o risco antes de ligar:
+
+- **Banimento.** O WhatsApp pode restringir ou banir o número que manda mensagem não solicitada, e uma denúncia pesa muito. O setup reduz o risco (máximo de 20 leads novos por dia, 2 a 3 minutos entre mensagens, só em dia útil, número validado antes do envio, pedido de parar respeitado na hora), mas **não elimina**. Use um número dedicado, aqueça-o e fique em até 15 por dia nas duas primeiras semanas. Veja `docs/Contingencia-WhatsApp-Setup17.pdf`.
+- **Quem pede para parar não recebe mais nada.** "Pare", "sair", "não quero mais receber", "remove meu número" e variações são detectados por regra, antes de qualquer IA, e o lead vira opt-out: não recebe toque da cadência, não volta para a fila e não volta por um dataset novo. Se o pedido vier por outro canal, use o botão "🚫 Não contatar mais" no CRM.
+- **LGPD.** Telefone e nome de empresa ou de sócio são dados pessoais. Trate só o necessário, tenha uma base legal para abordar (por exemplo, legítimo interesse, documentando o porquê), atenda pedido de exclusão e não compartilhe a base de leads. Isto não é aconselhamento jurídico: você é responsável pelas mensagens que envia e pelos dados que guarda (veja `LICENSE.md`). Em dúvida, consulte um advogado.
+
+---
+
 ## Após a instalação
 
 ### Primeiro lote de leads

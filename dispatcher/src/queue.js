@@ -3,6 +3,7 @@ import path from 'node:path';
 import { config } from './config.js';
 import { logger } from './log.js';
 import { todayStr } from './window.js';
+import { getOptOut } from './master.js';
 
 const MOD = 'queue';
 
@@ -49,10 +50,16 @@ export async function loadAlreadySentToday() {
 
 export async function filterDispatchableQueue(queueEntries) {
   const alreadySent = await loadAlreadySentToday();
+  const optOut = await getOptOut();
 
   const pending = queueEntries.filter((entry) => {
     if (!entry.lead_id || !entry.phone || !entry.copy) {
       logger.warn(MOD, `Skipping malformed entry: ${JSON.stringify(entry)}`);
+      return false;
+    }
+    // Pediu pra parar: nunca mais recebe nada, nem se voltar a aparecer numa fila.
+    if (optOut.ids.has(entry.lead_id) || optOut.phones.has(entry.phone)) {
+      logger.warn(MOD, `Skip ${entry.lead_id} — lead pediu pra parar (opt-out)`);
       return false;
     }
     if (alreadySent.has(entry.lead_id)) {

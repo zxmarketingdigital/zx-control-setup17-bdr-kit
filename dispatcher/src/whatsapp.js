@@ -85,8 +85,9 @@ export async function sendMessage(phone, text) {
 
   const number = digits(phone);
 
-  // 1) Valida se o número tem WhatsApp (resolve o JID correto). Se a checagem
-  //    em si falhar (rede/endpoint), NÃO bloqueia — segue para o envio.
+  // 1) Valida se o número tem WhatsApp (resolve o JID correto). Se a checagem em si
+  //    falhar (rede/endpoint), o envio é PULADO: mandar pra número não validado é o que
+  //    mais gera denúncia. O lead continua na fila e é tentado de novo no próximo ciclo.
   let targetNumber = number;
   try {
     const check = await evo('POST', `/chat/whatsappNumbers/${config.evolutionInstance}`, { numbers: [number] });
@@ -97,7 +98,8 @@ export async function sendMessage(phone, text) {
     if (info?.jid) targetNumber = info.jid.split('@')[0];
   } catch (err) {
     if (err.message.startsWith('Número sem WhatsApp')) throw err;
-    logger.warn(MOD, `Validação de número falhou (${err.message.slice(0, 80)}) — enviando mesmo assim`);
+    logger.warn(MOD, `Validação de número falhou (${err.message.slice(0, 80)}) — envio pulado, tenta de novo no próximo ciclo`);
+    throw new Error(`Não consegui validar o número ${phone} (${err.message.slice(0, 80)}): envio pulado`);
   }
 
   // 2) Envia

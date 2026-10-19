@@ -21,6 +21,7 @@ import { hostGuard } from './src/host-guard.js';
 import { runClaudeSandboxed, loadSkillText } from '../dispatcher/src/claude-sandbox.js';
 import { collectSecretValues, checkOutgoing } from '../dispatcher/src/outbound-guard.js';
 import { parseScheduledAt, toIso } from '../dispatcher/src/tz.js';
+import { detectOptOut } from '../dispatcher/src/opt-out-detector.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PIPELINE_DIR = path.resolve(__dirname, '..', 'pipeline');
@@ -81,7 +82,7 @@ app.patch('/api/leads/:id', async (req, res) => {
   const lead = master[req.params.id];
   if (!lead) return res.status(404).json({ error: 'Lead not found' });
 
-  const allowed = ['status', 'responded', 'responded_at', 'responded_via', 'next_touch_due_at', 'name', 'marca', 'category', 'outcome'];
+  const allowed = ['status', 'responded', 'responded_at', 'responded_via', 'next_touch_due_at', 'name', 'marca', 'category', 'outcome', 'opt_out', 'closed_reason', 'closed_at'];
   for (const key of allowed) if (key in req.body) lead[key] = req.body[key];
 
   if (req.body.status === 'responded' && !lead.responded) {
@@ -269,6 +270,7 @@ app.post('/api/leads/:id/pull-whatsapp', async (req, res) => {
   const known = new Set(responses.filter((r) => r.lead_id === req.params.id).map((r) => r.message_id || `txt:${r.message}`));
   const lastOutbound = (lead.history || [])[lead.history.length - 1];
   const added = [];
+  let optOutDetected = false;
 
   for (const m of msgs.sort((a, b) => a.timestamp.localeCompare(b.timestamp))) {
     if (seen.has(m.id) || known.has(m.id) || (!m.media && known.has(`txt:${m.text}`))) { seen.add(m.id); continue; }
@@ -296,11 +298,24 @@ app.post('/api/leads/:id/pull-whatsapp', async (req, res) => {
       lead.responded_at = lead.responded_at || added[added.length - 1].received_at;
       if (lead.status === 'active') lead.status = 'responded';
       lead.next_touch_due_at = null;
+      // Pediu pra parar (regra, sem modelo): fecha como opt-out. Você pode desfazer na tela do lead.
+      const stopped = added.some((e) => !e.possible_auto_reply && detectOptOut(e.transcript?.ok ? e.transcript.text : e.message).optOut);
+      if (stopped) {
+        const now = new Date().toISOString();
+        lead.opt_out = true;
+        lead.status = 'cold';
+        lead.closed_reason = 'opt_out';
+        lead.closed_at = now;
+        if (!Array.isArray(lead.annotations)) lead.annotations = [];
+        lead.annotations.push({ at: now, text: 'Lead pediu pra parar de receber mensagem: marcado como opt-out, nunca será reabordado.' });
+        optOutDetected = true;
+      }
       master[req.params.id] = lead;
       await writeJsonAtomic('leads-master.json', master);
     }
   }
   res.json({
+    opt_out_detected: optOutDetected,
     added: added.length,
     audios: added.filter((e) => e.media === 'audio').length,
     transcribed: added.filter((e) => e.transcript?.ok).length,

@@ -57,6 +57,19 @@ class PhoneUtilsTest(unittest.TestCase):
         self.assertEqual(pu.find_known_phones(texto), {"+5511999990000", "+351912345678", "+551133334444"})
         self.assertEqual(pu.find_known_phones(texto, accept_landline=False), {"+5511999990000", "+351912345678"})
 
+    def test_opt_out_phones_le_o_leads_master(self):
+        import json
+        import tempfile
+        os.environ["DEFAULT_COUNTRY"] = "BR"
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "leads-master.json").write_text(json.dumps({
+                "a": {"phone": "+5511999990001", "opt_out": True},
+                "b": {"phone": "+5511999990002"},
+                "c": {"phone": "(11) 99999-0003", "opt_out": True},
+            }), encoding="utf-8")
+            self.assertEqual(pu.opt_out_phones(d), {"+5511999990001", "+5511999990003"})
+            self.assertEqual(pu.opt_out_phones(Path(d) / "nao-existe"), set())
+
 
 if __name__ == "__main__":
     unittest.main()

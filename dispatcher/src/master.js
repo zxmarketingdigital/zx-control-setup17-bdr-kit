@@ -223,10 +223,25 @@ export async function alreadySentTouch(leadId, touch) {
   return lead.history.some((h) => h.touch === touch);
 }
 
+// Leads que pediram pra parar (opt_out). Nunca mais recebem mensagem nossa, em nenhum fluxo:
+// nem toque 1 da fila, nem follow-up, nem reabordagem por novo dataset.
+export async function getOptOut() {
+  const master = await readMaster();
+  const ids = new Set();
+  const phones = new Set();
+  for (const [id, lead] of Object.entries(master)) {
+    if (!lead?.opt_out) continue;
+    ids.add(id);
+    if (lead.phone) phones.add(lead.phone);
+  }
+  return { ids, phones };
+}
+
 export async function isLeadSendable(leadId) {
   const master = await readMaster();
   const lead = master[leadId];
   if (!lead) return true; // new lead, not in master yet — OK to send touch 1
+  if (lead.opt_out) return false; // pediu pra parar: nunca mais
   // Any status other than 'active' immediately pauses all follow-ups.
   // Status is set manually in the CRM — no automatic detection.
   if (lead.status !== 'active') return false;

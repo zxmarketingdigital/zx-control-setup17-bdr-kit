@@ -56,6 +56,16 @@ function writeFileRecursive(filePath, content) {
   fs.writeFileSync(filePath, content, 'utf8');
 }
 
+// Teto de leads NOVOS por dia (anti-ban): acima de 20 o risco de restrição do número sobe
+// muito. Valor inválido cai em 10. Devolve { value, limited }.
+const DAILY_NEW_CAP_MAX = 20;
+function normalizeDailyCap(raw) {
+  const n = parseInt(String(raw ?? '').trim(), 10);
+  if (!Number.isFinite(n) || n < 1) return { value: '10', limited: false };
+  if (n > DAILY_NEW_CAP_MAX) return { value: String(DAILY_NEW_CAP_MAX), limited: true };
+  return { value: String(n), limited: false };
+}
+
 // Nome IANA de fuso horário válido (America/Sao_Paulo, Europe/Lisbon...).
 // (O mesmo teste de dispatcher/src/tz.js; o wizard é CommonJS e aquele é ESM.)
 function isValidTimezone(tz) {
@@ -438,11 +448,16 @@ async function phase2(rl) {
     '18'
   );
 
-  const DAILY_NEW_CAP = await askWithDefault(
+  const capAnswer = await askWithDefault(
     rl,
-    'Máximo de leads novos por dia?',
+    `Máximo de leads novos por dia (até ${DAILY_NEW_CAP_MAX}; nas 2 primeiras semanas use no máximo 15)?`,
     '10'
   );
+  const capNorm = normalizeDailyCap(capAnswer);
+  const DAILY_NEW_CAP = capNorm.value;
+  if (capNorm.limited) {
+    console.log(c.yellow(`  ! ${capAnswer} passa do máximo seguro. Usando ${DAILY_NEW_CAP_MAX}: acima disso o número corre risco de restrição.`));
+  }
 
   const INTERVAL_MIN_SECONDS = await askWithDefault(
     rl,
@@ -2171,6 +2186,13 @@ async function main() {
       EVOLUTION_INSTANCE: 'bdr-instance',
       ...rawConfig,
     };
+
+    // Teto de leads novos por dia: no máximo 20 (anti-ban).
+    {
+      const capNorm = normalizeDailyCap(vars.DAILY_NEW_CAP);
+      if (capNorm.limited) console.log(c.yellow(`  ! DAILY_NEW_CAP=${vars.DAILY_NEW_CAP} passa do máximo seguro; usando ${DAILY_NEW_CAP_MAX}.`));
+      vars.DAILY_NEW_CAP = capNorm.value;
+    }
 
     // Fuso horário: nome IANA válido (America/Sao_Paulo, Europe/Lisbon...).
     if (!isValidTimezone(vars.TIMEZONE)) {

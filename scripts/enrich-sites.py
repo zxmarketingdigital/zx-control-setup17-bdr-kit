@@ -98,6 +98,7 @@ def build_blocklist() -> set:
         except OSError:
             continue
         phones |= phone_utils.find_known_phones(text, accept_landline=True)
+    phones |= phone_utils.opt_out_phones(PIPELINE_DIR)  # pediram pra parar: nunca reabordar
     return phones
 
 

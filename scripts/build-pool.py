@@ -272,6 +272,9 @@ def main():
 
     # Blocklist
     blocklist = build_blocklist(include_landline=accept_landline)
+    opt_outs = phone_utils.opt_out_phones(PIPELINE_DIR)  # pediram pra parar: nunca reabordar
+    if opt_outs:
+        print(f"[build-pool] Opt-out: {len(opt_outs)} número(s) que pediram pra parar, nunca voltam pro pool")
 
     # Carregar pool existente
     existing_phones = set()
@@ -283,7 +286,7 @@ def main():
         print(f"[build-pool] Pool existente: {len(pool)} leads ({sum(1 for l in pool if l['status']=='pending')} pending)")
 
     # Processar dataset
-    stats = {k: 0 for k in ['no_phone', 'invalid_phone', 'not_cell', 'blocklist', 'duplicate', 'no_presence', 'excluded', 'landline', 'niche_match', 'added']}
+    stats = {k: 0 for k in ['no_phone', 'invalid_phone', 'opt_out', 'not_cell', 'blocklist', 'duplicate', 'no_presence', 'excluded', 'landline', 'niche_match', 'added']}
     added = []
     today = str(date.today())
 
@@ -300,6 +303,9 @@ def main():
             else:
                 stats['not_cell'] += 1
                 continue
+        if phone in opt_outs:
+            stats['opt_out'] += 1
+            continue
         if phone in blocklist:
             stats['blocklist'] += 1
             continue
@@ -360,6 +366,7 @@ def main():
     print(f"  Sem phone:        {stats['no_phone']}")
     print(f"  Phone inválido:   {stats['invalid_phone']}")
     print(f"  Não é celular:    {stats['not_cell']}")
+    print(f"  Opt-out:          {stats['opt_out']}  (pediram pra parar)")
     print(f"  Blocklist:        {stats['blocklist']}")
     print(f"  Já no pool:       {stats['duplicate']}")
     if b2b:

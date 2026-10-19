@@ -8,6 +8,7 @@ import { isOpenForBusiness, msUntilWindowOpens } from './window.js';
 import { getAutoModeState, isLeadInAutoMode } from './auto-mode-config.js';
 import { pollInbound } from './inbound-poller.js';
 import { responseText } from './audio-transcriber.js';
+import { detectOptOut } from './opt-out-detector.js';
 import { checkClaudeCli, processAutoTurn } from './auto-responder.js';
 import { settleBatch, pickDelayMs } from './reply-debounce.js';
 import fs from 'node:fs/promises';
@@ -140,6 +141,14 @@ async function runAutoModeCycle() {
 
     await markResponded(leadId, burst[0].phone);
 
+    // Pediu pra parar: decisão por regra, ANTES do modelo. Fecha como opt-out e não responde
+    // (resposta automática a quem pediu pra parar só aumenta a chance de denúncia).
+    if (burst.some((r) => detectOptOut(responseText(r)).optOut)) {
+      await markClosed(leadId, 'opt_out');
+      logger.info(MOD, `${leadId} pediu pra parar: marcado como opt-out, sem resposta`);
+      continue;
+    }
+
     // Qualquer mensagem do lote que o automático não consegue ler manda o lote
     // inteiro pro humano: responder só o texto e ignorar a imagem/áudio junto
     // seria responder meia conversa.
@@ -253,6 +262,9 @@ async function runCycle() {
 
 async function mainLoop() {
   logger.info(MOD, 'Dispatcher starting…');
+  if (config.dailyNewCapRequested > config.dailyNewCap) {
+    logger.warn(MOD, `DAILY_NEW_CAP=${config.dailyNewCapRequested} passa do máximo seguro; usando ${config.dailyNewCap} leads novos por dia`);
+  }
 
   await initWhatsApp({
     onReady: () => logger.info(MOD, 'WhatsApp ready — dispatcher active'),

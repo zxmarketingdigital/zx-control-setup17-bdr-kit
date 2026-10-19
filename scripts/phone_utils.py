@@ -8,6 +8,7 @@ ler número escrito sem "+".
 Celular x fixo é validado pelo país do número (biblioteca `phonenumbers`), não por regra
 fixa do Brasil.
 """
+import json
 import os
 import re
 import subprocess
@@ -98,6 +99,24 @@ def parse_phone(raw, country=None):
 def phone_kind(e164: str):
     """Tipo de um número já em E.164 (ou None se inválido/outro tipo)."""
     return parse_phone(e164)[1]
+
+
+def opt_out_phones(pipeline_dir) -> set:
+    """Telefones (E.164) de leads que pediram pra parar (opt_out no leads-master.json).
+
+    Esses números NUNCA voltam pro pool nem pra fila, mesmo que apareçam num dataset novo.
+    """
+    try:
+        data = json.loads((Path(pipeline_dir) / "leads-master.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return set()
+    leads = data.values() if isinstance(data, dict) else data
+    out = set()
+    for lead in leads:
+        if isinstance(lead, dict) and lead.get("opt_out") and lead.get("phone"):
+            e164, _, _ = parse_phone(lead["phone"])
+            out.add(e164 or str(lead["phone"]))
+    return out
 
 
 def find_known_phones(text: str, accept_landline: bool = True) -> set:

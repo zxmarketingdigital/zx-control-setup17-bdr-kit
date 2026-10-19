@@ -28,6 +28,9 @@ const PIPELINE_DIR = path.resolve(__dirname, '..', 'pipeline');
 const DOCS_DIR = path.resolve(__dirname, '..', 'docs');
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PORT = process.env.CRM_PORT ?? 3001;
+// Versão do setup (arquivo VERSION na raiz), mostrada no rodapé do painel.
+let APP_VERSION = '';
+try { APP_VERSION = (await fs.readFile(path.join(ROOT_DIR, 'VERSION'), 'utf8')).trim(); } catch { /* sem VERSION */ }
 const MIN_PATTERN_SAMPLE = 5;
 // 90s não é sempre suficiente: a 1ª chamada de uma sessão claude -p paga o
 // custo de criar o cache do prompt (projeto + skill inteiros), o que sozinho
@@ -63,6 +66,8 @@ async function writeJsonAtomic(file, data) {
 // ============================================================
 // LEADS
 // ============================================================
+
+app.get('/api/version', (req, res) => res.json({ version: APP_VERSION || null }));
 
 app.get('/api/leads', async (req, res) => {
   const master = await readJson('leads-master.json', {}) ?? {};

@@ -46,11 +46,16 @@ function readJsonOrNull(file) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return null; }
 }
 
+let version = null;
+try { version = fs.readFileSync(rel('VERSION'), 'utf8').trim() || null; } catch { /* sem VERSION: segue sem mostrar */ }
+
 console.log('\n' + bold('ZX LAB · ZX CONTROL 7 · SETUP 17 — Etapa 8: teste final'));
-console.log(dim('Só leitura: nada é alterado nem enviado.'));
+console.log(dim(version ? `Versão ${version}. Só leitura: nada é alterado nem enviado.` : 'Só leitura: nada é alterado nem enviado.'));
 
 // ── Etapa 6: instalação ────────────────────────────────────────────────────
 section('Instalação (Etapa 6)');
+
+if (!version) warn('Arquivo VERSION não encontrado', 'Atualize o setup: git pull.');
 
 const contexto = rel('.claude', 'contexto-local.md');
 if (!fs.existsSync(contexto)) fail('.claude/contexto-local.md não existe', 'Rode a Etapa 6 (node setup/setup.js --config setup/config.json).');

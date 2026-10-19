@@ -145,6 +145,7 @@ tailwind.config = {
     <div class="p-3 border-t border-line">
       <div class="flex items-center gap-2 text-xs text-ink-dim"><span class="pulse-dot status-active"></span>Sistema ativo</div>
       <p class="text-[10px] text-ink-mute mt-1 mono">localhost:3001</p>
+      <p id="app-version" class="text-[10px] text-ink-mute mt-0.5 mono"></p>
     </div>
   </aside>
 
@@ -1800,6 +1801,7 @@ async function setInvoiceStatus(id,status){
 // =============================================================
 renderStats();
 activateRoute();
+fetch('/api/version').then(r=>r.json()).then(v=>{if(v&&v.version)document.getElementById('app-version').textContent='ZX Control 7 · Setup 17 · v'+v.version;}).catch(()=>{});
 </script>
 </body>
 </html>

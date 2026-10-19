@@ -100,7 +100,7 @@ async function runAutoModeCycle() {
 
   const master = await loadMaster();
   const eligible = Object.entries(master)
-    .filter(([id, lead]) => ['active', 'responded'].includes(lead.status) && !autoState.paused_leads.includes(id))
+    .filter(([id, lead]) => ['active', 'responded'].includes(lead.status) && !lead.no_send && !autoState.paused_leads.includes(id))
     .map(([id, lead]) => ({ id, ...lead }));
 
   if (eligible.length === 0) return;

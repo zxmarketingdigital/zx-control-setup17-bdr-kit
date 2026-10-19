@@ -104,3 +104,13 @@ test('se a validação do número falha, o envio é pulado (nada vai pro sendTex
     await destroyClient();
   }
 });
+
+// ── Lead de demonstração nunca é enviado ────────────────────────────────────
+test('lead de demonstração (no_send) não é sendable, mesmo ativo e com follow-up vencido', async () => {
+  await fs.writeFile(path.join(PIPELINE, 'leads-master.json'), JSON.stringify({
+    'demo-01': { phone: '+551155500001', status: 'active', no_send: true, demo: true, next_touch_due_at: '2020-01-01T13:00:00.000Z', history: [] },
+    'demo-teste': { phone: '+5527999990000', status: 'active', demo: true, history: [] },
+  }));
+  assert.equal(await isLeadSendable('demo-01'), false);
+  assert.equal(await isLeadSendable('demo-teste'), true, 'o lead de teste (número do operador) pode receber');
+});

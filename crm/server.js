@@ -172,6 +172,7 @@ app.post('/api/leads/:id/manual-message', async (req, res) => {
   const lead = master[req.params.id];
   if (!lead) return res.status(404).json({ error: 'Lead not found' });
   if (!lead.phone) return res.status(400).json({ error: 'Lead sem telefone' });
+  if (lead.no_send) return res.status(400).json({ error: 'Lead de demonstração: o envio está bloqueado.' });
 
   const logEntry = { timestamp: new Date().toISOString(), lead_id: req.params.id, touch: 'manual', phone: lead.phone, status: 'failed', error: null };
   try {

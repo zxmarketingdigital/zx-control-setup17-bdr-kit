@@ -68,6 +68,10 @@ Primeira versão oficial do ZX Control 7 · Setup 17 (antes distribuído com out
 - Estimativa de custo da Apify por lote de 100 leads, no README.
 - Manuais de instalação e de uso, e guia de contingência do WhatsApp, em PDF (`docs/`).
 - Como publicar uma versão (`docs/release.md`).
+- Roteiro de demonstração ao vivo de 20 minutos (`docs/demonstracao.md`) e dados de exemplo
+  fictícios com `python scripts/seed-demo.py`. Os leads de exemplo têm o envio bloqueado no
+  dispatcher, no modo automático e no "Enviar agora" do CRM; só o Lead de Teste (o número de
+  teste do operador) recebe.
 - Desinstalação e reinstalação por cima (`docs/desinstalar.md`) e roteiro de teste em máquina
   limpa para Windows e Mac (`docs/teste-instalacao-limpa.md`).
 

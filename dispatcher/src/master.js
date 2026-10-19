@@ -242,6 +242,7 @@ export async function isLeadSendable(leadId) {
   const lead = master[leadId];
   if (!lead) return true; // new lead, not in master yet — OK to send touch 1
   if (lead.opt_out) return false; // pediu pra parar: nunca mais
+  if (lead.no_send) return false; // lead de demonstração (scripts/seed-demo.py): nunca é enviado
   // Any status other than 'active' immediately pauses all follow-ups.
   // Status is set manually in the CRM — no automatic detection.
   if (lead.status !== 'active') return false;

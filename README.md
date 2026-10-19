@@ -134,6 +134,19 @@ python3 scripts/build-pool.py pipeline/dataset-2026-06-02.json
 
 Faça isso uma vez por lote — não é necessário diariamente.
 
+**Primeira vez?** O passo a passo da instalação até a primeira leva enviada, com o tempo de cada etapa, está em `docs/primeiro-uso.md`. As dúvidas mais comuns estão em `docs/faq.md`.
+
+### Quanto custa a Apify
+
+Estimativa, consultada em 19/10/2026 (a Apify muda preço; **confira a aba "Pricing" do Actor antes de rodar**):
+
+- Para chegar a **100 leads aproveitáveis**, conte com **200 a 300 lugares coletados**, porque parte é descartada (sem telefone, telefone que não é celular, já abordado, sem presença digital).
+- O Actor oficial "Google Maps Scraper" cobra a partir de **US$ 1,50 por 1.000 lugares coletados**. Um lote de 100 leads sai por volta de **US$ 0,30 a US$ 0,45**.
+- Se você ligar os extras do Actor (detalhes do lugar e contatos, ambos na faixa de US$ 2,00 por 1.000 lugares no plano gratuito), o mesmo lote vai a **US$ 1,10 a US$ 1,70**.
+- O plano gratuito da Apify inclui **US$ 5 de uso por mês**, o que cobre de 3 a mais de 10 lotes de 100 leads, dependendo dos extras. Acima disso, os planos pagos começam em US$ 19 por mês.
+
+Dica: rode o Actor com um limite de resultados (por exemplo, 300) na primeira vez, para ver o custo real do seu nicho antes de pedir um lote grande.
+
 ### Rotina diária
 
 ```

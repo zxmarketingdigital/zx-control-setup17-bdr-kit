@@ -134,6 +134,10 @@ lead topar a call, passa pra você confirmar o horário. Setup em
   tende a gerar mais conversa por dia. Tenha um número reserva aquecendo antes de
   ligar — veja `docs/Contingencia-WhatsApp-Setup17.pdf`.
 
+## Qual modelo o Claude usa
+
+Por padrão, o modelo da sua conta. Para fixar outro (por exemplo um mais leve, pra gastar menos do seu limite), defina `CLAUDE_MODEL` no `dispatcher/.env` e reinicie o dispatcher e o CRM. É o único lugar onde o modelo se escolhe: vale para o modo automático e para o botão "Gerar sugestão" do CRM. Vazio = modelo padrão.
+
 ## Ligar / desligar / pausar
 
 - **Global:** botão "Ligar modo automático" na aba Prospecção Fria.

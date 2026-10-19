@@ -97,10 +97,10 @@ o que antes precisava de um navegador à parte.
 ## Fase 2 — Qualificação e geração de copy (Claude Code)
 
 1. Abra um terminal na pasta raiz do projeto.
-2. Inicie o Claude Code com o modelo correto:
+2. Inicie o Claude Code (ele usa o modelo padrão da sua conta):
 
 ```bash
-claude --model claude-sonnet-4-6
+claude
 ```
 
 3. Aguarde o Claude Code carregar (ele vai reconhecer o `CLAUDE.md` do projeto e o contexto do seu negócio, em `.claude/contexto-local.md`, automaticamente).
@@ -159,10 +159,10 @@ cd dispatcher && npm start
 
 Se um lead respondeu fora do WhatsApp (e-mail, ligação, LinkedIn) e você precisa pausar os toques automáticos para ele:
 
-1. Abra o Claude Code (modelo Haiku para economizar — é uma edição trivial):
+1. Abra o Claude Code. É uma edição trivial: se quiser economizar, troque para um modelo mais leve com `/model`.
 
 ```bash
-claude --model claude-haiku-4-5-20251001
+claude
 ```
 
 2. Cole o comando:

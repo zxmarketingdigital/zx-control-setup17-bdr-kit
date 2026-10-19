@@ -569,9 +569,9 @@ mesmo (Claude Code) navegando com seu próprio navegador — ver seção abaixo.
 | Fase 0: Build pool do dataset Apify | Terminal (Python) | \`${PYTHON_CMD} scripts/build-pool.py <dataset.json>\` |
 | Fase 1a: Enriquecer site + Meta Ads (com token) | Terminal (Python) | \`${PYTHON_CMD} scripts/enrich-sites.py --n ${DAILY_NEW_CAP}\` |
 | Fase 1b: Enriquecer Instagram + Meta Ads (sem token) | Terminal (Playwright) OU você mesmo, com seu navegador | \`${PYTHON_CMD} scripts/enrich-instagram.py\` — ver alternativa abaixo |
-| Fase 2: Qualificar + gerar copies | Você (Sonnet) | \`roda o pipeline\` |
+| Fase 2: Qualificar + gerar copies | Você | \`roda o pipeline\` |
 | Stage 3: Disparar toques | Terminal (Node) | \`cd dispatcher && npm start\` |
-| Marcar respondido | Você (Haiku) | Edição trivial de JSON |
+| Marcar respondido | Você | Edição trivial de JSON |
 
 ## Fase 1b pelo seu navegador (alternativa ao script)
 
@@ -663,8 +663,9 @@ Sem o token, Meta Ads fica null no script — mas você ainda pode conferir a Bi
 
 ## Model usage
 
-- **Claude Code Sonnet**: skill application, copy presentation, approval ritual (Fase 2)
-- **Claude Code Haiku**: trivial JSON edits (mark responded, status changes)
+- Fase 2 (skill, copies, aprovação): use o modelo padrão da sua conta.
+- Edições triviais de JSON (marcar respondido, mudar status): se quiser economizar, troque para um modelo mais leve com \`/model\`.
+- O modelo do modo automático e do botão "Gerar sugestão" vem de \`CLAUDE_MODEL\` no \`dispatcher/.env\` (vazio = modelo padrão da conta). É o único lugar onde ele se escolhe.
 
 ## Pipeline files
 
@@ -1737,6 +1738,11 @@ LOG_LEVEL=info
 AUTO_REPLY_DELAY_MIN_SECONDS=9
 AUTO_REPLY_DELAY_MAX_SECONDS=9
 
+# Modelo do Claude no modo automático e no botão "Gerar sugestão" (opcional). Vazio usa o
+# modelo padrão da sua conta. É o único lugar onde o modelo se escolhe: nada de versão
+# de modelo espalhada pela documentação.
+${vars.CLAUDE_MODEL ? `CLAUDE_MODEL=${vars.CLAUDE_MODEL}` : '# CLAUDE_MODEL='}
+
 # Evolution API (WhatsApp)
 EVOLUTION_API_URL=${EVOLUTION_API_URL}
 EVOLUTION_API_KEY=${EVOLUTION_API_KEY}
@@ -1909,7 +1915,7 @@ de novo no meio do lote.
 ## Fase 2 — Qualificação + copies (Claude Code)
 
 \`\`\`bash
-claude --model claude-sonnet-4-6
+claude
 \`\`\`
 
 Dentro do Claude Code:

@@ -83,7 +83,7 @@ No terminal, antes de rodar o Claude Code:
 
 ```bash
 export ANTHROPIC_API_KEY="sk-ant-..."
-claude --model claude-sonnet-4-6
+claude
 ```
 
 Ou adicione ao seu `.bashrc` / `.zshrc` para persistir:

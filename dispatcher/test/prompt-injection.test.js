@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { checkOutgoing, collectSecretValues } from '../src/outbound-guard.js';
-import { neutralizeTags, wrapLeadMessage, sandboxArgs, loadSkillText, SECURITY_RULES } from '../src/claude-sandbox.js';
+import { neutralizeTags, wrapLeadMessage, sandboxArgs, loadSkillText, getClaudeModel, SECURITY_RULES } from '../src/claude-sandbox.js';
 import { buildPrompt, renderConversation } from '../src/auto-responder.js';
 
 // ── Filtro de saída ─────────────────────────────────────────────────────────
@@ -92,6 +92,19 @@ test('claude roda sem ferramentas, sem MCP e sem settings', () => {
   assert.equal(at('--setting-sources'), '');
   assert.ok(!args.includes('--allowedTools'), 'não pode liberar Read/Glob/Grep');
   assert.equal(at('--append-system-prompt-file'), '/tmp/x/contexto.md');
+});
+
+test('modelo: sem CLAUDE_MODEL usa o padrão da conta; com CLAUDE_MODEL vai em --model', async () => {
+  assert.ok(!sandboxArgs('/tmp/x/contexto.md').includes('--model'));
+  const args = sandboxArgs('/tmp/x/contexto.md', 'modelo-teste');
+  assert.equal(args[args.indexOf('--model') + 1], 'modelo-teste');
+  const old = process.env.CLAUDE_MODEL;
+  try {
+    process.env.CLAUDE_MODEL = '  modelo-do-ambiente ';
+    assert.equal(await getClaudeModel(), 'modelo-do-ambiente');
+  } finally {
+    if (old === undefined) delete process.env.CLAUDE_MODEL; else process.env.CLAUDE_MODEL = old;
+  }
 });
 
 test('as regras de segurança proíbem revelar arquivos e chaves', () => {

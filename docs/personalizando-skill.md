@@ -221,7 +221,7 @@ Se você quer testar se a skill está bem configurada sem esperar pelo Stage 1, 
 1. Abra o Claude Code:
 
 ```bash
-claude --model claude-sonnet-4-6
+claude
 ```
 
 2. Cole o seguinte comando, substituindo pelos dados de um lead do seu nicho:

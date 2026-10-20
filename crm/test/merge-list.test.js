@@ -31,3 +31,16 @@ test('remoção de item da lista continua valendo', async () => {
   await store.saveLead('a', l);
   assert.deepEqual(f.get().a.annotations, [{ at: '2' }]);
 });
+
+test('master apagado no meio da rota: saveLead lança e não grava base com 1 lead', async () => {
+  let data = { a: { status: 'new' }, b: { status: 'new', opt_out: true } };
+  const store = createMasterStore({
+    readJson: async (_f, fb) => (data == null ? fb : structuredClone(data)),
+    writeJsonAtomic: async (_f, v) => { data = structuredClone(v); },
+  });
+  const lead = store.ownLead(structuredClone(data), 'a');
+  data = null;   // arquivo some enquanto a rota espera a Evolution
+  lead.status = 'responded';
+  await assert.rejects(store.saveLead('a', lead), /sumiu/);
+  assert.equal(data, null);
+});

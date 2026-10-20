@@ -49,7 +49,10 @@ export function createMasterStore({ readJson, writeJsonAtomic, file = 'leads-mas
 
   function saveLead(id, lead, { allowOptOutChange = false } = {}) {
     return enqueue(async () => {
-      const fresh = (await readJson(file, {})) ?? {};
+      // O lead veio do master: se o arquivo sumiu no meio da rota, parar em vez de gravar
+      // uma base só com este lead (apagaria opt-outs e histórico de todos os outros).
+      const fresh = await readJson(file, null);
+      if (fresh == null) throw new Error('leads-master.json sumiu durante a operação. Restaure o arquivo antes de continuar; nada foi gravado.');
       const atual = Object.hasOwn(fresh, id) ? fresh[id] : null;
       const original = originals.get(lead);
       let merged;

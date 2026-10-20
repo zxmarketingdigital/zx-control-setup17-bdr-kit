@@ -187,7 +187,9 @@ export async function markClosed(leadId, reason) {
   master[leadId].closed_at = new Date().toISOString();
   // O motivo vem do modelo. Só "sem_interesse" e "anti_fit" deixam o número fora do opt-out;
   // qualquer outro texto ("pedido de parar", motivo inventado) vira opt-out: na dúvida, não reabordar.
-  if (!/^(sem_interesse|anti_fit)\b/i.test(r)) master[leadId].opt_out = true;
+  // "sem_interesse – pediu pra sair da lista" também é pedido pra parar.
+  const pediuPraSair = /\b(sair|parar|pare|tira|tirar|remov|descadastr|bloque|denunci|n[ãa]o\s+(me\s+)?(mande|envie|chame))/i.test(r);
+  if (pediuPraSair || !/^(sem_interesse|anti_fit)\b/i.test(r)) master[leadId].opt_out = true;
   if (!Array.isArray(master[leadId].annotations)) master[leadId].annotations = [];
   master[leadId].annotations.push({ at: master[leadId].closed_at, text: `[Modo automático] Conversa encerrada: ${r}` });
   await writeMaster(master);

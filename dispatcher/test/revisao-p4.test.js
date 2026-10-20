@@ -53,3 +53,10 @@ test('master apagado com o dispatcher rodando: para em vez de gravar um master v
   await assert.rejects(mc('a', 'sem_interesse'));
   await assert.rejects(fs.access(f));
 });
+
+test('"sem_interesse - pediu pra sair da lista" grava opt-out', async () => {
+  const f = path.join(PIPELINE, 'leads-master.json');
+  await fs.writeFile(f, JSON.stringify({ c: { phone: '11900000003', status: 'active' } }));
+  await markClosed('c', 'sem_interesse - pediu pra sair da lista');
+  assert.equal(JSON.parse(await fs.readFile(f, 'utf8')).c.opt_out, true);
+});

@@ -19,8 +19,10 @@ function readCookie(req, name) {
 }
 
 function sameState(a, b) {
-  if (typeof a !== 'string' || typeof b !== 'string' || !a || a.length !== b.length) return false;
-  return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
+  if (typeof a !== 'string' || typeof b !== 'string' || !a) return false;
+  const ba = Buffer.from(a), bb = Buffer.from(b);
+  if (ba.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ba, bb);
 }
 
 export function escapeHtml(value) {

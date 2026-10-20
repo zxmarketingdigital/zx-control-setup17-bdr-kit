@@ -24,6 +24,7 @@ import { parseScheduledAt, toIso } from '../dispatcher/src/tz.js';
 import { detectOptOut } from '../dispatcher/src/opt-out-detector.js';
 import { createAuth, countRealLeads } from './src/auth.js';
 import passwordRules from './src/password.cjs';
+import { createMasterStore } from './src/master-store.js';
 import { registerGoogleOAuthRoutes } from './src/oauth-routes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -129,6 +130,8 @@ async function writeJsonAtomic(file, data) {
   await fs.rename(tmp, fullPath);
 }
 
+const { saveLead, ownLead } = createMasterStore({ readJson, writeJsonAtomic });
+
 // ============================================================
 // LEADS
 // ============================================================
@@ -143,14 +146,14 @@ app.get('/api/leads', async (req, res) => {
 
 app.get('/api/leads/:id', async (req, res) => {
   const master = await readJson('leads-master.json', {}) ?? {};
-  const lead = master[req.params.id];
+  const lead = ownLead(master, req.params.id);
   if (!lead) return res.status(404).json({ error: 'Lead not found' });
   res.json({ id: req.params.id, ...lead });
 });
 
 app.patch('/api/leads/:id', async (req, res) => {
   const master = await readJson('leads-master.json', {}) ?? {};
-  const lead = master[req.params.id];
+  const lead = ownLead(master, req.params.id);
   if (!lead) return res.status(404).json({ error: 'Lead not found' });
 
   const allowed = ['status', 'responded', 'responded_at', 'responded_via', 'next_touch_due_at', 'name', 'marca', 'category', 'outcome', 'opt_out', 'closed_reason', 'closed_at'];
@@ -164,8 +167,7 @@ app.patch('/api/leads/:id', async (req, res) => {
   if (['cold', 'exhausted', 'meeting_scheduled'].includes(req.body.status)) lead.next_touch_due_at = null;
   if ('outcome' in req.body) lead.outcome_set_at = req.body.outcome ? new Date().toISOString() : null;
 
-  master[req.params.id] = lead;
-  await writeJsonAtomic('leads-master.json', master);
+  await saveLead(req.params.id, lead, { allowOptOutChange: 'opt_out' in req.body });
   res.json({ id: req.params.id, ...lead });
 });
 
@@ -173,24 +175,22 @@ app.post('/api/leads/:id/annotations', async (req, res) => {
   const { text } = req.body;
   if (!text?.trim()) return res.status(400).json({ error: 'text required' });
   const master = await readJson('leads-master.json', {}) ?? {};
-  const lead = master[req.params.id];
+  const lead = ownLead(master, req.params.id);
   if (!lead) return res.status(404).json({ error: 'Lead not found' });
   if (!Array.isArray(lead.annotations)) lead.annotations = [];
   lead.annotations.push({ at: new Date().toISOString(), text: text.trim() });
-  master[req.params.id] = lead;
-  await writeJsonAtomic('leads-master.json', master);
+  await saveLead(req.params.id, lead);
   res.json({ id: req.params.id, ...lead });
 });
 
 app.delete('/api/leads/:id/annotations/:idx', async (req, res) => {
   const master = await readJson('leads-master.json', {}) ?? {};
-  const lead = master[req.params.id];
+  const lead = ownLead(master, req.params.id);
   if (!lead || !Array.isArray(lead.annotations)) return res.status(404).json({ error: 'Annotation not found' });
   const idx = parseInt(req.params.idx, 10);
   if (Number.isNaN(idx) || idx < 0 || idx >= lead.annotations.length) return res.status(404).json({ error: 'Annotation not found' });
   lead.annotations.splice(idx, 1);
-  master[req.params.id] = lead;
-  await writeJsonAtomic('leads-master.json', master);
+  await saveLead(req.params.id, lead);
   res.json({ id: req.params.id, ...lead });
 });
 
@@ -210,7 +210,7 @@ app.post('/api/leads/:id/inbound', async (req, res) => {
   const { message } = req.body;
   if (!message?.trim()) return res.status(400).json({ error: 'message required' });
   const master = await readJson('leads-master.json', {}) ?? {};
-  const lead = master[req.params.id];
+  const lead = ownLead(master, req.params.id);
   if (!lead) return res.status(404).json({ error: 'Lead not found' });
 
   const entry = { lead_id: req.params.id, phone: lead.phone, received_at: new Date().toISOString(), message: message.trim() };
@@ -222,8 +222,7 @@ app.post('/api/leads/:id/inbound', async (req, res) => {
   lead.responded_at = entry.received_at;
   lead.status = 'responded';
   lead.next_touch_due_at = null;
-  master[req.params.id] = lead;
-  await writeJsonAtomic('leads-master.json', master);
+  await saveLead(req.params.id, lead);
 
   res.json({ id: req.params.id, ...lead });
 });
@@ -235,7 +234,7 @@ app.post('/api/leads/:id/manual-message', async (req, res) => {
   const { text } = req.body;
   if (!text?.trim()) return res.status(400).json({ error: 'text required' });
   const master = await readJson('leads-master.json', {}) ?? {};
-  const lead = master[req.params.id];
+  const lead = ownLead(master, req.params.id);
   if (!lead) return res.status(404).json({ error: 'Lead not found' });
   if (!lead.phone) return res.status(400).json({ error: 'Lead sem telefone' });
   if (lead.no_send) return res.status(400).json({ error: 'Lead de demonstração: o envio está bloqueado.' });
@@ -254,8 +253,7 @@ app.post('/api/leads/:id/manual-message', async (req, res) => {
   if (logEntry.status === 'sent') {
     if (!Array.isArray(lead.history)) lead.history = [];
     lead.history.push({ touch: 'manual', sent_at: logEntry.timestamp, copy: text.trim() });
-    master[req.params.id] = lead;
-    await writeJsonAtomic('leads-master.json', master);
+    await saveLead(req.params.id, lead);
   } else {
     return res.status(502).json({ error: logEntry.error || 'Falha ao enviar' });
   }
@@ -324,7 +322,7 @@ app.get('/api/transcription/status', (req, res) => {
 
 app.post('/api/leads/:id/pull-whatsapp', async (req, res) => {
   const master = await readJson('leads-master.json', {}) ?? {};
-  const lead = master[req.params.id];
+  const lead = ownLead(master, req.params.id);
   if (!lead) return res.status(404).json({ error: 'Lead not found' });
   if (!lead.phone) return res.status(400).json({ error: 'Lead sem telefone' });
 
@@ -383,8 +381,7 @@ app.post('/api/leads/:id/pull-whatsapp', async (req, res) => {
         lead.annotations.push({ at: now, text: 'Lead pediu pra parar de receber mensagem: marcado como opt-out, nunca será reabordado.' });
         optOutDetected = true;
       }
-      master[req.params.id] = lead;
-      await writeJsonAtomic('leads-master.json', master);
+      await saveLead(req.params.id, lead);
     }
   }
   res.json({
@@ -443,7 +440,7 @@ app.post('/api/booking-rules', async (req, res) => {
 // body: { revenue_text?, authority_kind?, authority_text?, clear? }
 app.post('/api/leads/:id/qualification', async (req, res) => {
   const master = await readJson('leads-master.json', {}) ?? {};
-  const lead = master[req.params.id];
+  const lead = ownLead(master, req.params.id);
   if (!lead) return res.status(404).json({ error: 'Lead not found' });
   const body = req.body || {};
   const now = new Date().toISOString();
@@ -458,8 +455,7 @@ app.post('/api/leads/:id/qualification', async (req, res) => {
     q.authority = { kind: body.authority_kind, quote: String(body.authority_text || '').trim() || '(registrado por você)', source: 'manual', at: now };
   }
   lead.qualification = q;
-  master[req.params.id] = lead;
-  await writeJsonAtomic('leads-master.json', master);
+  await saveLead(req.params.id, lead);
   const rules = await loadBookingRules(PIPELINE_DIR);
   res.json({ qualification: q, status: qualificationStatus(q, rules) });
 });
@@ -616,7 +612,18 @@ app.get('/api/calendar/free-slots', async (req, res) => {
 // MEETINGS
 // ============================================================
 
+// Um agendamento por lead de cada vez: dois cliques (ou tela + modo automático) não criam
+// dois eventos no Google. Quem chega enquanto outro agenda recebe 409.
+const meetingInFlight = new Set();
+
 app.post('/api/leads/:id/meeting', async (req, res) => {
+  const lockKey = req.params.id;
+  if (meetingInFlight.has(lockKey)) return res.status(409).json({ error: 'Já tem um agendamento em andamento pra esse lead', code: 'meeting_in_flight' });
+  meetingInFlight.add(lockKey);
+  try { await createMeetingRoute(req, res); } finally { meetingInFlight.delete(lockKey); }
+});
+
+async function createMeetingRoute(req, res) {
   const { scheduled_at, duration_minutes = 30, notes = '', add_google_meet = true, require_free = false } = req.body;
   if (!scheduled_at) return res.status(400).json({ error: 'scheduled_at required' });
   // Horário sem deslocamento ("2026-10-20T10:00") vale no fuso configurado (TIMEZONE).
@@ -624,7 +631,7 @@ app.post('/api/leads/:id/meeting', async (req, res) => {
   if (!when) return res.status(400).json({ error: 'scheduled_at inválido' });
   const startISO = toIso(when);
   const master = await readJson('leads-master.json', {}) ?? {};
-  const lead = master[req.params.id];
+  const lead = ownLead(master, req.params.id);
   if (!lead) return res.status(404).json({ error: 'Lead not found' });
   if (lead.meeting && ['scheduled', 'confirmed'].includes(lead.meeting.status)) {
     return res.status(409).json({ error: 'Lead já tem reunião ativa. Use PATCH pra reagendar.' });
@@ -653,15 +660,14 @@ app.post('/api/leads/:id/meeting', async (req, res) => {
     };
     lead.status = 'meeting_scheduled'; lead.next_touch_due_at = null;
     if (!lead.outcome) { lead.outcome = 'reuniao_agendada'; lead.outcome_set_at = new Date().toISOString(); }
-    master[req.params.id] = lead;
-    await writeJsonAtomic('leads-master.json', master);
+    await saveLead(req.params.id, lead);
     res.json({ id: req.params.id, ...lead });
   } catch (err) { console.error('createMeeting error:', err.message); res.status(500).json({ error: err.message }); }
-});
+}
 
 app.patch('/api/leads/:id/meeting', async (req, res) => {
   const master = await readJson('leads-master.json', {}) ?? {};
-  const lead = master[req.params.id];
+  const lead = ownLead(master, req.params.id);
   if (!lead || !lead.meeting) return res.status(404).json({ error: 'Meeting not found' });
   const { scheduled_at, duration_minutes, notes, status, confirmed_at } = req.body;
   const newStart = scheduled_at ? parseScheduledAt(scheduled_at) : null;
@@ -689,28 +695,28 @@ app.patch('/api/leads/:id/meeting', async (req, res) => {
       if (status === 'confirmed' && !lead.meeting.confirmed_at) lead.meeting.confirmed_at = new Date().toISOString();
       if (status === 'cancelled') {
         lead.status = 'responded'; lead.outcome = null; lead.outcome_set_at = null;
-        try { await cal.deleteMeeting(lead.meeting.calendar_event_id); } catch (e) { console.warn(e.message); }
+        try { await cal.deleteMeeting(lead.meeting.calendar_event_id); }
+        catch (e) { return res.status(502).json({ error: `Não deu pra apagar o evento no Google Agenda: ${e.message}`, code: 'calendar_delete_failed' }); }
       }
       if (status === 'no_show') { lead.outcome = 'no_show'; lead.outcome_set_at = new Date().toISOString(); lead.status = 'cold'; }
     }
     if (confirmed_at) lead.meeting.confirmed_at = confirmed_at;
-    master[req.params.id] = lead;
-    await writeJsonAtomic('leads-master.json', master);
+    await saveLead(req.params.id, lead);
     res.json({ id: req.params.id, ...lead });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
 app.delete('/api/leads/:id/meeting', async (req, res) => {
   const master = await readJson('leads-master.json', {}) ?? {};
-  const lead = master[req.params.id];
+  const lead = ownLead(master, req.params.id);
   if (!lead || !lead.meeting) return res.status(404).json({ error: 'Meeting not found' });
   try {
-    try { await cal.deleteMeeting(lead.meeting.calendar_event_id); } catch (e) { console.warn(e.message); }
+    try { await cal.deleteMeeting(lead.meeting.calendar_event_id); }
+    catch (e) { return res.status(502).json({ error: `Não deu pra apagar o evento no Google Agenda: ${e.message}`, code: 'calendar_delete_failed' }); }
     lead.meeting = null;
     if (lead.status === 'meeting_scheduled') lead.status = 'responded';
     if (lead.outcome === 'reuniao_agendada') { lead.outcome = null; lead.outcome_set_at = null; }
-    master[req.params.id] = lead;
-    await writeJsonAtomic('leads-master.json', master);
+    await saveLead(req.params.id, lead);
     res.json({ id: req.params.id, ...lead });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });

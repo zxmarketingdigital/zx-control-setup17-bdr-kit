@@ -4,7 +4,7 @@ import { config } from './config.js';
 import { logger } from './log.js';
 import { todayStr } from './window.js';
 import { getOptOut } from './master.js';
-import { readDispatchLog, attemptedKeys, newLeadsOn } from './dispatch-log.js';
+import { readDispatchLog, attemptedKeys, newLeadsOn, BLOCKING_STATUSES } from './dispatch-log.js';
 import { ymdInTz } from './tz.js';
 
 const MOD = 'queue';
@@ -49,6 +49,11 @@ export async function filterDispatchableQueue(queueEntries) {
   const attempted = attemptedKeys(log);
   const today = todayStr();
   const triedToday = new Set(log.filter((e) => e?.touch === 1 && e.timestamp && ymdInTz(new Date(e.timestamp)) === today).map((e) => e.lead_id));
+  // Mesmo número com lead_id diferente ("11 9..." e "+55 11 9...") é a mesma pessoa.
+  const digits = (p) => String(p ?? '').replace(/\D/g, '');
+  const touchedPhones = new Set(log.filter((e) => e?.touch === 1 && e.phone
+    && (BLOCKING_STATUSES.has(e.status) || (e.timestamp && ymdInTz(new Date(e.timestamp)) === today))).map((e) => digits(e.phone)));
+  const phonesInBatch = new Set();
   const optOut = await getOptOut();
 
   const pending = queueEntries.filter((entry) => {
@@ -70,6 +75,12 @@ export async function filterDispatchableQueue(queueEntries) {
       logger.debug(MOD, `Skip ${entry.lead_id} — toque 1 já saiu (ou pode ter saído)`);
       return false;
     }
+    const ph = digits(entry.phone);
+    if (touchedPhones.has(ph) || phonesInBatch.has(ph)) {
+      logger.warn(MOD, `Skip ${entry.lead_id} — esse número já recebeu (ou vai receber) o primeiro contato por outro lead`);
+      return false;
+    }
+    phonesInBatch.add(ph);
     return true;
   });
 

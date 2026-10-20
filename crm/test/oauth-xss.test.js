@@ -74,3 +74,14 @@ test('callback do Google sem o state deste navegador é recusada antes de trocar
     assert.equal(trocou, 1);
   } finally { s.close(); }
 });
+
+test('state com acento (mesmo nº de caracteres, bytes diferentes) é recusado sem estourar 500', async () => {
+  let trocou = 0;
+  const s = await boot({ handleAuthCallback: async () => { trocou++; } });
+  try {
+    const res = await s.get('/auth/google/callback?code=abc&state=' + encodeURIComponent('é'), { cookie: 'zxcrm_oauth_state=a' });
+    assert.notEqual(res.status, 500);
+    assert.ok(res.status >= 400 && res.status < 500, String(res.status));
+    assert.equal(trocou, 0);
+  } finally { s.close(); }
+});

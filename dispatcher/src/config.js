@@ -8,7 +8,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Teto de leads NOVOS por dia: acima disso o risco de restrição do número sobe muito.
 export const DAILY_NEW_CAP_MAX = 20;
 const requestedCap = parseInt(process.env.DAILY_NEW_CAP ?? '10', 10);
-const safeCap = Number.isFinite(requestedCap) && requestedCap > 0 ? requestedCap : 10;
+// 0 = nenhum lead novo (pausa a prospecção sem parar os follow-ups); vazio ou inválido = 10.
+const safeCap = Number.isFinite(requestedCap) && requestedCap >= 0 ? requestedCap : 10;
 
 // Número inteiro do .env; vazio, texto ou abaixo do mínimo cai no padrão.
 function intEnv(name, fallback, min = 0) {

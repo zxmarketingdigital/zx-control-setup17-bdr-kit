@@ -14,6 +14,7 @@ import { responseText } from './audio-transcriber.js';
 import { detectOptOut } from './opt-out-detector.js';
 import { checkClaudeCli, processAutoTurn } from './auto-responder.js';
 import { settleBatch, pickDelayMs } from './reply-debounce.js';
+import { settleConsumed } from './consumed-guard.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -69,6 +70,8 @@ async function runAutoModeCycle() {
     .map(([id, lead]) => ({ id, ...lead }));
 
   if (eligible.length === 0) return;
+  // Fora do horário não lê: ler consome a mensagem, e quem não for atendido agora ficaria sem registro.
+  if (!isOpenForBusiness()) return;
 
   const newResponses = await pollInbound(eligible);
   if (newResponses.length === 0) return;
@@ -82,80 +85,89 @@ async function runAutoModeCycle() {
 
   logger.info(MOD, `Modo automático: ${newResponses.length} resposta(s) genuína(s) nova(s) de ${byLead.size} lead(s)`);
 
-  for (const [leadId, firstMessages] of byLead) {
-    if (shuttingDown) break;
-    if (!isOpenForBusiness()) {
-      logger.info(MOD, 'Modo automático: janela fechada mid-batch — pausando até o próximo ciclo');
-      break;
-    }
-
-    const lead = eligible.find((l) => l.id === leadId);
-    if (!lead) continue;
-
-    // Espera o lead terminar de digitar; o que chegar nesse intervalo entra no mesmo turno.
-    const burst = await settleBatch(firstMessages, {
-      fetchMore: () => pollInbound([lead]),
-      nextDelayMs: () => pickDelayMs(config.autoReplyDelayMinSeconds, config.autoReplyDelayMaxSeconds),
-      sleep,
-      shouldStop: () => shuttingDown,
-    });
-    if (shuttingDown) break;
-    if (burst.length > firstMessages.length) {
-      logger.info(MOD, `${leadId}: ${burst.length} mensagens seguidas, respondendo em conjunto`);
-    }
-
-    await markResponded(leadId, burst[0].phone);
-
-    // Pediu pra parar: decisão por regra, ANTES do modelo. Fecha como opt-out e não responde
-    // (resposta automática a quem pediu pra parar só aumenta a chance de denúncia).
-    if (burst.some((r) => detectOptOut(responseText(r)).optOut)) {
-      await markClosed(leadId, 'opt_out');
-      logger.info(MOD, `${leadId} pediu pra parar: marcado como opt-out, sem resposta`);
-      continue;
-    }
-
-    // Qualquer mensagem do lote que o automático não consegue ler manda o lote
-    // inteiro pro humano: responder só o texto e ignorar a imagem/áudio junto
-    // seria responder meia conversa.
-    const why = burst.map((r) => reasonForHuman(r, autoState)).find(Boolean);
-    if (why) {
-      await markNeedsReview(leadId, why);
-      continue;
-    }
-
-    // Reconstrói a conversa (toques enviados + respostas do lead) em ordem cronológica.
-    const freshMaster = await loadMaster();
-    const freshLead = { id: leadId, ...freshMaster[leadId] };
-    const allResponses = (await fs.readFile(path.join(config.pipelineDir, 'responses.json'), 'utf8').then(JSON.parse).catch(() => []))
-      .filter((r) => r.lead_id === leadId);
-    const timeline = [
-      ...(freshLead.history || []).map((h) => ({ at: h.sent_at, text: `[Você] ${h.copy}` })),
-      ...allResponses.map((r) => ({ at: r.received_at, text: `[Lead] ${responseText(r)}` })),
-    ].sort((a, b) => (a.at || '').localeCompare(b.at || ''));
-
-    let decision;
-    try {
-      decision = await processAutoTurn(freshLead, timeline);
-    } catch (err) {
-      logger.error(MOD, `Modo automático falhou pra ${leadId}: ${err.message.slice(0, 150)}`);
-      await markNeedsReview(leadId, `Erro no modo automático: ${err.message.slice(0, 100)}`);
-      continue;
-    }
-
-    if (decision.sent) await recordAutoTurn(leadId, decision.sent);
-    if (decision.action === 'close') {
-      // Adiamento não é fim: se o agente combinou retomar, o lead tem que
-      // continuar visível na Prospecção Fria com a data, senão ninguém lembra.
-      if (/^adiado/i.test(decision.reason || '')) {
-        await markNeedsReview(leadId, `Retomar combinado com o lead — ${decision.reason}`);
-      } else {
-        await markClosed(leadId, decision.reason);
+  // Toda mensagem lida aqui já saiu do cursor. Lead que o loop não alcançar (janela fechou,
+  // desligamento, erro) é registrado em settleConsumed: senão o follow-up sairia por cima
+  // de uma resposta, ou de um pedido pra parar.
+  const handled = new Set();
+  try {
+    for (const [leadId, firstMessages] of byLead) {
+      if (shuttingDown) break;
+      if (!isOpenForBusiness()) {
+        logger.info(MOD, 'Modo automático: janela fechada mid-batch — pausando até o próximo ciclo');
+        break;
       }
-    } else if (decision.action === 'handoff_human') {
-      await markNeedsReview(leadId, decision.reason);
-    }
 
-    if (!shuttingDown) await sleep(randomInterval());
+      const lead = eligible.find((l) => l.id === leadId);
+      if (!lead) continue;
+
+      // Espera o lead terminar de digitar; o que chegar nesse intervalo entra no mesmo turno.
+      const burst = await settleBatch(firstMessages, {
+        fetchMore: () => pollInbound([lead]),
+        nextDelayMs: () => pickDelayMs(config.autoReplyDelayMinSeconds, config.autoReplyDelayMaxSeconds),
+        sleep,
+        shouldStop: () => shuttingDown,
+      });
+      if (shuttingDown) break;
+      if (burst.length > firstMessages.length) {
+        logger.info(MOD, `${leadId}: ${burst.length} mensagens seguidas, respondendo em conjunto`);
+      }
+
+      await markResponded(leadId, burst[0].phone);
+      handled.add(leadId);
+
+      // Pediu pra parar: decisão por regra, ANTES do modelo. Fecha como opt-out e não responde
+      // (resposta automática a quem pediu pra parar só aumenta a chance de denúncia).
+      if (burst.some((r) => detectOptOut(responseText(r)).optOut)) {
+        await markClosed(leadId, 'opt_out');
+        logger.info(MOD, `${leadId} pediu pra parar: marcado como opt-out, sem resposta`);
+        continue;
+      }
+
+      // Qualquer mensagem do lote que o automático não consegue ler manda o lote
+      // inteiro pro humano: responder só o texto e ignorar a imagem/áudio junto
+      // seria responder meia conversa.
+      const why = burst.map((r) => reasonForHuman(r, autoState)).find(Boolean);
+      if (why) {
+        await markNeedsReview(leadId, why);
+        continue;
+      }
+
+      // Reconstrói a conversa (toques enviados + respostas do lead) em ordem cronológica.
+      const freshMaster = await loadMaster();
+      const freshLead = { id: leadId, ...freshMaster[leadId] };
+      const allResponses = (await fs.readFile(path.join(config.pipelineDir, 'responses.json'), 'utf8').then(JSON.parse).catch(() => []))
+        .filter((r) => r.lead_id === leadId);
+      const timeline = [
+        ...(freshLead.history || []).map((h) => ({ at: h.sent_at, text: `[Você] ${h.copy}` })),
+        ...allResponses.map((r) => ({ at: r.received_at, text: `[Lead] ${responseText(r)}` })),
+      ].sort((a, b) => (a.at || '').localeCompare(b.at || ''));
+
+      let decision;
+      try {
+        decision = await processAutoTurn(freshLead, timeline);
+      } catch (err) {
+        logger.error(MOD, `Modo automático falhou pra ${leadId}: ${err.message.slice(0, 150)}`);
+        await markNeedsReview(leadId, `Erro no modo automático: ${err.message.slice(0, 100)}`);
+        continue;
+      }
+
+      if (decision.sent) await recordAutoTurn(leadId, decision.sent);
+      if (decision.action === 'close') {
+        // Adiamento não é fim: se o agente combinou retomar, o lead tem que
+        // continuar visível na Prospecção Fria com a data, senão ninguém lembra.
+        if (/^adiado/i.test(decision.reason || '')) {
+          await markNeedsReview(leadId, `Retomar combinado com o lead — ${decision.reason}`);
+        } else {
+          await markClosed(leadId, decision.reason);
+        }
+      } else if (decision.action === 'handoff_human') {
+        await markNeedsReview(leadId, decision.reason);
+      }
+
+      if (!shuttingDown) await sleep(randomInterval());
+    }
+  } finally {
+    await settleConsumed([...byLead].filter(([id]) => !handled.has(id)));
   }
 }
 
@@ -209,10 +221,10 @@ async function runCycle() {
           continue;
         }
         if (lead.touch >= 2) {
-          const masterLead = (await loadMaster())[lead.lead_id];
-          const autoMode = await isLeadInAutoMode(lead.lead_id);
           let liberado = false;
           try {
+            const masterLead = (await loadMaster())[lead.lead_id];
+            const autoMode = await isLeadInAutoMode(lead.lead_id);
             liberado = await clearToFollowUp(lead.lead_id, masterLead, { autoMode });
           } catch (err) {
             // Erro na checagem de um lead não para o ciclo: esse follow-up fica pro próximo.

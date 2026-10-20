@@ -43,8 +43,11 @@ async function loadToken() {
 
 async function saveToken(token) {
   // Token do Google dá acesso à agenda: só o dono do arquivo lê.
-  await fs.writeFile(TOKEN_PATH, JSON.stringify(token, null, 2), { encoding: 'utf8', mode: 0o600 });
-  await fs.chmod(TOKEN_PATH, 0o600); // writeFile só aplica o mode ao criar; arquivo antigo precisa do chmod
+  // Grava num temporário e renomeia: uma queda no meio nunca deixa o token pela metade.
+  const tmp = `${TOKEN_PATH}.${process.pid}.tmp`;
+  await fs.writeFile(tmp, JSON.stringify(token, null, 2), { encoding: 'utf8', mode: 0o600 });
+  await fs.chmod(tmp, 0o600);
+  await fs.rename(tmp, TOKEN_PATH);
 }
 
 async function getOAuth2Client() {
@@ -63,7 +66,7 @@ async function getOAuth2Client() {
     oauth2Client.setCredentials(token);
     oauth2Client.on('tokens', (newToken) => {
       // refresh_token vem só na primeira vez — preservar
-      saveToken({ ...token, ...newToken }).catch(() => {});
+      saveToken({ ...token, ...newToken }).catch((err) => console.error('Não deu pra salvar o token do Google:', err.message));
     });
   }
   return oauth2Client;
@@ -209,10 +212,14 @@ export async function updateMeeting({ eventId, startTime, durationMinutes, notes
 
 export async function deleteMeeting(eventId) {
   const calendar = await getCalendar();
-  await calendar.events.delete({
-    calendarId: 'primary',
-    eventId,
-  });
+  try {
+    await calendar.events.delete({ calendarId: 'primary', eventId });
+  } catch (err) {
+    // Evento que já não existe no Google conta como apagado.
+    const code = err?.code ?? err?.response?.status;
+    if (code === 404 || code === 410) return;
+    throw err;
+  }
 }
 
 // ── Disponibilidade ───────────────────────────────────────────────────────────

@@ -25,7 +25,10 @@ const LOG_FILE = () => path.join(config.pipelineDir, 'log-disparos.json');
 
 export async function readDispatchLog() {
   const log = await readJson(LOG_FILE(), []);
-  return Array.isArray(log) ? log : [];
+  // Conteúdo que não é lista (null, objeto) lança igual ao JSON inválido: tratar como vazio
+  // apagaria o histórico na próxima gravação e liberaria reenvios e o teto do dia.
+  if (!Array.isArray(log)) throw new Error('log-disparos.json não é uma lista: corrija ou mova o arquivo antes de enviar');
+  return log;
 }
 
 // Grava a tentativa antes do envio. Se não conseguir gravar, lança: quem chama

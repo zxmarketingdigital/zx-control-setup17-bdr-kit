@@ -53,8 +53,17 @@ test('tentativa sem confirmação ou em andamento conta no teto e bloqueia o mes
   ]));
   const out = (await filterDispatchableQueue(fila(30))).map((e) => e.lead_id);
   assert.ok(!out.includes('q0') && !out.includes('q1'), 'q0/q1 já tiveram tentativa');
-  assert.ok(out.includes('q2'), 'falha antes do envio não bloqueia');
-  assert.equal(out.length, 18, '20 - 2 tentativas que podem ter saído');
+  assert.ok(!out.includes('q2'), 'falhou hoje: tenta de novo amanhã, não ocupa a vez de outro lead');
+  assert.equal(out.length, 18, '20 - 2 tentativas que podem ter saído (a falha não conta no teto)');
+});
+
+test('falha de ontem não bloqueia o lead hoje', async () => {
+  await fs.writeFile(MASTER, '{}');
+  const ontem = new Date(Date.now() - 36 * 3600 * 1000).toISOString();
+  await fs.writeFile(LOG, JSON.stringify([{ ...envioHoje(2, 'failed'), lead_id: 'q2', timestamp: ontem }]));
+  const out = (await filterDispatchableQueue(fila(30))).map((e) => e.lead_id);
+  assert.ok(out.includes('q2'));
+  assert.equal(out.length, 20);
 });
 
 // ── Envio: registro antes, nunca duplica ────────────────────────────────────
@@ -185,9 +194,11 @@ test('não deu pra ler o WhatsApp: follow-up adiado; modo automático: pula sem 
 test('opt-out: frases educadas e variações comuns', () => {
   const sim = ['Por favor, pare.', 'pare, por favor', 'parem de mandar', 'cancelar', 'chega!', 'basta',
     'me remova dessa lista', 'não envie mais nada', 'não entre mais em contato', 'quero sair da lista',
-    'isso é spam', 'vou denunciar', 'me deixa em paz', 'para com isso'];
+    'isso é spam', 'vou denunciar', 'me deixa em paz', 'para com isso',
+    'pode parar', 'Pode parar, obrigado', 'pare agora', 'por favor pare já!'];
   for (const t of sim) assert.equal(detectOptOut(t).optOut, true, t);
-  for (const t of ['quero sair de férias', 'vou sair mais cedo hoje', 'não tenho interesse no momento'])
+  for (const t of ['quero sair de férias', 'vou sair mais cedo hoje', 'não tenho interesse no momento',
+    'pode parar o carro ali?', 'pode remover o item do orçamento?'])
     assert.equal(detectOptOut(t).optOut, false, t);
 });
 
@@ -208,4 +219,45 @@ test('config: intervalo inválido no .env cai no padrão (nunca NaN)', () => {
   });
   assert.equal(r.status, 0, r.stderr);
   assert.deepEqual(JSON.parse(r.stdout.trim().split('\n').pop()), [120, 180, [1, 2, 3, 4, 5]]);
+});
+
+test('config: WORKING_DAYS vazio ou com vírgula sobrando não vira domingo', () => {
+  const dir = path.dirname(fileURLToPath(import.meta.url));
+  const dias = (v) => {
+    const r = spawnSync(process.execPath, ['-e', "import('../src/config.js').then(m=>console.log(JSON.stringify(m.config.workingDays)))"], {
+      cwd: dir, encoding: 'utf8', env: { ...process.env, PIPELINE_DIR: PIPELINE, WORKING_DAYS: v },
+    });
+    assert.equal(r.status, 0, r.stderr);
+    return JSON.parse(r.stdout.trim().split('\n').pop());
+  };
+  assert.deepEqual(dias(''), [1, 2, 3, 4, 5]);
+  assert.deepEqual(dias('1,2,'), [1, 2]);
+  assert.deepEqual(dias(' , '), [1, 2, 3, 4, 5]);
+});
+
+// ── Entrega sem confirmação do WhatsApp: conta como enviada, marcada no log ──
+test('PENDING no prazo: grava "sent" com delivery "unconfirmed" e não reenvia', async () => {
+  await fs.writeFile(MASTER, '{}');
+  await fs.writeFile(LOG, '[]');
+  const status = await dispatchTouch({ lead_id: 'lead-u', phone: '+5511999990110', copy: 'oi' }, 1, {
+    sendMessage: async () => ({ ack: null, status: 'PENDING', messageId: 'x' }),
+    recordTouchSent: async () => {},
+  });
+  assert.equal(status, 'sent');
+  const log = await readDispatchLog();
+  assert.equal(log[0].status, 'sent');
+  assert.equal(log[0].delivery, 'unconfirmed');
+  assert.ok(attemptedKeys(log).has('lead-u:1'));
+});
+
+// ── Resposta da Evolution em formato desconhecido não vira "sem mensagem" ───
+test('leitura em formato inesperado: fetchInboundMessages lança e o follow-up não sai', async () => {
+  const { fetchInboundMessages } = await import('../src/audio-transcriber.js');
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({ status: 'ok' }), { status: 200, headers: { 'content-type': 'application/json' } });
+  try {
+    await assert.rejects(fetchInboundMessages({ apiUrl: 'http://127.0.0.1:9', apiKey: 'k', instance: 'i' }, '+5511999990111'));
+  } finally { globalThis.fetch = original; }
+  const naoLista = { ...stubs([]).deps, fetchInboundMessages: async () => ({}) };
+  assert.equal(await clearToFollowUp('lead-v', leadMaster, { autoMode: false }, naoLista), false);
 });

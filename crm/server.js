@@ -50,8 +50,10 @@ const ENV_FILE = path.join(__dirname, '.env');
 async function leadsReaisNoPipeline() {
   try {
     return countRealLeads(JSON.parse(await fs.readFile(path.join(PIPELINE_DIR, 'leads-master.json'), 'utf8')));
-  } catch {
-    return 0; // sem arquivo ou vazio
+  } catch (err) {
+    if (err.code === 'ENOENT') return 0; // instalação sem leads
+    // Arquivo existe mas não deu pra ler: na dúvida, trata como base real (o demo abre sem senha).
+    return Infinity;
   }
 }
 

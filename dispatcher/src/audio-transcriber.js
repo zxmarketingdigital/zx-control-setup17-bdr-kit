@@ -88,7 +88,9 @@ export async function fetchInboundMessages(evoCfg, phone) {
   const data = await evo(evoCfg, 'POST', `/chat/findMessages/${evoCfg.instance}`, { where: { key: { remoteJid: jid } } });
   const records = data?.messages?.records
     ?? (Array.isArray(data?.messages) ? data.messages : null)
-    ?? (Array.isArray(data) ? data : []);
+    ?? (Array.isArray(data) ? data : null);
+  // Formato desconhecido não é "nenhuma mensagem": quem decide enviar follow-up precisa saber que não leu.
+  if (!Array.isArray(records)) throw new Error('Resposta da Evolution em formato inesperado ao ler mensagens');
   return parseInboundRecords(records);
 }
 

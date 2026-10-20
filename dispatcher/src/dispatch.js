@@ -26,9 +26,13 @@ export async function dispatchTouch(lead, touch, deps = {}) {
 
   let status = 'failed';
   let error = null;
+  let delivery = null;
   try {
-    await sendMessage(lead.phone, lead.copy);
+    const res = await sendMessage(lead.phone, lead.copy);
     status = 'sent';
+    // Aceita pela Evolution, mas sem confirmação do WhatsApp no prazo (aparelho do lead offline é o caso comum).
+    // Conta como enviada para NÃO reenviar: mandar duas vezes é pior que uma mensagem atrasada.
+    if (res && res.ack == null) delivery = 'unconfirmed';
     logger.info(MOD, `Dispatched touch ${touch} to ${lead.lead_id}`);
   } catch (err) {
     error = err.message;
@@ -47,7 +51,7 @@ export async function dispatchTouch(lead, touch, deps = {}) {
   }
 
   try {
-    await finishAttempt(attemptId, status, error);
+    await finishAttempt(attemptId, status, error, delivery);
   } catch (err) {
     // A tentativa fica como "sending", que também bloqueia o reenvio.
     logger.error(MOD, `Não consegui fechar o registro da tentativa de ${lead.lead_id}: ${err.message}`);

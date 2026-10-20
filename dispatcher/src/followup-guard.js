@@ -37,6 +37,7 @@ export async function clearToFollowUp(leadId, lead, { autoMode }, deps = {}) {
   let msgs;
   try {
     msgs = await fetchInboundMessages(evoCfg(), lead.phone);
+    if (!Array.isArray(msgs)) throw new Error('leitura sem lista de mensagens');
   } catch (err) {
     logger.warn(MOD, `${leadId}: não consegui ler o WhatsApp antes do follow-up (${err.message.slice(0, 80)}) — follow-up adiado`);
     return false;

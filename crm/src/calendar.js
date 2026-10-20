@@ -44,7 +44,7 @@ async function loadToken() {
 async function saveToken(token) {
   // Token do Google dá acesso à agenda: só o dono do arquivo lê.
   await fs.writeFile(TOKEN_PATH, JSON.stringify(token, null, 2), { encoding: 'utf8', mode: 0o600 });
-  await fs.chmod(TOKEN_PATH, 0o600).catch(() => {});
+  await fs.chmod(TOKEN_PATH, 0o600); // writeFile só aplica o mode ao criar; arquivo antigo precisa do chmod
 }
 
 async function getOAuth2Client() {
@@ -90,10 +90,11 @@ export async function isCalendarConnected() {
   }
 }
 
-export async function getAuthUrl() {
+export async function getAuthUrl(state) {
   const client = await getOAuth2Client();
   return client.generateAuthUrl({
     access_type: 'offline',
+    state,
     prompt: 'consent',
     scope: SCOPES,
   });

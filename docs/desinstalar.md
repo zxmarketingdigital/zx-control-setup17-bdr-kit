@@ -75,8 +75,9 @@ você configurou a Biblioteca de Anúncios) e `scripts/.instagram-session.json` 
 Instagram usada no enriquecimento). Apague os dois mesmo que vá manter os leads.
 
 Os arquivos `*.bak-AAAAMMDD-HHMMSS` (cópias que o setup guarda antes de sobrescrever) também
-podem ter dados seus, inclusive chaves. Apague-os junto: `Get-ChildItem -Recurse -Filter *.bak-*`
-no Windows, `find . -name '*.bak-*'` no Mac e no Linux.
+podem ter dados seus, inclusive chaves. Apague-os junto, na pasta do setup:
+`find . -name '*.bak-*' -type f -delete` no Mac e no Linux,
+`Get-ChildItem -Recurse -Force -Filter *.bak-* | Remove-Item -Force` no Windows.
 
 ## 5. Revogar os acessos que você deu
 

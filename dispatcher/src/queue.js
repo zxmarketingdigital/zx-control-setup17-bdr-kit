@@ -5,6 +5,7 @@ import { logger } from './log.js';
 import { todayStr } from './window.js';
 import { getOptOut } from './master.js';
 import { readDispatchLog, attemptedKeys, newLeadsOn } from './dispatch-log.js';
+import { ymdInTz } from './tz.js';
 
 const MOD = 'queue';
 
@@ -46,6 +47,8 @@ export async function filterDispatchableQueue(queueEntries) {
   const log = await readDispatchLog();
   const sentToday = newLeadsOn(log, todayStr());
   const attempted = attemptedKeys(log);
+  const today = todayStr();
+  const triedToday = new Set(log.filter((e) => e?.touch === 1 && e.timestamp && ymdInTz(new Date(e.timestamp)) === today).map((e) => e.lead_id));
   const optOut = await getOptOut();
 
   const pending = queueEntries.filter((entry) => {
@@ -56,6 +59,11 @@ export async function filterDispatchableQueue(queueEntries) {
     // Pediu pra parar: nunca mais recebe nada, nem se voltar a aparecer numa fila.
     if (optOut.ids.has(entry.lead_id) || optOut.phones.has(entry.phone)) {
       logger.warn(MOD, `Skip ${entry.lead_id} — lead pediu pra parar (opt-out)`);
+      return false;
+    }
+    // Falhou hoje (número sem WhatsApp, validação fora, 4xx): não ocupa a vez de quem vem depois.
+    if (triedToday.has(entry.lead_id)) {
+      logger.debug(MOD, `Skip ${entry.lead_id} — já tentado hoje sem sucesso, fica pra amanhã`);
       return false;
     }
     if (attempted.has(`${entry.lead_id}:1`)) {

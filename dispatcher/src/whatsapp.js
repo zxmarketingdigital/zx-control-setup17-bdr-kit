@@ -130,9 +130,9 @@ export async function sendMessage(phone, text) {
 
   // 3) O aceite inicial (key.id) NÃO garante envio: o WhatsApp pode marcar
   //    ERROR de forma assíncrona segundos (às vezes minutos) depois. 45s é um
-  //    meio-termo — não elimina o risco, por isso index.js/master.js também
-  //    tratam "sent_unconfirmed" (PENDING neste prazo) como NÃO sucesso, sem
-  //    avançar a cadência do lead.
+  //    meio-termo. PENDING no prazo volta com ack null: dispatch.js grava a
+  //    tentativa como "sent" com delivery "unconfirmed" e NÃO reenvia (a
+  //    mensagem já foi aceita; reenviar arrisca duplicar). ERROR vira exceção.
   const verdict = await waitForStatus(msgId, 45_000);
   if (verdict === 'ERROR') {
     const e = new Error(`WhatsApp rejeitou o envio para ${phone} (status ERROR pós-aceite)`);

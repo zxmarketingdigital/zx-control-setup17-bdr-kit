@@ -46,12 +46,13 @@ export async function markSending(lead, touch) {
   return attempt_id;
 }
 
-export async function finishAttempt(attemptId, status, error = null) {
+export async function finishAttempt(attemptId, status, error = null, delivery = null) {
   const log = await readDispatchLog();
   const entry = log.find((e) => e.attempt_id === attemptId);
   if (!entry) return false;
   entry.status = status;
   entry.error = error;
+  if (delivery) entry.delivery = delivery;
   entry.finished_at = new Date().toISOString();
   await writeJsonAtomic(LOG_FILE(), log);
   return true;

@@ -54,6 +54,9 @@ const PADROES = [
   /\bsair da (lista|base)\b/,
   // "não tenho interesse, pare" / "... Parem.": a mensagem termina com a ordem de parar
   /[,.;!]\s*(pare|parem|chega)[\s.!?]*$/,
+  // "pode parar", "pode parar, obrigado", "pare agora", "parem já"
+  /^(pode|podem|favor|por favor)[\s,]*(ja )?(parar|pare|parem)([\s,.!]*(obrigad[oa]|valeu|por favor|agora|ja))*[\s,.!]*$/,
+  /^(pare|parem|parar) (agora|ja|imediatamente|por aqui)[\s,.!]*$/,
   // "para com isso", "parar de receber", "não quero ser incomodado"
   /^(para|pare|parem) com isso\b/,
   /\b(parar|pare|parem) de receber\b/,

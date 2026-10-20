@@ -18,7 +18,7 @@ function intEnv(name, fallback, min = 0) {
 const intervalMin = intEnv('INTERVAL_MIN_SECONDS', 120, 1);
 const intervalMax = Math.max(intEnv('INTERVAL_MAX_SECONDS', 180, 1), intervalMin);
 // Lista vazia ou inválida travaria a contagem de dias úteis: volta para seg-sex.
-const parsedDays = (process.env.WORKING_DAYS ?? '1,2,3,4,5').split(',').map((d) => Number(d.trim())).filter((d) => Number.isInteger(d) && d >= 0 && d <= 6);
+const parsedDays = (process.env.WORKING_DAYS ?? '1,2,3,4,5').split(',').map((d) => d.trim()).filter(Boolean).map(Number).filter((d) => Number.isInteger(d) && d >= 0 && d <= 6);
 const workingDays = parsedDays.length ? [...new Set(parsedDays)] : [1, 2, 3, 4, 5];
 const replyMin = intEnv('AUTO_REPLY_DELAY_MIN_SECONDS', 9, 0);
 const replyMax = Math.max(intEnv('AUTO_REPLY_DELAY_MAX_SECONDS', 9, 0), replyMin);

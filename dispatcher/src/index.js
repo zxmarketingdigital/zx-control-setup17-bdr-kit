@@ -211,7 +211,14 @@ async function runCycle() {
         if (lead.touch >= 2) {
           const masterLead = (await loadMaster())[lead.lead_id];
           const autoMode = await isLeadInAutoMode(lead.lead_id);
-          if (!(await clearToFollowUp(lead.lead_id, masterLead, { autoMode }))) continue;
+          let liberado = false;
+          try {
+            liberado = await clearToFollowUp(lead.lead_id, masterLead, { autoMode });
+          } catch (err) {
+            // Erro na checagem de um lead não para o ciclo: esse follow-up fica pro próximo.
+            logger.error(MOD, `${lead.lead_id}: checagem antes do follow-up falhou (${err.message.slice(0, 100)}) — não enviado`);
+          }
+          if (!liberado) continue;
         }
 
         await dispatchTouch(lead, lead.touch);

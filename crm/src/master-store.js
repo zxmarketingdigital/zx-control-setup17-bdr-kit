@@ -7,6 +7,26 @@
 // rota não somem. Um opt-out já gravado só é desfeito com allowOptOutChange (PATCH explícito).
 const PROTEGIDOS_PELO_OPT_OUT = ['opt_out', 'status', 'closed_reason', 'closed_at', 'next_touch_due_at'];
 
+function mergeList(original, mine, current) {
+  const count = (arr) => arr.reduce((m, x) => { const k = JSON.stringify(x); m.set(k, (m.get(k) || 0) + 1); return m; }, new Map());
+  const before = count(original), after = count(mine);
+  const removed = new Map(), added = [];
+  for (const [k, n] of before) { const d = n - (after.get(k) || 0); if (d > 0) removed.set(k, d); }
+  const seenMine = new Map();
+  for (const x of mine) {
+    const k = JSON.stringify(x);
+    seenMine.set(k, (seenMine.get(k) || 0) + 1);
+    if (seenMine.get(k) > (before.get(k) || 0)) added.push(x);
+  }
+  const out = [];
+  for (const x of current) {
+    const k = JSON.stringify(x);
+    if (removed.get(k) > 0) { removed.set(k, removed.get(k) - 1); continue; }
+    out.push(x);
+  }
+  return [...out, ...added];
+}
+
 export function createMasterStore({ readJson, writeJsonAtomic, file = 'leads-master.json' }) {
   let queue = Promise.resolve();
   const originals = new WeakMap();
@@ -37,6 +57,12 @@ export function createMasterStore({ readJson, writeJsonAtomic, file = 'leads-mas
         merged = { ...atual };
         for (const key of new Set([...Object.keys(original), ...Object.keys(lead)])) {
           if (JSON.stringify(original[key]) === JSON.stringify(lead[key])) continue;
+          if (Array.isArray(original[key]) && Array.isArray(lead[key]) && Array.isArray(atual[key])) {
+            // Lista (anotações, histórico): aplica só o que esta rota tirou e pôs, sobre a lista
+            // atual. Um item que outra rota acrescentou no meio fica.
+            merged[key] = mergeList(original[key], lead[key], atual[key]);
+            continue;
+          }
           if (key in lead) merged[key] = lead[key]; else delete merged[key];
         }
       } else {

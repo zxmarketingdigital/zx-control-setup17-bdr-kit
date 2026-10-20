@@ -243,6 +243,13 @@ export async function isLeadSendable(leadId) {
   const lead = master[leadId];
   if (!lead) return true; // new lead, not in master yet — OK to send touch 1
   if (lead.opt_out) return false; // pediu pra parar: nunca mais
+  // O mesmo número cadastrado em outro lead pediu pra parar: é a mesma pessoa.
+  if (lead.phone) {
+    const key = phoneKey(lead.phone);
+    for (const [id, other] of Object.entries(master)) {
+      if (id !== leadId && other?.opt_out && other.phone && phoneKey(other.phone) === key) return false;
+    }
+  }
   if (lead.no_send) return false; // lead de demonstração (scripts/seed-demo.py): nunca é enviado
   // Any status other than 'active' immediately pauses all follow-ups.
   // Status is set manually in the CRM — no automatic detection.

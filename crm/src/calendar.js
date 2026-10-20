@@ -2,6 +2,7 @@
 // Integração Google Calendar via OAuth2 (googleapis)
 // Cria, atualiza, deleta eventos. Token persistido em google-token.json.
 
+import crypto from 'node:crypto';
 import { google } from 'googleapis';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -44,7 +45,7 @@ async function loadToken() {
 async function saveToken(token) {
   // Token do Google dá acesso à agenda: só o dono do arquivo lê.
   // Grava num temporário e renomeia: uma queda no meio nunca deixa o token pela metade.
-  const tmp = `${TOKEN_PATH}.${process.pid}.tmp`;
+  const tmp = `${TOKEN_PATH}.${process.pid}.${crypto.randomUUID()}.tmp`;
   await fs.writeFile(tmp, JSON.stringify(token, null, 2), { encoding: 'utf8', mode: 0o600 });
   await fs.chmod(tmp, 0o600);
   await fs.rename(tmp, TOKEN_PATH);

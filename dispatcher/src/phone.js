@@ -5,6 +5,7 @@
 export function phoneKey(phone) {
   let d = String(phone ?? '').replace(/\D/g, '');
   if (d.startsWith('00')) d = d.slice(2);
+  else if (d.startsWith('0')) d = d.replace(/^0+/, ''); // tronco nacional: "011 9..." = "11 9..." 
   if (d.length === 10 || d.length === 11) d = `55${d}`;
   return d;
 }

@@ -102,8 +102,16 @@ async function runAutoModeCycle() {
       if (!lead) continue;
 
       // Espera o lead terminar de digitar; o que chegar nesse intervalo entra no mesmo turno.
+      // O que o fetchMore traz já saiu do cursor: guarda no byLead na hora, pra que um erro
+      // no meio da espera não perca um "pare" que chegou nesse intervalo.
+      const acumulado = [...firstMessages];
       const burst = await settleBatch(firstMessages, {
-        fetchMore: () => pollInbound([lead]),
+        fetchMore: async () => {
+          const more = await pollInbound([lead]);
+          acumulado.push(...more);
+          byLead.set(leadId, [...acumulado]);
+          return more;
+        },
         nextDelayMs: () => pickDelayMs(config.autoReplyDelayMinSeconds, config.autoReplyDelayMaxSeconds),
         sleep,
         shouldStop: () => shuttingDown,
@@ -115,15 +123,17 @@ async function runAutoModeCycle() {
       }
 
       await markResponded(leadId, burst[0].phone);
-      handled.add(leadId);
 
       // Pediu pra parar: decisão por regra, ANTES do modelo. Fecha como opt-out e não responde
       // (resposta automática a quem pediu pra parar só aumenta a chance de denúncia).
+      // handled só depois do markClosed: se ele falhar, o settleConsumed tenta de novo.
       if (burst.some((r) => detectOptOut(responseText(r)).optOut)) {
         await markClosed(leadId, 'opt_out');
+        handled.add(leadId);
         logger.info(MOD, `${leadId} pediu pra parar: marcado como opt-out, sem resposta`);
         continue;
       }
+      handled.add(leadId);
 
       // Qualquer mensagem do lote que o automático não consegue ler manda o lote
       // inteiro pro humano: responder só o texto e ignorar a imagem/áudio junto

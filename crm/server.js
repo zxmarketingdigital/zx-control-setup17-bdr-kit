@@ -131,6 +131,17 @@ async function writeJsonAtomic(file, data) {
 }
 
 const { saveLead, ownLead, withFile } = createMasterStore({ readJson, writeJsonAtomic });
+// Pedido pra parar (regra, sem modelo): mesma marcação em todo lugar que registra resposta.
+function markOptOut(lead, now = new Date().toISOString()) {
+  lead.opt_out = true;
+  lead.status = 'cold';
+  lead.closed_reason = 'opt_out';
+  lead.closed_at = now;
+  lead.next_touch_due_at = null;
+  if (!Array.isArray(lead.annotations)) lead.annotations = [];
+  lead.annotations.push({ at: now, text: 'Lead pediu pra parar de receber mensagem: marcado como opt-out, nunca será reabordado.' });
+}
+
 // responses.json / log-disparos.json que não são lista: parar em vez de gravar por cima.
 function asList(v) {
   if (v == null) return [];
@@ -227,9 +238,11 @@ app.post('/api/leads/:id/inbound', async (req, res) => {
   lead.responded_at = entry.received_at;
   lead.status = 'responded';
   lead.next_touch_due_at = null;
+  const optOut = detectOptOut(entry.message).optOut;
+  if (optOut) markOptOut(lead, entry.received_at);
   await saveLead(req.params.id, lead);
 
-  res.json({ id: req.params.id, ...lead });
+  res.json({ id: req.params.id, opt_out_detected: optOut, ...lead });
 });
 
 // Envia uma resposta manual AGORA, direto pela Evolution — sem fila nem pacing
@@ -245,6 +258,10 @@ app.post('/api/leads/:id/manual-message', async (req, res) => {
   if (lead.no_send) return res.status(400).json({ error: 'Lead de demonstração: o envio está bloqueado.' });
   if (lead.opt_out) return res.status(409).json({ error: 'Esse lead pediu pra parar de receber mensagem. Desfaça o opt-out na tela do lead se ele voltou a falar com você.', code: 'opt_out' });
 
+  // Confere o log ANTES de enviar: se ele estiver estragado, a mensagem não sai sem registro.
+  try { asList(await readJson('log-disparos.json', [])); }
+  catch (err) { return res.status(500).json({ error: err.message }); }
+
   const logEntry = { timestamp: new Date().toISOString(), lead_id: req.params.id, touch: 'manual', phone: lead.phone, status: 'failed', error: null };
   try {
     await evolution.sendMessage(lead.phone, text.trim());
@@ -252,16 +269,19 @@ app.post('/api/leads/:id/manual-message', async (req, res) => {
   } catch (err) {
     logEntry.error = err.message;
   }
-  await withFile('log-disparos.json', [], (log) => [...asList(log), logEntry]);
+  let logWarning = null;
+  try { await withFile('log-disparos.json', [], (log) => [...asList(log), logEntry]); }
+  catch (err) { logWarning = `Mensagem ${logEntry.status === 'sent' ? 'enviada' : 'não enviada'}, mas não registrada no log: ${err.message}`; console.error(logWarning); }
 
   if (logEntry.status === 'sent') {
     if (!Array.isArray(lead.history)) lead.history = [];
     lead.history.push({ touch: 'manual', sent_at: logEntry.timestamp, copy: text.trim() });
-    await saveLead(req.params.id, lead);
+    try { await saveLead(req.params.id, lead); }
+    catch (err) { return res.json({ id: req.params.id, ...lead, warning: `Mensagem enviada, mas o histórico do lead não foi gravado: ${err.message}. Não reenvie.` }); }
   } else {
     return res.status(502).json({ error: logEntry.error || 'Falha ao enviar' });
   }
-  res.json({ id: req.params.id, ...lead });
+  res.json({ id: req.params.id, ...lead, ...(logWarning ? { warning: logWarning } : {}) });
 });
 
 // ── Sugestão de resposta via Claude Code headless (mesmo padrão do modo
@@ -387,14 +407,13 @@ app.post('/api/leads/:id/pull-whatsapp', async (req, res) => {
       // Pediu pra parar (regra, sem modelo): fecha como opt-out. Você pode desfazer na tela do lead.
       const stopped = added.some((e) => !e.possible_auto_reply && detectOptOut(e.transcript?.ok ? e.transcript.text : e.message).optOut);
       if (stopped) {
-        const now = new Date().toISOString();
-        lead.opt_out = true;
-        lead.status = 'cold';
-        lead.closed_reason = 'opt_out';
-        lead.closed_at = now;
-        if (!Array.isArray(lead.annotations)) lead.annotations = [];
-        lead.annotations.push({ at: now, text: 'Lead pediu pra parar de receber mensagem: marcado como opt-out, nunca será reabordado.' });
+        markOptOut(lead);
         optOutDetected = true;
+      } else if (added.some((e) => e.media === 'audio' && !e.transcript?.ok)) {
+        // Áudio sem transcrição pode ser um "pare": a cadência já ficou parada (respondeu);
+        // ouvir antes de mandar qualquer coisa.
+        if (!Array.isArray(lead.annotations)) lead.annotations = [];
+        lead.annotations.push({ at: new Date().toISOString(), text: 'Lead mandou áudio que não foi transcrito: ouça no WhatsApp antes de responder (pode ser um pedido pra parar).' });
       }
       await saveLead(req.params.id, lead);
     }
@@ -427,7 +446,13 @@ app.post('/api/responses/transcribe', async (req, res) => {
     saved.transcript = transcript;
     return lista;
   });
-  res.json(saved ?? { ...entry, transcript });
+  let optOutDetected = false;
+  if (transcript?.ok && detectOptOut(transcript.text).optOut) {
+    const master = await readJson('leads-master.json', {}) ?? {};
+    const lead = ownLead(master, lead_id);
+    if (lead && !lead.opt_out) { markOptOut(lead); await saveLead(lead_id, lead); optOutDetected = true; }
+  }
+  res.json({ ...(saved ?? { ...entry, transcript }), opt_out_detected: optOutDetected });
 });
 
 // ── Qualificar antes de agendar (faturamento + autoridade) ──
@@ -492,19 +517,23 @@ app.get('/api/auto-mode', async (req, res) => {
 });
 
 app.post('/api/auto-mode', async (req, res) => {
-  const state = (await readJson('auto-mode.json', null)) || { ...AUTO_MODE_DEFAULTS };
-  if ('enabled' in (req.body || {})) state.enabled = !!req.body.enabled;
-  if ('audio_auto_reply' in (req.body || {})) state.audio_auto_reply = !!req.body.audio_auto_reply;
-  await writeJsonAtomic('auto-mode.json', state);
+  const state = await withFile('auto-mode.json', null, (atual) => {
+    const st = atual || { ...AUTO_MODE_DEFAULTS };
+    if ('enabled' in (req.body || {})) st.enabled = !!req.body.enabled;
+    if ('audio_auto_reply' in (req.body || {})) st.audio_auto_reply = !!req.body.audio_auto_reply;
+    return st;
+  });
   res.json(autoModeView(state));
 });
 
 app.post('/api/leads/:id/auto-mode', async (req, res) => {
-  const state = (await readJson('auto-mode.json', null)) || { ...AUTO_MODE_DEFAULTS };
-  const set = new Set(state.paused_leads || []);
-  if (req.body.paused) set.add(req.params.id); else set.delete(req.params.id);
-  state.paused_leads = [...set];
-  await writeJsonAtomic('auto-mode.json', state);
+  const state = await withFile('auto-mode.json', null, (atual) => {
+    const st = atual || { ...AUTO_MODE_DEFAULTS };
+    const set = new Set(st.paused_leads || []);
+    if (req.body.paused) set.add(req.params.id); else set.delete(req.params.id);
+    st.paused_leads = [...set];
+    return st;
+  });
   res.json(state);
 });
 
@@ -512,10 +541,15 @@ app.get('/api/flagged-auto-replies', async (req, res) => res.json(await readJson
 
 app.post('/api/flagged-auto-replies/:index/dismiss', async (req, res) => {
   const idx = parseInt(req.params.index, 10);
-  const flagged = await readJson('flagged-auto-replies.json', []) ?? [];
-  if (Number.isNaN(idx) || idx < 0 || idx >= flagged.length) return res.status(404).json({ error: 'Not found' });
-  flagged.splice(idx, 1);
-  await writeJsonAtomic('flagged-auto-replies.json', flagged);
+  let found = false;
+  await withFile('flagged-auto-replies.json', [], (atual) => {
+    const flagged = asList(atual);
+    if (Number.isNaN(idx) || idx < 0 || idx >= flagged.length) return undefined;
+    flagged.splice(idx, 1);
+    found = true;
+    return flagged;
+  });
+  if (!found) return res.status(404).json({ error: 'Not found' });
   res.json({ ok: true });
 });
 

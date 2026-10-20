@@ -18,7 +18,7 @@ O CRM cria reuniões direto no seu Google Calendar via OAuth2. Setup leva ~10 mi
 1. Menu → "APIs e serviços" → "Tela de consentimento OAuth"
 2. Tipo de usuário: **Externo** → criar
 3. Preencher:
-   - Nome do app: `BDR CRM`
+   - Nome do app: `CRM ZX Control`
    - Email de suporte: `seu-email@gmail.com`
    - Email do desenvolvedor: `seu-email@gmail.com`
 4. "Salvar e continuar"

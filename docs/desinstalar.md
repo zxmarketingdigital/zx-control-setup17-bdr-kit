@@ -64,8 +64,15 @@ Telefone e nome de empresa ou de sócio são dados pessoais (LGPD). Se você vai
 apague a base de leads. Ela está na pasta `pipeline/` do setup: leads, fila, respostas, logs,
 pool e enriquecimentos.
 
-- Mac e Linux: `rm -rf pipeline/*` (a pasta fica; o `.gitkeep` pode ser apagado também).
-- Windows (PowerShell): `Remove-Item pipeline\* -Recurse -Force`
+- Mac e Linux: `rm -rf pipeline/* pipeline/.meta_token scripts/.instagram-session.json`
+  (o `pipeline/*` sozinho não pega arquivo que começa com ponto).
+- Windows (PowerShell): `Remove-Item pipeline\* -Recurse -Force` e
+  `Remove-Item scripts\.instagram-session.json -Force -ErrorAction SilentlyContinue`
+  (o `-Force` inclui os arquivos ocultos, como o `pipeline\.meta_token`).
+
+Dois desses arquivos guardam acesso, não lead: `pipeline/.meta_token` (chave do app da Meta, se
+você configurou a Biblioteca de Anúncios) e `scripts/.instagram-session.json` (sessão do
+Instagram usada no enriquecimento). Apague os dois mesmo que vá manter os leads.
 
 Os arquivos `*.bak-AAAAMMDD-HHMMSS` (cópias que o setup guarda antes de sobrescrever) também
 podem ter dados seus, inclusive chaves. Apague-os junto: `Get-ChildItem -Recurse -Filter *.bak-*`
@@ -78,6 +85,11 @@ Apagar a pasta não cancela as permissões que ficaram nos serviços:
 - **Apify:** em console.apify.com, Settings, API & Integrations, apague o token que você usou.
 - **Google Calendar** (se conectou a agenda): em myaccount.google.com/permissions, remova o
   acesso do app. Depois apague `crm/google-token.json`.
+- **Meta** (se criou o app para a Biblioteca de Anúncios): em developers.facebook.com, Meus apps,
+  gere um novo segredo do app ou apague o app. Depois apague `pipeline/.meta_token`.
+- **Instagram** (se fez login no enriquecimento): em Configurações, Central de Contas, Senha e
+  segurança, Onde você está conectado, encerre a sessão do navegador do setup. Depois apague
+  `scripts/.instagram-session.json`.
 - **WhatsApp:** já feito no passo 2.
 
 ## 6. Apagar a pasta do setup

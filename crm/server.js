@@ -24,6 +24,7 @@ import { parseScheduledAt, toIso } from '../dispatcher/src/tz.js';
 import { detectOptOut } from '../dispatcher/src/opt-out-detector.js';
 import { createAuth, countRealLeads } from './src/auth.js';
 import passwordRules from './src/password.cjs';
+import { registerGoogleOAuthRoutes } from './src/oauth-routes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PIPELINE_DIR = path.resolve(__dirname, '..', 'pipeline');
@@ -63,7 +64,8 @@ async function ensurePassword() {
     try { atual = await fs.readFile(ENV_FILE, 'utf8'); } catch { /* .env novo */ }
     const quebra = atual && !atual.endsWith('\n') ? '\n' : '';
     try {
-      await fs.writeFile(ENV_FILE, `${atual}${quebra}\n# Senha de entrada no CRM (gerada automaticamente). Para trocar, edite aqui (12+ caracteres) e reinicie.\nCRM_PASSWORD=${senha}\n`, 'utf8');
+      await fs.writeFile(ENV_FILE, `${atual}${quebra}\n# Senha de entrada no CRM (gerada automaticamente). Para trocar, edite aqui (12+ caracteres) e reinicie.\nCRM_PASSWORD=${senha}\n`, { encoding: 'utf8', mode: 0o600 });
+      await fs.chmod(ENV_FILE, 0o600).catch(() => {});
       console.log('\n🔐 O CRM agora pede senha. Criei uma e guardei em crm/.env (linha CRM_PASSWORD).');
       console.log('   Para ver: cd crm && npm run senha\n');
     } catch (err) {
@@ -336,7 +338,8 @@ app.post('/api/leads/:id/pull-whatsapp', async (req, res) => {
   const cursor = await readJson('inbound-cursor.json', {}) ?? {};
   const seen = new Set(cursor[req.params.id] || []);
   const known = new Set(responses.filter((r) => r.lead_id === req.params.id).map((r) => r.message_id || `txt:${r.message}`));
-  const lastOutbound = (lead.history || [])[lead.history.length - 1];
+  const hist = lead.history || [];
+  const lastOutbound = hist[hist.length - 1];
   const added = [];
   let optOutDetected = false;
 
@@ -582,23 +585,7 @@ app.get('/api/outcomes/patterns', async (req, res) => {
 // GOOGLE CALENDAR
 // ============================================================
 
-app.get('/auth/google', async (req, res) => {
-  try { res.redirect(await cal.getAuthUrl()); }
-  catch (err) { res.status(500).send(`<pre>Erro: ${err.message}</pre>`); }
-});
-
-app.get('/auth/google/callback', async (req, res) => {
-  const { code, error } = req.query;
-  if (error) return res.status(400).send(`<pre>OAuth error: ${error}</pre>`);
-  if (!code) return res.status(400).send('<pre>Faltou ?code= na callback.</pre>');
-  try {
-    await cal.handleAuthCallback(code);
-    res.send(`<html><body style="font-family:system-ui;padding:2rem;background:#0d1219;color:#f1f5f9;">
-      <h2 style="margin:0 0 0.5rem;color:#60a5fa;">Google Calendar conectado.</h2>
-      <p style="color:#94a3b8;">Token salvo em <code>crm/google-token.json</code>. Pode fechar essa aba e voltar pro CRM.</p>
-    </body></html>`);
-  } catch (err) { res.status(500).send(`<pre>${err.message}</pre>`); }
-});
+registerGoogleOAuthRoutes(app, cal);
 
 app.get('/api/calendar/status', async (req, res) => res.json(await cal.isCalendarConnected()));
 
@@ -857,6 +844,9 @@ app.get('/api/dashboard/financial', async (req, res) => res.json(await dashboard
 // ============================================================
 // Só no próprio computador: sem host, o Express escutaria em todas as interfaces
 // e qualquer pessoa na mesma rede (Wi-Fi de coworking) alcançaria o CRM.
+// Erro assíncrono não tratado numa rota não derruba o CRM inteiro: registra e segue.
+process.on('unhandledRejection', (err) => console.error('[crm] erro não tratado:', err?.message ?? err));
+
 app.listen(PORT, '127.0.0.1', () => {
   console.log(`CRM running at http://localhost:${PORT} (só neste computador)`);
   console.log(`Reading pipeline from: ${PIPELINE_DIR}`);

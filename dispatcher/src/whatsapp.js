@@ -34,7 +34,9 @@ async function evo(method, endpoint, body) {
     try { data = text ? JSON.parse(text) : null; } catch { data = text; }
     if (!res.ok) {
       const msg = typeof data === 'string' ? data : JSON.stringify(data);
-      throw new Error(`Evolution ${res.status}: ${msg.slice(0, 160)}`);
+      const e = new Error(`Evolution ${res.status}: ${msg.slice(0, 160)}`);
+      e.httpStatus = res.status;
+      throw e;
     }
     return data;
   } finally {
@@ -92,7 +94,8 @@ export async function sendMessage(phone, text) {
   try {
     const check = await evo('POST', `/chat/whatsappNumbers/${config.evolutionInstance}`, { numbers: [number] });
     const info = Array.isArray(check) ? check[0] : null;
-    if (info && info.exists === false) {
+    // Só segue com confirmação explícita: resposta vazia ou sem "exists" não é "tem WhatsApp".
+    if (info?.exists !== true) {
       throw new Error(`Número sem WhatsApp: ${phone}`);
     }
     if (info?.jid) targetNumber = info.jid.split('@')[0];
@@ -102,15 +105,25 @@ export async function sendMessage(phone, text) {
     throw new Error(`Não consegui validar o número ${phone} (${err.message.slice(0, 80)}): envio pulado`);
   }
 
-  // 2) Envia
-  const res = await evo('POST', `/message/sendText/${config.evolutionInstance}`, {
-    number: targetNumber,
-    text,
-  });
+  // 2) Envia. Daqui pra frente qualquer erro sai marcado com sendAttempted: o pedido
+  //    foi feito e a mensagem PODE ter saído. Só um 4xx da Evolution prova que não saiu.
+  let res;
+  try {
+    res = await evo('POST', `/message/sendText/${config.evolutionInstance}`, {
+      number: targetNumber,
+      text,
+    });
+  } catch (err) {
+    err.sendAttempted = true;
+    err.notSent = Number.isInteger(err.httpStatus) && err.httpStatus >= 400 && err.httpStatus < 500;
+    throw err;
+  }
 
   const msgId = res?.key?.id;
   if (!msgId) {
-    throw new Error(`Envio sem confirmação da Evolution: ${JSON.stringify(res).slice(0, 160)}`);
+    const e = new Error(`Envio sem confirmação da Evolution: ${JSON.stringify(res).slice(0, 160)}`);
+    e.sendAttempted = true;
+    throw e;
   }
 
   const chatId = res?.key?.remoteJid ?? `${targetNumber}@s.whatsapp.net`;
@@ -122,7 +135,9 @@ export async function sendMessage(phone, text) {
   //    avançar a cadência do lead.
   const verdict = await waitForStatus(msgId, 45_000);
   if (verdict === 'ERROR') {
-    throw new Error(`WhatsApp rejeitou o envio para ${phone} (status ERROR pós-aceite)`);
+    const e = new Error(`WhatsApp rejeitou o envio para ${phone} (status ERROR pós-aceite)`);
+    e.sendAttempted = true;
+    throw e;
   }
   const ackMap = { SERVER_ACK: 1, DELIVERY_ACK: 2, READ: 3, PLAYED: 3 };
   const ack = ackMap[verdict] ?? null; // PENDING/desconhecido → não confirmado

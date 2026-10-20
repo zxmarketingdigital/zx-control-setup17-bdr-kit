@@ -80,7 +80,9 @@ export function createAuth({
   function isPublic(req) {
     if (req.method === 'POST' && req.path === '/api/login') return true;
     if (req.method !== 'GET' && req.method !== 'HEAD') return false;
-    return req.path === '/login' || req.path === '/login.html' || req.path.startsWith('/assets/');
+    if (req.path === '/login' || req.path === '/login.html') return true;
+    // /assets/ é público, mas nunca com ".." (cru ou codificado) para sair da pasta.
+    return req.path.startsWith('/assets/') && !/\.\.|%2e/i.test(req.originalUrl || req.path);
   }
 
   function middleware(req, res, next) {

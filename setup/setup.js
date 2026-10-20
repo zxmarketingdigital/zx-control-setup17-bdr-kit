@@ -78,7 +78,8 @@ function existingEnvValue(relFile, key) {
 // Rodar o wizard de novo não pode apagar o que o aluno personalizou (a skill, os templates
 // de follow-up, as regras, os .env). Se o arquivo já existe e vai mudar, guarda antes uma
 // cópia <arquivo>.bak-AAAAMMDD-HHMMSS (o .gitignore ignora *.bak-*).
-function writeFileRecursive(filePath, content) {
+// secret: arquivo com chave/senha (.env) — grava e mantém com permissão 0600 (só o dono lê).
+function writeFileRecursive(filePath, content, { secret = false } = {}) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   if (fs.existsSync(filePath)) {
     let before = null;
@@ -86,10 +87,12 @@ function writeFileRecursive(filePath, content) {
     if (before !== null && before !== content) {
       const bak = filePath + '.bak-' + backupStamp();
       fs.copyFileSync(filePath, bak);
+      if (secret) fs.chmodSync(bak, 0o600);
       console.log(c.dim('    (já existia e mudou: cópia em ' + path.relative(ROOT_DIR, bak) + ')'));
     }
   }
-  fs.writeFileSync(filePath, content, 'utf8');
+  fs.writeFileSync(filePath, content, secret ? { encoding: 'utf8', mode: 0o600 } : 'utf8');
+  if (secret) fs.chmodSync(filePath, 0o600);
 }
 
 // Teto de leads NOVOS por dia (anti-ban): acima de 20 o risco de restrição do número sobe
@@ -1868,12 +1871,12 @@ function writeFiles(vars) {
 
   // 4. dispatcher/.env
   const envPath = path.join(ROOT_DIR, 'dispatcher', '.env');
-  writeFileRecursive(envPath, generateDispatcherEnv(vars));
+  writeFileRecursive(envPath, generateDispatcherEnv(vars), { secret: true });
   console.log(c.green('✓') + ' dispatcher/.env');
 
   // 4b. crm/.env (mesma config da Evolution, pra aba "Prospecção Fria")
   const crmEnvPath = path.join(ROOT_DIR, 'crm', '.env');
-  writeFileRecursive(crmEnvPath, generateCrmEnv(vars));
+  writeFileRecursive(crmEnvPath, generateCrmEnv(vars), { secret: true });
   console.log(c.green('✓') + ' crm/.env');
 
   // 5. pipeline/leads-master.json (only if it doesn't exist)

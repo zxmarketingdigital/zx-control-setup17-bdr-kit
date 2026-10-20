@@ -4,6 +4,7 @@ import { config } from './config.js';
 import { logger } from './log.js';
 import { todayStr } from './window.js';
 import { getOptOut } from './master.js';
+import { readDispatchLog, attemptedKeys, newLeadsOn } from './dispatch-log.js';
 
 const MOD = 'queue';
 
@@ -35,21 +36,16 @@ export async function loadTodayQueue() {
   return entries;
 }
 
+// Leads novos que já saíram (ou podem ter saído) hoje. Conta tentativas "sending" e
+// "ambiguous" também: no teto de risco do número, o que pode ter saído conta como saído.
 export async function loadAlreadySentToday() {
-  const logPath = path.join(config.pipelineDir, 'log-disparos.json');
-  const log = await readJson(logPath, []);
-  const today = todayStr();
-
-  const sentToday = new Set(
-    log
-      .filter((e) => e.timestamp?.startsWith(today) && e.status === 'sent' && e.touch === 1)
-      .map((e) => e.lead_id)
-  );
-  return sentToday;
+  return newLeadsOn(await readDispatchLog(), todayStr());
 }
 
 export async function filterDispatchableQueue(queueEntries) {
-  const alreadySent = await loadAlreadySentToday();
+  const log = await readDispatchLog();
+  const sentToday = newLeadsOn(log, todayStr());
+  const attempted = attemptedKeys(log);
   const optOut = await getOptOut();
 
   const pending = queueEntries.filter((entry) => {
@@ -62,16 +58,19 @@ export async function filterDispatchableQueue(queueEntries) {
       logger.warn(MOD, `Skip ${entry.lead_id} — lead pediu pra parar (opt-out)`);
       return false;
     }
-    if (alreadySent.has(entry.lead_id)) {
-      logger.debug(MOD, `Skip ${entry.lead_id} — touch 1 already sent today`);
+    if (attempted.has(`${entry.lead_id}:1`)) {
+      logger.debug(MOD, `Skip ${entry.lead_id} — toque 1 já saiu (ou pode ter saído)`);
       return false;
     }
     return true;
   });
 
-  if (pending.length > config.dailyNewCap) {
-    logger.warn(MOD, `Queue has ${pending.length} entries; capping at ${config.dailyNewCap}`);
-    return pending.slice(0, config.dailyNewCap);
+  // O teto é por DIA, não por ciclo: o ciclo roda a cada 60s, então desconta o que já saiu hoje.
+  const room = Math.max(0, config.dailyNewCap - sentToday.size);
+  if (pending.length > room) {
+    if (room === 0) logger.info(MOD, `Teto de ${config.dailyNewCap} leads novos hoje atingido — o resto fica pra amanhã`);
+    else logger.warn(MOD, `Queue has ${pending.length} entries; ${sentToday.size} already today, capping at ${room}`);
+    return pending.slice(0, room);
   }
 
   return pending;

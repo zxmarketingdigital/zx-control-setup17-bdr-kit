@@ -42,7 +42,9 @@ async function loadToken() {
 }
 
 async function saveToken(token) {
-  await fs.writeFile(TOKEN_PATH, JSON.stringify(token, null, 2), 'utf8');
+  // Token do Google dá acesso à agenda: só o dono do arquivo lê.
+  await fs.writeFile(TOKEN_PATH, JSON.stringify(token, null, 2), { encoding: 'utf8', mode: 0o600 });
+  await fs.chmod(TOKEN_PATH, 0o600).catch(() => {});
 }
 
 async function getOAuth2Client() {

@@ -34,8 +34,8 @@ estiver pausado individualmente:
    `AUTO_REPLY_DELAY_MIN_SECONDS` e `AUTO_REPLY_DELAY_MAX_SECONDS` no
    `dispatcher/.env` (os dois em 9 = espera fixa; com valores diferentes, ele sorteia
    um tempo entre os dois a cada vez).
-5. Resposta genuína em texto: chama o **Claude Code headless** (`claude -p`, mesmo
-   mecanismo do `bdr-agent` de produção), que segue a **seção 9 da skill** e decide:
+5. Resposta genuína em texto: chama o **Claude Code headless** (`claude -p`, rodando
+   na sua própria conta do Claude Code), que segue a **seção 9 da skill** e decide:
 
 | Ação | Quando | O que acontece |
 |---|---|---|

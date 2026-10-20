@@ -3,7 +3,7 @@ import path from 'node:path';
 import { config } from './config.js';
 import { logger } from './log.js';
 import { todayStr, addWorkingDays } from './window.js';
-import { localToDate, toIso } from './tz.js';
+import { localToDate, toIso, ymdInTz } from './tz.js';
 import { loadMaster, alreadySentTouch, isLeadSendable } from './master.js';
 import { getAutoModeState } from './auto-mode-config.js';
 
@@ -115,9 +115,10 @@ export async function getDueFollowUps() {
     if (await alreadySentTouch(entry.lead_id, entry.next_touch)) continue;
 
     // One touch per lead per calendar day — prevents cascade when a touch is overdue
-    const todayUTC = new Date().toISOString().slice(0, 10);
-    const lastSent = lead.history[lead.history.length - 1]?.sent_at;
-    if (lastSent && lastSent.slice(0, 10) === todayUTC) continue;
+    // "Hoje" no fuso do aluno, não em UTC (à noite em São Paulo já é amanhã em UTC).
+    const hist = lead.history || [];
+    const lastSent = hist[hist.length - 1]?.sent_at;
+    if (lastSent && ymdInTz(new Date(lastSent)) === today) continue;
 
     const templateKey = `touch_${entry.next_touch}`;
     const rawCopy = activeSet[templateKey];

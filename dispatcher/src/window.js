@@ -40,7 +40,8 @@ export function addWorkingDays(dateStr, days) {
     const wd = current.getDay();
     if (config.workingDays.includes(wd)) added++;
   }
-  return current.toISOString().slice(0, 10);
+  // Data local (toISOString converteria para UTC e voltaria um dia em fuso UTC+).
+  return `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')}`;
 }
 
 export function todayStr() {

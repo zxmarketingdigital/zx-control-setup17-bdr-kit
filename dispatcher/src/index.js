@@ -1,6 +1,9 @@
 import { config } from './config.js';
 import { logger, setLogLevel } from './log.js';
-import { initWhatsApp, isReady, sendMessage, destroyClient } from './whatsapp.js';
+import { initWhatsApp, isReady, destroyClient } from './whatsapp.js';
+import { dispatchTouch } from './dispatch.js';
+import { clearToFollowUp } from './followup-guard.js';
+import { readDispatchLog, attemptedKeys } from './dispatch-log.js';
 import { loadTodayQueue, filterDispatchableQueue } from './queue.js';
 import { recordTouchSent, alreadySentTouch, isLeadSendable, loadMaster, markResponded, markNeedsReview, markClosed, recordAutoTurn } from './master.js';
 import { getDueFollowUps, rebuildSchedule } from './scheduler.js';
@@ -21,20 +24,6 @@ setLogLevel(config.logLevel);
 let shuttingDown = false;
 let dispatchInProgress = false;
 
-async function appendDispatchLog(entry) {
-  const filePath = path.join(config.pipelineDir, 'log-disparos.json');
-  let existing = [];
-  try {
-    const raw = await fs.readFile(filePath, 'utf8');
-    existing = JSON.parse(raw);
-  } catch (err) {
-    if (err.code !== 'ENOENT') throw err;
-  }
-  existing.push(entry);
-  await fs.mkdir(config.pipelineDir, { recursive: true });
-  await fs.writeFile(filePath, JSON.stringify(existing, null, 2), 'utf8');
-}
-
 function randomInterval() {
   const { intervalMinSeconds, intervalMaxSeconds } = config;
   const secs = intervalMinSeconds + Math.random() * (intervalMaxSeconds - intervalMinSeconds);
@@ -43,30 +32,6 @@ function randomInterval() {
 
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function dispatch(lead, touch) {
-  const logEntry = {
-    timestamp: new Date().toISOString(),
-    lead_id: lead.lead_id,
-    touch,
-    phone: lead.phone,
-    status: 'failed',
-    error: null,
-  };
-
-  try {
-    await sendMessage(lead.phone, lead.copy);
-    logEntry.status = 'sent';
-    await recordTouchSent(lead.lead_id, touch, lead.copy, lead);
-    logger.info(MOD, `Dispatched touch ${touch} to ${lead.lead_id}`);
-  } catch (err) {
-    logEntry.error = err.message;
-    logger.error(MOD, `Failed dispatch touch ${touch} to ${lead.lead_id}: ${err.message}`);
-  }
-
-  await appendDispatchLog(logEntry);
-  return logEntry.status === 'sent';
 }
 
 // Por que esta mensagem não pode seguir no automático (null = pode seguir).
@@ -222,31 +187,44 @@ async function runCycle() {
     await rebuildSchedule();
   } else {
     dispatchInProgress = true;
-    for (const lead of allWork) {
-      if (shuttingDown) break;
-      if (!isOpenForBusiness()) {
-        logger.info(MOD, 'Window closed mid-batch — pausing');
-        break;
-      }
+    try {
+      for (const lead of allWork) {
+        if (shuttingDown) break;
+        if (!isOpenForBusiness()) {
+          logger.info(MOD, 'Window closed mid-batch — pausing');
+          break;
+        }
 
-      if (!(await isLeadSendable(lead.lead_id))) {
-        logger.debug(MOD, `${lead.lead_id} not sendable — skip`);
-        continue;
-      }
-      if (await alreadySentTouch(lead.lead_id, lead.touch)) {
-        logger.debug(MOD, `${lead.lead_id} touch ${lead.touch} already sent — skip`);
-        continue;
-      }
+        if (!(await isLeadSendable(lead.lead_id))) {
+          logger.debug(MOD, `${lead.lead_id} not sendable — skip`);
+          continue;
+        }
+        if (await alreadySentTouch(lead.lead_id, lead.touch)) {
+          logger.debug(MOD, `${lead.lead_id} touch ${lead.touch} already sent — skip`);
+          continue;
+        }
+        // Tentativa anterior deste toque (enviada, em envio ou sem confirmação) = não reenvia.
+        if (attemptedKeys(await readDispatchLog()).has(`${lead.lead_id}:${lead.touch}`)) {
+          logger.warn(MOD, `${lead.lead_id} touch ${lead.touch} já tem tentativa registrada — skip`);
+          continue;
+        }
+        if (lead.touch >= 2) {
+          const masterLead = (await loadMaster())[lead.lead_id];
+          const autoMode = await isLeadInAutoMode(lead.lead_id);
+          if (!(await clearToFollowUp(lead.lead_id, masterLead, { autoMode }))) continue;
+        }
 
-      await dispatch(lead, lead.touch);
+        await dispatchTouch(lead, lead.touch);
 
-      if (!shuttingDown) {
-        const wait = randomInterval();
-        logger.debug(MOD, `Waiting ${Math.round(wait / 1000)}s before next message`);
-        await sleep(wait);
+        if (!shuttingDown) {
+          const wait = randomInterval();
+          logger.debug(MOD, `Waiting ${Math.round(wait / 1000)}s before next message`);
+          await sleep(wait);
+        }
       }
+    } finally {
+      dispatchInProgress = false;
     }
-    dispatchInProgress = false;
 
     await rebuildSchedule();
   }

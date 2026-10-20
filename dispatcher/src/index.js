@@ -24,6 +24,7 @@ setLogLevel(config.logLevel);
 
 let shuttingDown = false;
 let dispatchInProgress = false;
+let autoModeInProgress = false;
 
 function randomInterval() {
   const { intervalMinSeconds, intervalMaxSeconds } = config;
@@ -107,6 +108,7 @@ async function runAutoModeCycle() {
         sleep,
         shouldStop: () => shuttingDown,
       });
+      byLead.set(leadId, burst);
       if (shuttingDown) break;
       if (burst.length > firstMessages.length) {
         logger.info(MOD, `${leadId}: ${burst.length} mensagens seguidas, respondendo em conjunto`);
@@ -135,12 +137,27 @@ async function runAutoModeCycle() {
       // Reconstrói a conversa (toques enviados + respostas do lead) em ordem cronológica.
       const freshMaster = await loadMaster();
       const freshLead = { id: leadId, ...freshMaster[leadId] };
-      const allResponses = (await fs.readFile(path.join(config.pipelineDir, 'responses.json'), 'utf8').then(JSON.parse).catch(() => []))
-        .filter((r) => r.lead_id === leadId);
+      let allResponses;
+      try {
+        const raw = await fs.readFile(path.join(config.pipelineDir, 'responses.json'), 'utf8').catch((err) => (err.code === 'ENOENT' ? '[]' : Promise.reject(err)));
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) throw new Error('responses.json não é uma lista');
+        allResponses = parsed.filter((r) => r.lead_id === leadId);
+      } catch (err) {
+        // Sem o histórico de respostas, a resposta automática sairia com contexto errado.
+        await markNeedsReview(leadId, `Não consegui ler responses.json (${err.message.slice(0, 80)}): responda à mão`);
+        continue;
+      }
       const timeline = [
         ...(freshLead.history || []).map((h) => ({ at: h.sent_at, text: `[Você] ${h.copy}` })),
         ...allResponses.map((r) => ({ at: r.received_at, text: `[Lead] ${responseText(r)}` })),
       ].sort((a, b) => (a.at || '').localeCompare(b.at || ''));
+
+      if (!isOpenForBusiness()) {
+        logger.info(MOD, `${leadId}: janela fechou antes de responder, fica pra quando abrir`);
+        await markNeedsReview(leadId, 'Respondeu perto do fim do horário: a resposta automática não saiu, responda quando abrir');
+        continue;
+      }
 
       let decision;
       try {
@@ -250,9 +267,12 @@ async function runCycle() {
 
   if (!shuttingDown) {
     try {
+      autoModeInProgress = true;
       await runAutoModeCycle();
     } catch (err) {
       logger.error(MOD, `Modo automático — erro não tratado no ciclo: ${err.message}`);
+    } finally {
+      autoModeInProgress = false;
     }
   }
 }
@@ -287,7 +307,9 @@ async function gracefulShutdown() {
   shuttingDown = true;
   logger.info(MOD, 'SIGINT received — shutting down gracefully…');
   // wait for any in-progress dispatch to finish
-  while (dispatchInProgress) {
+  // Espera o envio e o ciclo automático: o finally dele registra as respostas já lidas
+  // (settleConsumed). Sair antes perderia um pedido pra parar que já saiu do cursor.
+  while (dispatchInProgress || autoModeInProgress) {
     await sleep(500);
   }
   await destroyClient();

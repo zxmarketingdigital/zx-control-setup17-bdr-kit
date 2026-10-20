@@ -1,3 +1,4 @@
+import { phoneKey } from './phone.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { config } from './config.js';
@@ -232,7 +233,7 @@ export async function getOptOut() {
   for (const [id, lead] of Object.entries(master)) {
     if (!lead?.opt_out) continue;
     ids.add(id);
-    if (lead.phone) phones.add(lead.phone);
+    if (lead.phone) { phones.add(lead.phone); phones.add(phoneKey(lead.phone)); }
   }
   return { ids, phones };
 }

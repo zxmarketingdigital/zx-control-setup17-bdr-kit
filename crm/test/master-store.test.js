@@ -57,3 +57,25 @@ test('uma gravação que falha não trava a fila', async () => {
   await store.saveLead('a', { status: 'y' });
   assert.equal(f.get().a.status, 'y');
 });
+
+test('retrato antigo do mesmo lead não apaga a reunião gravada por outra rota no meio', async () => {
+  const f = memFile({ a: { status: 'responded', annotations: [] } });
+  const store = createMasterStore(f);
+  const pull = store.ownLead(await f.readJson(), 'a');            // pull leu antes
+  const agenda = store.ownLead(await f.readJson(), 'a');          // agendamento leu também
+  agenda.meeting = { status: 'scheduled' }; agenda.status = 'meeting_scheduled';
+  await store.saveLead('a', agenda);
+  pull.annotations.push({ text: 'nota' }); pull.responded = true;
+  await store.saveLead('a', pull);
+  assert.deepEqual(f.get().a.meeting, { status: 'scheduled' });
+  assert.equal(f.get().a.status, 'meeting_scheduled');
+  assert.equal(f.get().a.annotations.length, 1);
+  assert.equal(f.get().a.responded, true);
+});
+
+test('withFile relê o arquivo: duas gravações em paralelo na mesma lista não se perdem', async () => {
+  const f = memFile([]);
+  const store = createMasterStore({ ...f, file: 'x' });
+  await Promise.all([1, 2, 3].map((n) => store.withFile('r.json', [], (l) => [...l, n])));
+  assert.deepEqual([...f.get()].sort(), [1, 2, 3]);
+});

@@ -64,11 +64,13 @@ async function getOAuth2Client() {
   const token = await loadToken();
   if (token) {
     oauth2Client.setCredentials(token);
-    oauth2Client.on('tokens', (newToken) => {
-      // refresh_token vem só na primeira vez — preservar
-      saveToken({ ...token, ...newToken }).catch((err) => console.error('Não deu pra salvar o token do Google:', err.message));
-    });
   }
+  // Registrado sempre (também antes do primeiro login). Mescla com a credencial ATUAL do
+  // cliente, nunca com o token lido no boot: depois de reconectar outra conta, o
+  // refresh_token antigo não volta pro disco.
+  oauth2Client.on('tokens', (newToken) => {
+    saveToken({ ...oauth2Client.credentials, ...newToken }).catch((err) => console.error('Não deu pra salvar o token do Google:', err.message));
+  });
   return oauth2Client;
 }
 

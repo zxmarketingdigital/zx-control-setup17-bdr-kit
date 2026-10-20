@@ -130,7 +130,13 @@ async function writeJsonAtomic(file, data) {
   await fs.rename(tmp, fullPath);
 }
 
-const { saveLead, ownLead } = createMasterStore({ readJson, writeJsonAtomic });
+const { saveLead, ownLead, withFile } = createMasterStore({ readJson, writeJsonAtomic });
+// responses.json / log-disparos.json que não são lista: parar em vez de gravar por cima.
+function asList(v) {
+  if (v == null) return [];
+  if (!Array.isArray(v)) throw new Error('Arquivo do pipeline com formato inesperado (esperava uma lista). Corrija ou mova o arquivo.');
+  return v;
+}
 
 // ============================================================
 // LEADS
@@ -156,6 +162,7 @@ app.patch('/api/leads/:id', async (req, res) => {
   const lead = ownLead(master, req.params.id);
   if (!lead) return res.status(404).json({ error: 'Lead not found' });
 
+  const optOutAntes = lead.opt_out;
   const allowed = ['status', 'responded', 'responded_at', 'responded_via', 'next_touch_due_at', 'name', 'marca', 'category', 'outcome', 'opt_out', 'closed_reason', 'closed_at'];
   for (const key of allowed) if (key in req.body) lead[key] = req.body[key];
 
@@ -167,7 +174,7 @@ app.patch('/api/leads/:id', async (req, res) => {
   if (['cold', 'exhausted', 'meeting_scheduled'].includes(req.body.status)) lead.next_touch_due_at = null;
   if ('outcome' in req.body) lead.outcome_set_at = req.body.outcome ? new Date().toISOString() : null;
 
-  await saveLead(req.params.id, lead, { allowOptOutChange: 'opt_out' in req.body });
+  await saveLead(req.params.id, lead, { allowOptOutChange: 'opt_out' in req.body && req.body.opt_out !== optOutAntes });
   res.json({ id: req.params.id, ...lead });
 });
 
@@ -214,9 +221,7 @@ app.post('/api/leads/:id/inbound', async (req, res) => {
   if (!lead) return res.status(404).json({ error: 'Lead not found' });
 
   const entry = { lead_id: req.params.id, phone: lead.phone, received_at: new Date().toISOString(), message: message.trim() };
-  const responses = await readJson('responses.json', []) ?? [];
-  responses.push(entry);
-  await writeJsonAtomic('responses.json', responses);
+  await withFile('responses.json', [], (responses) => [...asList(responses), entry]);
 
   lead.responded = true;
   lead.responded_at = entry.received_at;
@@ -238,6 +243,7 @@ app.post('/api/leads/:id/manual-message', async (req, res) => {
   if (!lead) return res.status(404).json({ error: 'Lead not found' });
   if (!lead.phone) return res.status(400).json({ error: 'Lead sem telefone' });
   if (lead.no_send) return res.status(400).json({ error: 'Lead de demonstração: o envio está bloqueado.' });
+  if (lead.opt_out) return res.status(409).json({ error: 'Esse lead pediu pra parar de receber mensagem. Desfaça o opt-out na tela do lead se ele voltou a falar com você.', code: 'opt_out' });
 
   const logEntry = { timestamp: new Date().toISOString(), lead_id: req.params.id, touch: 'manual', phone: lead.phone, status: 'failed', error: null };
   try {
@@ -246,9 +252,7 @@ app.post('/api/leads/:id/manual-message', async (req, res) => {
   } catch (err) {
     logEntry.error = err.message;
   }
-  const log = await readJson('log-disparos.json', []) ?? [];
-  log.push(logEntry);
-  await writeJsonAtomic('log-disparos.json', log);
+  await withFile('log-disparos.json', [], (log) => [...asList(log), logEntry]);
 
   if (logEntry.status === 'sent') {
     if (!Array.isArray(lead.history)) lead.history = [];
@@ -334,17 +338,18 @@ app.post('/api/leads/:id/pull-whatsapp', async (req, res) => {
   }
 
   const settings = transcriptionSettings();
-  const responses = await readJson('responses.json', []) ?? [];
+  const responses = asList(await readJson('responses.json', []));
   const cursor = await readJson('inbound-cursor.json', {}) ?? {};
   const seen = new Set(cursor[req.params.id] || []);
-  const known = new Set(responses.filter((r) => r.lead_id === req.params.id).map((r) => r.message_id || `txt:${r.message}`));
+  // Só pelo id da mensagem: texto igual a uma resposta registrada à mão ("pare") é outra mensagem.
+  const known = new Set(responses.filter((r) => r.lead_id === req.params.id && r.message_id).map((r) => r.message_id));
   const hist = lead.history || [];
   const lastOutbound = hist[hist.length - 1];
   const added = [];
   let optOutDetected = false;
 
   for (const m of msgs.sort((a, b) => a.timestamp.localeCompare(b.timestamp))) {
-    if (seen.has(m.id) || known.has(m.id) || (!m.media && known.has(`txt:${m.text}`))) { seen.add(m.id); continue; }
+    if (seen.has(m.id) || known.has(m.id)) { seen.add(m.id); continue; }
     seen.add(m.id);
     const entry = { lead_id: req.params.id, phone: lead.phone, received_at: m.timestamp, message: m.text, message_id: m.id, source: 'pull' };
     if (m.media) entry.media = m.media;
@@ -356,14 +361,24 @@ app.post('/api/leads/:id/pull-whatsapp', async (req, res) => {
       entry.media_key = m.key;
       if (settings.enabled) entry.transcript = await transcribeEvolutionAudio(evoCfg(), m.key, settings);
     }
-    responses.push(entry);
     added.push(entry);
   }
 
-  cursor[req.params.id] = [...seen].slice(-50);
-  await writeJsonAtomic('inbound-cursor.json', cursor);
+  // Grava relendo os arquivos: uma resposta registrada à mão (ou outro pull) durante a
+  // transcrição não some.
   if (added.length) {
-    await writeJsonAtomic('responses.json', responses);
+    await withFile('responses.json', [], (atual) => {
+      const lista = asList(atual);
+      const ids = new Set(lista.filter((r) => r.message_id).map((r) => r.message_id));
+      return [...lista, ...added.filter((e) => !ids.has(e.message_id))];
+    });
+  }
+  await withFile('inbound-cursor.json', {}, (atual) => {
+    const cur = atual && typeof atual === 'object' && !Array.isArray(atual) ? atual : {};
+    cur[req.params.id] = [...new Set([...(cur[req.params.id] || []), ...seen])].slice(-50);
+    return cur;
+  });
+  if (added.length) {
     if (added.some((e) => !e.possible_auto_reply)) {
       lead.responded = true;
       lead.responded_at = lead.responded_at || added[added.length - 1].received_at;
@@ -399,13 +414,20 @@ app.post('/api/responses/transcribe', async (req, res) => {
   const { lead_id, message_id } = req.body || {};
   const settings = transcriptionSettings();
   if (!settings.enabled) return res.status(400).json({ error: 'Transcrição desligada. Ligue TRANSCRIBE_AUDIO=true no crm/.env (veja docs/transcricao-audio.md)' });
-  const responses = await readJson('responses.json', []) ?? [];
+  const responses = asList(await readJson('responses.json', []));
   const entry = responses.find((r) => r.lead_id === lead_id && r.message_id === message_id && r.media === 'audio');
   if (!entry) return res.status(404).json({ error: 'Áudio não encontrado' });
   if (!entry.media_key) return res.status(400).json({ error: 'Esse áudio foi registrado sem a referência do WhatsApp. Use "Puxar conversa do WhatsApp".' });
-  entry.transcript = await transcribeEvolutionAudio(evoCfg(), entry.media_key, settings);
-  await writeJsonAtomic('responses.json', responses);
-  res.json(entry);
+  const transcript = await transcribeEvolutionAudio(evoCfg(), entry.media_key, settings);
+  let saved = null;
+  await withFile('responses.json', [], (atual) => {
+    const lista = asList(atual);
+    saved = lista.find((r) => r.lead_id === lead_id && r.message_id === message_id && r.media === 'audio');
+    if (!saved) return undefined;
+    saved.transcript = transcript;
+    return lista;
+  });
+  res.json(saved ?? { ...entry, transcript });
 });
 
 // ── Qualificar antes de agendar (faturamento + autoridade) ──
@@ -614,13 +636,18 @@ app.get('/api/calendar/free-slots', async (req, res) => {
 
 // Um agendamento por lead de cada vez: dois cliques (ou tela + modo automático) não criam
 // dois eventos no Google. Quem chega enquanto outro agenda recebe 409.
+// Agendamentos de leads diferentes também passam um por vez: "o horário está livre?" e
+// "cria o evento" não se intercalam entre dois leads pro mesmo horário.
 const meetingInFlight = new Set();
+let meetingQueue = Promise.resolve();
 
 app.post('/api/leads/:id/meeting', async (req, res) => {
   const lockKey = req.params.id;
   if (meetingInFlight.has(lockKey)) return res.status(409).json({ error: 'Já tem um agendamento em andamento pra esse lead', code: 'meeting_in_flight' });
   meetingInFlight.add(lockKey);
-  try { await createMeetingRoute(req, res); } finally { meetingInFlight.delete(lockKey); }
+  const run = meetingQueue.then(() => createMeetingRoute(req, res));
+  meetingQueue = run.catch(() => {});
+  try { await run; } catch (err) { if (!res.headersSent) res.status(500).json({ error: err.message }); } finally { meetingInFlight.delete(lockKey); }
 });
 
 async function createMeetingRoute(req, res) {
@@ -660,7 +687,14 @@ async function createMeetingRoute(req, res) {
     };
     lead.status = 'meeting_scheduled'; lead.next_touch_due_at = null;
     if (!lead.outcome) { lead.outcome = 'reuniao_agendada'; lead.outcome_set_at = new Date().toISOString(); }
-    await saveLead(req.params.id, lead);
+    try {
+      await saveLead(req.params.id, lead);
+    } catch (err) {
+      // O evento existe no Google mas o CRM não gravou: apaga pra não ficar órfão nem duplicar no próximo clique.
+      try { await cal.deleteMeeting(calEvent.calendar_event_id); }
+      catch (e) { console.error('Evento ficou no Google sem registro no CRM:', calEvent.calendar_event_id, e.message); }
+      throw err;
+    }
     res.json({ id: req.params.id, ...lead });
   } catch (err) { console.error('createMeeting error:', err.message); res.status(500).json({ error: err.message }); }
 }

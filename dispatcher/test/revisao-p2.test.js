@@ -64,3 +64,26 @@ test('erro num lead não impede de registrar os outros', async () => {
   ], { markResponded: async (id) => { if (id === 'A') throw new Error('disco'); feitos.push(id); }, markClosed: async () => {} });
   assert.deepEqual(feitos, ['B']);
 });
+
+test('mesmo número com e sem DDI 55 é a mesma pessoa', async () => {
+  await fs.writeFile(LOG, '[]');
+  const out = await filterDispatchableQueue([
+    { lead_id: 'D1', phone: '11 98765-4321', copy: 'oi' },
+    { lead_id: 'D2', phone: '+55 11 98765-4321', copy: 'oi' },
+  ]);
+  assert.deepEqual(out.map((e) => e.lead_id), ['D1']);
+});
+
+test('opt-out gravado com DDI barra o mesmo número sem DDI na fila', async () => {
+  await fs.writeFile(LOG, '[]');
+  await fs.writeFile(path.join(PIPELINE, 'leads-master.json'), JSON.stringify({ X: { phone: '+55 11 91111-2222', opt_out: true } }));
+  const out = await filterDispatchableQueue([{ lead_id: 'Y', phone: '11 91111-2222', copy: 'oi' }]);
+  assert.equal(out.length, 0);
+  await fs.writeFile(path.join(PIPELINE, 'leads-master.json'), '{}');
+});
+
+test('telefone de Portugal não ganha 55', async () => {
+  const { phoneKey } = await import('../src/phone.js');
+  assert.equal(phoneKey('+351 912 345 678'), '351912345678');
+  assert.equal(phoneKey('(11) 98765-4321'), '5511987654321');
+});

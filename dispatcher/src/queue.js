@@ -1,3 +1,4 @@
+import { phoneKey } from './phone.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { config } from './config.js';
@@ -27,6 +28,9 @@ export async function loadTodayQueue() {
   const dateStr = todayStr();
   const filePath = queueFilePath(dateStr);
   const entries = await readJson(filePath, []);
+  if (!Array.isArray(entries)) {
+    throw new Error(`queue-${dateStr}.json não é uma lista. Corrija ou mova o arquivo antes de seguir.`);
+  }
 
   if (entries.length === 0) {
     logger.info(MOD, `No queue file for ${dateStr} or file is empty`);
@@ -50,7 +54,7 @@ export async function filterDispatchableQueue(queueEntries) {
   const today = todayStr();
   const triedToday = new Set(log.filter((e) => e?.touch === 1 && e.timestamp && ymdInTz(new Date(e.timestamp)) === today).map((e) => e.lead_id));
   // Mesmo número com lead_id diferente ("11 9..." e "+55 11 9...") é a mesma pessoa.
-  const digits = (p) => String(p ?? '').replace(/\D/g, '');
+  const digits = phoneKey;
   const touchedPhones = new Set(log.filter((e) => e?.touch === 1 && e.phone
     && (BLOCKING_STATUSES.has(e.status) || (e.timestamp && ymdInTz(new Date(e.timestamp)) === today))).map((e) => digits(e.phone)));
   const phonesInBatch = new Set();
@@ -62,7 +66,7 @@ export async function filterDispatchableQueue(queueEntries) {
       return false;
     }
     // Pediu pra parar: nunca mais recebe nada, nem se voltar a aparecer numa fila.
-    if (optOut.ids.has(entry.lead_id) || optOut.phones.has(entry.phone)) {
+    if (optOut.ids.has(entry.lead_id) || optOut.phones.has(phoneKey(entry.phone))) {
       logger.warn(MOD, `Skip ${entry.lead_id} — lead pediu pra parar (opt-out)`);
       return false;
     }

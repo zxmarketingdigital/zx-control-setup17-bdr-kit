@@ -9,3 +9,10 @@ export function phoneKey(phone) {
   if (d.length === 10 || d.length === 11) d = `55${d}`;
   return d;
 }
+
+// O mesmo número cadastrado em qualquer lead pediu pra parar: é a mesma pessoa.
+export function phoneOptedOut(master, phone, exceptId = null) {
+  if (!phone) return false;
+  const key = phoneKey(phone);
+  return Object.entries(master || {}).some(([id, other]) => id !== exceptId && other?.opt_out && other.phone && phoneKey(other.phone) === key);
+}

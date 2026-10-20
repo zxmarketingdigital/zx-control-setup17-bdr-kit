@@ -34,3 +34,11 @@ test('encerramento pelo modelo com motivo fora do enum vira opt-out; sem_interes
   assert.equal(m.a.opt_out, true);
   assert.notEqual(m.b.opt_out, true);
 });
+
+test('lead novo (fora do master) com número que pediu pra parar não recebe o 1º toque', async () => {
+  await fs.writeFile(path.join(PIPELINE, 'leads-master.json'), JSON.stringify({
+    velho: { phone: '5511987654321', opt_out: true, status: 'cold' },
+  }));
+  assert.equal(await isLeadSendable('novo-sem-master', '(11) 98765-4321'), false);
+  assert.equal(await isLeadSendable('outro-sem-master', '11911112222'), true);
+});

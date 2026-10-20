@@ -1,4 +1,4 @@
-import { phoneKey } from './phone.js';
+import { phoneKey, phoneOptedOut } from './phone.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { config } from './config.js';
@@ -240,18 +240,14 @@ export async function getOptOut() {
   return { ids, phones };
 }
 
-export async function isLeadSendable(leadId) {
+export async function isLeadSendable(leadId, phone = null) {
   const master = await readMaster();
   const lead = master[leadId];
+  // Relido do disco a cada envio: um opt-out registrado no meio do lote vale na hora,
+  // também para lead novo (ainda fora do master).
+  if (phoneOptedOut(master, lead?.phone || phone, leadId)) return false;
   if (!lead) return true; // new lead, not in master yet — OK to send touch 1
   if (lead.opt_out) return false; // pediu pra parar: nunca mais
-  // O mesmo número cadastrado em outro lead pediu pra parar: é a mesma pessoa.
-  if (lead.phone) {
-    const key = phoneKey(lead.phone);
-    for (const [id, other] of Object.entries(master)) {
-      if (id !== leadId && other?.opt_out && other.phone && phoneKey(other.phone) === key) return false;
-    }
-  }
   if (lead.no_send) return false; // lead de demonstração (scripts/seed-demo.py): nunca é enviado
   // Any status other than 'active' immediately pauses all follow-ups.
   // Status is set manually in the CRM — no automatic detection.

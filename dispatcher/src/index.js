@@ -234,7 +234,7 @@ async function runCycle() {
           break;
         }
 
-        if (!(await isLeadSendable(lead.lead_id))) {
+        if (!(await isLeadSendable(lead.lead_id, lead.phone))) {
           logger.debug(MOD, `${lead.lead_id} not sendable — skip`);
           continue;
         }

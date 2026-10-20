@@ -11,6 +11,7 @@ import * as invoices from './src/invoices.js';
 import * as costs from './src/costs.js';
 import * as prenotes from './src/prenotes.js';
 import * as dashboard from './src/dashboard.js';
+import { phoneOptedOut } from '../dispatcher/src/phone.js';
 import * as evolution from './src/evolution.js';
 import * as simulations from './src/simulations.js';
 import { fetchInboundMessages, transcribeEvolutionAudio, transcriptionSettings } from '../dispatcher/src/audio-transcriber.js';
@@ -174,6 +175,9 @@ app.patch('/api/leads/:id', async (req, res) => {
   if (!lead) return res.status(404).json({ error: 'Lead not found' });
 
   const optOutAntes = lead.opt_out;
+  // Desfazer opt-out só pelo botão "Desfazer opt-out" (manda undo_opt_out): um formulário
+  // com dado antigo (opt_out:false) não devolve à cadência quem pediu pra parar.
+  if (req.body.opt_out === false && optOutAntes && req.body.undo_opt_out !== true) delete req.body.opt_out;
   const allowed = ['status', 'responded', 'responded_at', 'responded_via', 'next_touch_due_at', 'name', 'marca', 'category', 'outcome', 'opt_out', 'closed_reason', 'closed_at'];
   for (const key of allowed) if (key in req.body) lead[key] = req.body[key];
 
@@ -257,6 +261,7 @@ app.post('/api/leads/:id/manual-message', async (req, res) => {
   if (!lead.phone) return res.status(400).json({ error: 'Lead sem telefone' });
   if (lead.no_send) return res.status(400).json({ error: 'Lead de demonstração: o envio está bloqueado.' });
   if (lead.opt_out) return res.status(409).json({ error: 'Esse lead pediu pra parar de receber mensagem. Desfaça o opt-out na tela do lead se ele voltou a falar com você.', code: 'opt_out' });
+  if (phoneOptedOut(master, lead.phone, req.params.id)) return res.status(409).json({ error: 'Esse número pediu pra parar de receber mensagem (está em opt-out em outro lead).', code: 'opt_out' });
 
   // Confere o log ANTES de enviar: se ele estiver estragado, a mensagem não sai sem registro.
   try { asList(await readJson('log-disparos.json', [])); }

@@ -1137,7 +1137,7 @@ async function markOptOut(id){
 }
 async function undoOptOut(id){
   if(!confirm('Desfazer o opt-out? Só faça se foi engano. O lead volta pra "Precisa revisão" e você decide o que fazer.'))return;
-  await fetchJson(`/api/leads/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({opt_out:false,status:'needs_review',closed_reason:null})});
+  await fetchJson(`/api/leads/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({opt_out:false,undo_opt_out:true,status:'needs_review',closed_reason:null})});
   await loadLeads();renderLeadsTable();openPanel(id);
 }
 async function markResponded(id){await fetchJson(`/api/leads/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'responded',responded:true,responded_at:new Date().toISOString(),responded_via:'manual (CRM)'})});await loadLeads();renderLeadsTable();openPanel(id);}

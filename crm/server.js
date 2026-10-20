@@ -384,6 +384,34 @@ app.post('/api/leads/:id/pull-whatsapp', async (req, res) => {
     added.push(entry);
   }
 
+  // O lead primeiro, cursor e responses depois: se a gravação do lead falhar, a mensagem
+  // não fica marcada como vista e o próximo pull reaplica o opt-out.
+  // Pedido pra parar vale mesmo em mensagem marcada como possível auto-resposta.
+  const stopped = added.some((e) => detectOptOut(e.transcript?.ok ? e.transcript.text : e.message).optOut);
+  try {
+    if (stopped) {
+      lead.responded = true;
+      lead.responded_at = lead.responded_at || added[added.length - 1].received_at;
+      if (!lead.opt_out) markOptOut(lead);
+      optOutDetected = true;
+      await saveLead(req.params.id, lead);
+    } else if (added.some((e) => !e.possible_auto_reply)) {
+      lead.responded = true;
+      lead.responded_at = lead.responded_at || added[added.length - 1].received_at;
+      if (lead.status === 'active') lead.status = 'responded';
+      lead.next_touch_due_at = null;
+      if (added.some((e) => e.media === 'audio' && !e.transcript?.ok)) {
+        // Áudio sem transcrição pode ser um "pare": a cadência já ficou parada (respondeu);
+        // ouvir antes de mandar qualquer coisa.
+        if (!Array.isArray(lead.annotations)) lead.annotations = [];
+        lead.annotations.push({ at: new Date().toISOString(), text: 'Lead mandou áudio que não foi transcrito: ouça no WhatsApp antes de responder (pode ser um pedido pra parar).' });
+      }
+      await saveLead(req.params.id, lead);
+    }
+  } catch (err) {
+    return res.status(500).json({ error: `Não consegui gravar o lead: ${err.message}. Nada foi marcado como lido; puxe de novo.` });
+  }
+
   // Grava relendo os arquivos: uma resposta registrada à mão (ou outro pull) durante a
   // transcrição não some.
   if (added.length) {
@@ -398,26 +426,6 @@ app.post('/api/leads/:id/pull-whatsapp', async (req, res) => {
     cur[req.params.id] = [...new Set([...(cur[req.params.id] || []), ...seen])].slice(-50);
     return cur;
   });
-  if (added.length) {
-    if (added.some((e) => !e.possible_auto_reply)) {
-      lead.responded = true;
-      lead.responded_at = lead.responded_at || added[added.length - 1].received_at;
-      if (lead.status === 'active') lead.status = 'responded';
-      lead.next_touch_due_at = null;
-      // Pediu pra parar (regra, sem modelo): fecha como opt-out. Você pode desfazer na tela do lead.
-      const stopped = added.some((e) => !e.possible_auto_reply && detectOptOut(e.transcript?.ok ? e.transcript.text : e.message).optOut);
-      if (stopped) {
-        markOptOut(lead);
-        optOutDetected = true;
-      } else if (added.some((e) => e.media === 'audio' && !e.transcript?.ok)) {
-        // Áudio sem transcrição pode ser um "pare": a cadência já ficou parada (respondeu);
-        // ouvir antes de mandar qualquer coisa.
-        if (!Array.isArray(lead.annotations)) lead.annotations = [];
-        lead.annotations.push({ at: new Date().toISOString(), text: 'Lead mandou áudio que não foi transcrito: ouça no WhatsApp antes de responder (pode ser um pedido pra parar).' });
-      }
-      await saveLead(req.params.id, lead);
-    }
-  }
   res.json({
     opt_out_detected: optOutDetected,
     added: added.length,

@@ -1,0 +1,1784 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ZX LAB · CRM</title>
+<link rel="icon" type="image/png" href="assets/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        bg:        { DEFAULT: '#0D0D0D', alt: '#0A0A0A' },
+        surface:   { DEFAULT: '#1A1A1A', 2: '#222222' },
+        line:      '#2A2A2A',
+        ink:       { DEFAULT: '#E2E8F0', dim: '#9CA3AF', mute: '#6B7280' },
+        accent:    { DEFAULT: '#D97706', light: '#F59E0B', bright: '#FCD34D' },
+        ok:        '#4ADE80',
+        bad:       '#EF4444',
+        warn:      '#FBBF24',
+      },
+      fontFamily: { sans: ['Inter','system-ui','sans-serif'], mono: ['"JetBrains Mono"','Menlo','monospace'] },
+    }
+  }
+};
+</script>
+<style>
+  /* ZX LAB design tokens — ver zxlab-brand-kit/DESIGN.md. Âmbar #D97706 é o único acento. */
+  html, body { background:#0D0D0D; color:#E2E8F0; font-family:'Inter',system-ui,sans-serif; }
+  body { margin:0; min-height:100vh; background-image:linear-gradient(rgba(217,119,6,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(217,119,6,.025) 1px,transparent 1px); background-size:60px 60px; }
+  ::selection { background:#D97706; color:#000; }
+  .scrollbar::-webkit-scrollbar { width:6px; height:6px; }
+  .scrollbar::-webkit-scrollbar-thumb { background:#2A2A2A; border-radius:3px; }
+  .scrollbar::-webkit-scrollbar-track { background:transparent; }
+  .mono { font-family:'JetBrains Mono',Menlo,monospace; }
+  .display { font-weight:900; letter-spacing:-0.04em; }
+  .head { font-weight:900; letter-spacing:-0.02em; }
+  .label { font-weight:700; letter-spacing:0.14em; text-transform:uppercase; font-size:11px; color:#9CA3AF; }
+  .pulse-dot { display:inline-block; width:8px; height:8px; border-radius:50%; }
+  .status-active{background:#4ADE80}.status-responded{background:#F59E0B}.status-cold{background:#9CA3AF}.status-exhausted{background:#EF4444}.status-meeting_scheduled{background:#F59E0B}.status-needs_review{background:#FBBF24}.status-skipped{background:#6B7280}
+  .status-ativo{background:#4ADE80}.status-em_risco{background:#FBBF24}.status-pausado{background:#F59E0B}.status-churn{background:#EF4444}
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap;border:1px solid}
+  .badge-meeting{background:rgba(217,119,6,.15);color:#F59E0B;border-color:rgba(217,119,6,.35)}
+  .badge-ok{background:rgba(74,222,128,.1);color:#4ADE80;border-color:rgba(74,222,128,.4)}
+  .badge-bad{background:rgba(239,68,68,.1);color:#fca5a5;border-color:rgba(239,68,68,.4)}
+  .badge-warn{background:rgba(251,191,36,.1);color:#FBBF24;border-color:rgba(251,191,36,.4)}
+  .badge-neutral{background:rgba(107,114,128,.15);color:#9CA3AF;border-color:#2A2A2A}
+  .badge-accent{background:rgba(217,119,6,.15);color:#F59E0B;border-color:rgba(217,119,6,.35)}
+  .outcome-reuniao_agendada,.outcome-cliente_convertido,.outcome-proposta_aceita{background:rgba(74,222,128,.1);color:#4ADE80;border:1px solid rgba(74,222,128,.4)}
+  .outcome-reuniao_agendada{background:rgba(217,119,6,.15);color:#F59E0B;border-color:rgba(217,119,6,.35)}
+  .outcome-proposta_recusada{background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.4)}
+  .outcome-no_show{background:rgba(251,191,36,.1);color:#FBBF24;border:1px solid rgba(251,191,36,.4)}
+  .nav-link{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;color:#9CA3AF;font-size:14px;font-weight:500;transition:all .15s}
+  .nav-link:hover{background:#1A1A1A;color:#E2E8F0}
+  .nav-link.active{background:#222222;color:#E2E8F0}
+  .nav-link.active .nav-bar{background:#D97706}
+  .nav-bar{width:3px;height:14px;background:transparent;border-radius:2px}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;color:#F59E0B;letter-spacing:.14em;text-transform:uppercase}
+  .h-display{font-size:28px;font-weight:900;letter-spacing:-.04em;color:#E2E8F0;line-height:1.1}
+  .h-head{font-size:18px;font-weight:900;letter-spacing:-.02em;color:#E2E8F0}
+  .card{background:#1A1A1A;border:1px solid #2A2A2A;border-radius:14px;transition:border-color .15s,transform .15s,box-shadow .15s}
+  .card-hover:hover{background:#222222}
+  .metric-num{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:28px;color:#E2E8F0;letter-spacing:-.02em}
+  .input,.select,.textarea{background:#222222;border:1px solid #333333;color:#E2E8F0;border-radius:10px;padding:8px 12px;font-size:14px;width:100%;transition:border .15s,box-shadow .15s}
+  .input:focus,.select:focus,.textarea:focus{outline:none;border-color:#D97706;box-shadow:0 0 0 2px rgba(217,119,6,.15)}
+  .input::placeholder,.textarea::placeholder{color:#6B7280}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:12px;font-size:13px;font-weight:600;transition:all .15s;cursor:pointer}
+  .btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none!important;transform:none!important}
+  .btn-primary{background:#D97706;color:#000}.btn-primary:hover{background:#F59E0B;box-shadow:0 0 20px rgba(217,119,6,.35)}
+  .btn-ghost{background:transparent;color:#9CA3AF;border:1px solid #2A2A2A}.btn-ghost:hover{background:#1A1A1A;color:#E2E8F0}
+  .btn-surface{background:#222222;color:#E2E8F0;border:1px solid #2A2A2A}.btn-surface:hover{background:#2A2A2A}
+  .btn-danger{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.3)}.btn-danger:hover{background:rgba(239,68,68,.25)}
+  .btn-success{background:rgba(74,222,128,.15);color:#4ADE80;border:1px solid rgba(74,222,128,.3)}.btn-success:hover{background:rgba(74,222,128,.25)}
+  .btn-sm{padding:5px 10px;font-size:11px}
+  .stat-chip{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;background:#1A1A1A;border:1px solid #2A2A2A}
+  table.tbl{width:100%;border-collapse:separate;border-spacing:0}
+  table.tbl thead th{background:#1A1A1A;border-bottom:1px solid #2A2A2A;padding:10px 14px;text-align:left;font-size:11px;color:#9CA3AF;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+  table.tbl tbody td{padding:12px 14px;border-bottom:1px solid #2A2A2A;font-size:13px}
+  table.tbl tbody tr:hover td{background:rgba(217,119,6,.05)}
+  table.tbl tbody tr{cursor:pointer}
+  .modal-overlay{background:#000a;backdrop-filter:blur(4px)}
+  .markdown{font-size:13px;color:#E2E8F0;line-height:1.6;white-space:pre-wrap;font-family:'JetBrains Mono',monospace}
+  /* Simulações: conversa estilo WhatsApp + análise de copy */
+  .sim-thread{background:#0A0A0A;background-image:radial-gradient(rgba(217,119,6,.05) 1px,transparent 1px);background-size:18px 18px}
+  .sim-bubble{padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.55;color:#E2E8F0;overflow-wrap:anywhere}
+  .sim-lead{background:#222222;border:1px solid #2A2A2A;border-top-left-radius:4px}
+  .sim-agent{background:rgba(217,119,6,.13);border:1px solid rgba(217,119,6,.35);border-top-right-radius:4px}
+  .sim-agent.sim-bad{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.3)}
+  .sim-system{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(217,119,6,.35);font-family:'JetBrains Mono',monospace;font-size:11px;color:#9CA3AF}
+  .sim-system span{color:#6B7280}
+  .sim-infl{border-left:3px solid #D97706;background:rgba(217,119,6,.06);border-radius:0 12px 12px 0;padding:12px 16px}
+  .sim-result{border:1px solid rgba(74,222,128,.3);background:rgba(74,222,128,.05);border-radius:12px;padding:12px 16px}
+  .sim-chip{font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:2px 8px;border-radius:100px;border:1px solid #2A2A2A;color:#9CA3AF;background:#141414;white-space:nowrap}
+  .sim-chip-ok{color:#4ADE80;border-color:rgba(74,222,128,.3)}
+  .sim-chip-warn{color:#FBBF24;border-color:rgba(251,191,36,.35)}
+  .sim-chip-bad{color:#fca5a5;border-color:rgba(239,68,68,.4)}
+  mark.sim-hit{background:rgba(239,68,68,.25);color:#fecaca;border-bottom:2px solid #EF4444;border-radius:2px;padding:0 1px}
+</style>
+</head>
+<body class="bg-bg text-ink">
+<div class="flex min-h-screen">
+  <!-- =========== SIDEBAR =========== -->
+  <aside class="w-60 flex-shrink-0 bg-bg-alt border-r border-line flex flex-col">
+    <div class="p-5 border-b border-line">
+      <img src="assets/zxlab-logo.svg" alt="ZX LAB" class="h-10 w-auto">
+    </div>
+    <nav class="flex-1 overflow-y-auto scrollbar p-3 space-y-6">
+      <div>
+        <div class="label px-2 mb-2">Hub executivo</div>
+        <div class="space-y-1">
+          <a href="#/dashboard" class="nav-link" data-route="dashboard"><span class="nav-bar"></span>📊 Dashboard</a>
+        </div>
+      </div>
+      <div>
+        <div class="label px-2 mb-2 flex items-center gap-1"><span class="pulse-dot status-active"></span> CRM Comercial</div>
+        <div class="space-y-1">
+          <a href="#/leads" class="nav-link active" data-route="leads"><span class="nav-bar"></span>🎯 Leads</a>
+          <a href="#/outreach" class="nav-link" data-route="outreach"><span class="nav-bar"></span>💬 Prospecção Fria</a>
+          <a href="#/simulations" class="nav-link" data-route="simulations"><span class="nav-bar"></span>🧪 Simulações</a>
+          <a href="#/clients" class="nav-link" data-route="clients"><span class="nav-bar"></span>💼 Clientes</a>
+          <a href="#/agenda" class="nav-link" data-route="agenda"><span class="nav-bar"></span>📅 Agenda</a>
+        </div>
+      </div>
+      <div>
+        <div class="label px-2 mb-2">Pessoas</div>
+        <div class="space-y-1">
+          <a href="#/team" class="nav-link" data-route="team"><span class="nav-bar"></span>👥 Equipe</a>
+          <a href="#/packages" class="nav-link" data-route="packages"><span class="nav-bar"></span>📦 Pacotes</a>
+        </div>
+      </div>
+      <div>
+        <div class="label px-2 mb-2">Financeiro</div>
+        <div class="space-y-1">
+          <a href="#/financial" class="nav-link" data-route="financial"><span class="nav-bar"></span>📈 Dashboard</a>
+          <a href="#/invoices" class="nav-link" data-route="invoices"><span class="nav-bar"></span>💰 Cobranças</a>
+          <a href="#/costs" class="nav-link" data-route="costs"><span class="nav-bar"></span>💸 Custos</a>
+          <a href="#/prenotes" class="nav-link" data-route="prenotes"><span class="nav-bar"></span>🧾 Pré-notas</a>
+        </div>
+      </div>
+    </nav>
+    <div class="p-3 border-t border-line">
+      <div class="flex items-center gap-2 text-xs text-ink-dim"><span class="pulse-dot status-active"></span>Sistema ativo</div>
+      <p class="text-[10px] text-ink-mute mt-1 mono">localhost:3001</p>
+    </div>
+  </aside>
+
+  <!-- =========== MAIN =========== -->
+  <main class="flex-1 overflow-x-hidden">
+    <header class="border-b border-line bg-bg-alt/40 backdrop-blur sticky top-0 z-10">
+      <div class="px-8 py-4 flex items-center gap-6">
+        <div class="flex-1">
+          <p class="eyebrow" id="page-eyebrow">CRM · Comercial</p>
+          <h1 class="head text-xl mt-0.5" id="page-title">Leads</h1>
+        </div>
+        <div class="flex items-center gap-3" id="page-actions"></div>
+      </div>
+      <div class="px-8 pb-4 flex flex-wrap gap-2" id="stats-bar"><span class="text-ink-dim text-sm">Carregando…</span></div>
+    </header>
+    <div id="route-view" class="p-8"></div>
+  </main>
+</div>
+
+<!-- ============ MODAL HOST ============ -->
+<div id="modal-host"></div>
+
+<!-- ============ LEAD DETAIL PANEL ============ -->
+<div id="panel-backdrop" class="hidden fixed inset-0 modal-overlay z-20" onclick="closePanel()"></div>
+<aside id="panel" class="hidden fixed top-0 right-0 h-full w-full max-w-2xl bg-surface border-l border-line z-30 overflow-y-auto scrollbar">
+  <div class="sticky top-0 bg-surface border-b border-line px-6 py-4 flex items-center justify-between">
+    <div><p class="eyebrow">Lead</p><h2 id="panel-title" class="head text-lg mt-0.5">—</h2></div>
+    <button onclick="closePanel()" class="text-ink-dim hover:text-ink text-3xl leading-none">×</button>
+  </div>
+  <div class="p-6 space-y-6" id="panel-body"></div>
+</aside>
+
+<script>
+// =============================================================
+// SHARED STATE & UTILS
+// =============================================================
+const STATUS_LABELS={active:'Ativo',responded:'Respondeu',cold:'Frio',exhausted:'Esgotado',meeting_scheduled:'Reunião agendada',needs_review:'Precisa revisão',skipped:'Pulado'};
+const MEETING_STATUS_LABELS={scheduled:'Agendada',confirmed:'Confirmada',completed:'Realizada',cancelled:'Cancelada',no_show:'No-show'};
+const OUTCOME_LABELS={reuniao_agendada:'Reunião agendada',cliente_convertido:'Cliente convertido',proposta_aceita:'Proposta aceita',proposta_recusada:'Proposta recusada',no_show:'No-show'};
+const OUTCOME_ICONS={reuniao_agendada:'📅',cliente_convertido:'💼',proposta_aceita:'✓',proposta_recusada:'✗',no_show:'👻'};
+const CLIENT_STATUS_LABELS={ativo:'Ativo',em_risco:'Em risco',pausado:'Pausado',churn:'Churn'};
+const ROLE_LABELS={vendedor:'Vendedor',conta:'Gestor de conta',trafego:'Tráfego',edicao:'Edição',social:'Social media',gestor:'Gestor',outro:'Outro'};
+const BILLING_LABELS={mensal:'Mensal',unico:'Pagamento único',personalizado:'Personalizado'};
+const INVOICE_STATUS_LABELS={pendente:'Pendente',pago:'Pago',atrasado:'Atrasado',cancelado:'Cancelado'};
+const COST_CAT_LABELS={equipe:'Equipe',assinatura:'Assinatura',imposto:'Imposto',marketing:'Marketing',infraestrutura:'Infraestrutura',outro:'Outro'};
+const RECURRENCE_LABELS={mensal:'Mensal',anual:'Anual',unico:'Único'};
+
+let LEADS=[], CLIENTS=[], TEAM=[], PACKAGES=[], INVOICES=[], COSTS=[], PRENOTES=[];
+let LAST_PATTERNS=null;
+
+async function fetchJson(url,opts={}){const r=await fetch(url,opts);if(!r.ok){const t=await r.json().catch(()=>({error:r.statusText}));throw new Error(t.error||r.status);}return r.json();}
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtDate(iso){if(!iso)return'—';return new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}
+function fmtDateTime(iso){return fmtDate(iso);}
+function fmtDateOnly(iso){if(!iso)return'—';return new Date(iso).toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});}
+function fmtShortDate(iso){if(!iso)return'—';const[y,m,d]=iso.slice(0,10).split('-');return`${d}/${m}/${y}`;}
+function todayInput(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function thisMonth(){return new Date().toISOString().slice(0,7);}
+function brl(v){return(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function lastAction(lead){if(lead.responded&&lead.responded_at)return`Resp. ${fmtDate(lead.responded_at)}`;if(lead.history?.length){const last=lead.history[lead.history.length-1];return`T${last.touch} ${fmtDate(last.sent_at)}`;}return'—';}
+function outcomeBadge(o){if(!o)return'<span class="text-ink-mute text-xs">—</span>';return `<span class="badge outcome-${o}">${OUTCOME_ICONS[o]||''} ${OUTCOME_LABELS[o]||o}</span>`;}
+function meetingBadge(m){if(!m||!m.scheduled_at)return'<span class="text-ink-mute text-xs">—</span>';const icon=m.status==='confirmed'?'✓':m.status==='cancelled'?'✗':'📅';return `<span class="badge badge-meeting">${icon} ${fmtDateTime(m.scheduled_at)}</span>`;}
+function clientStatusBadge(s){const cls={ativo:'badge-ok',em_risco:'badge-warn',pausado:'badge-accent',churn:'badge-bad'}[s]||'badge-neutral';return `<span class="badge ${cls}"><span class="pulse-dot status-${s}"></span> ${CLIENT_STATUS_LABELS[s]||s}</span>`;}
+function invoiceStatusBadge(s){const cls={pendente:'badge-neutral',pago:'badge-ok',atrasado:'badge-bad',cancelado:'badge-neutral'}[s]||'badge-neutral';return `<span class="badge ${cls}">${INVOICE_STATUS_LABELS[s]||s}</span>`;}
+
+// =============================================================
+// MODAL HELPER
+// =============================================================
+function showModal(html,opts={}){
+  const host=document.getElementById('modal-host');
+  host.innerHTML=`
+    <div class="fixed inset-0 modal-overlay z-40" onclick="closeModal()"></div>
+    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full ${opts.size||'max-w-md'} card z-50 overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
+      ${html}
+    </div>
+  `;
+}
+function closeModal(){document.getElementById('modal-host').innerHTML='';}
+
+// =============================================================
+// ROUTING
+// =============================================================
+const ROUTES={
+  '/dashboard':{eyebrow:'Hub executivo',title:'Dashboard',actions:[],render:renderDashboard},
+  '/leads':{eyebrow:'CRM · Comercial',title:'Leads',actions:[
+    {label:'📅 Agenda',fn:'openAgenda',cls:'btn-ghost'},
+    {label:'📊 Padrões',fn:'openPatterns',cls:'btn-ghost'},
+  ],render:renderLeads},
+  '/outreach':{eyebrow:'CRM · Comercial',title:'Prospecção Fria',actions:[
+    {label:'↻ Atualizar',fn:'renderOutreachRoute',cls:'btn-ghost'},
+  ],render:renderOutreach},
+  '/simulations':{eyebrow:'CRM · Comercial',title:'Simulações de atendimento',actions:[
+    {label:'↻ Recarregar',fn:'renderSimulationsRoute',cls:'btn-ghost'},
+  ],render:renderSimulations},
+  '/clients':{eyebrow:'CRM · Comercial',title:'Clientes',actions:[
+    {label:'+ Novo cliente',fn:'openClientForm',cls:'btn-primary'},
+  ],render:renderClients},
+  '/agenda':{eyebrow:'CRM · Comercial',title:'Agenda',actions:[],render:renderAgendaPage},
+  '/team':{eyebrow:'Pessoas',title:'Equipe',actions:[
+    {label:'+ Adicionar membro',fn:'openTeamForm',cls:'btn-primary'},
+  ],render:renderTeam},
+  '/packages':{eyebrow:'Pessoas',title:'Pacotes',actions:[
+    {label:'+ Novo pacote',fn:'openPackageForm',cls:'btn-primary'},
+  ],render:renderPackages},
+  '/financial':{eyebrow:'Financeiro',title:'Dashboard financeiro',actions:[],render:renderFinancial},
+  '/invoices':{eyebrow:'Financeiro',title:'Cobranças',actions:[],render:renderInvoices},
+  '/costs':{eyebrow:'Financeiro',title:'Custos',actions:[
+    {label:'+ Lançar custo',fn:'openCostForm',cls:'btn-primary'},
+  ],render:renderCosts},
+  '/prenotes':{eyebrow:'Financeiro',title:'Pré-notas',actions:[
+    {label:'+ Gerar pré-nota',fn:'openPrenoteForm',cls:'btn-primary'},
+  ],render:renderPrenotes},
+};
+
+function activateRoute(){
+  const hash=location.hash.replace(/^#/,'')||'/leads';
+  const r=ROUTES[hash]||ROUTES['/leads'];
+  document.querySelectorAll('.nav-link').forEach(a=>a.classList.toggle('active',a.getAttribute('href')===`#${hash}`));
+  document.getElementById('page-eyebrow').textContent=r.eyebrow;
+  document.getElementById('page-title').textContent=r.title;
+  document.getElementById('page-actions').innerHTML=(r.actions||[]).map(a=>`<button class="btn ${a.cls}" onclick="${a.fn}()">${a.label}</button>`).join('');
+  const view=document.getElementById('route-view');
+  view.innerHTML='<p class="text-ink-dim">Carregando…</p>';
+  Promise.resolve(r.render(view)).catch(err=>view.innerHTML=`<p class="text-bad">Erro: ${err.message}</p>`);
+}
+window.addEventListener('hashchange',activateRoute);
+
+// =============================================================
+// STATS BAR (global no header)
+// =============================================================
+async function renderStats(){
+  try{
+    const stats=await fetchJson('/api/stats');
+    const bar=document.getElementById('stats-bar');
+    bar.innerHTML=`
+      <span class="stat-chip"><span class="pulse-dot status-active"></span><strong class="mono">${stats.active||0}</strong><span class="text-ink-dim">ativos</span></span>
+      <span class="stat-chip"><span class="pulse-dot status-responded"></span><strong class="mono">${stats.responded||0}</strong><span class="text-ink-dim">responderam</span></span>
+      <span class="stat-chip"><span class="pulse-dot status-meeting_scheduled"></span><strong class="mono">${stats.meeting_scheduled||0}</strong><span class="text-ink-dim">reuniões</span></span>
+      <span class="stat-chip"><span class="pulse-dot status-cold"></span><strong class="mono">${stats.cold||0}</strong><span class="text-ink-dim">frios</span></span>
+      <span class="stat-chip"><span class="pulse-dot status-exhausted"></span><strong class="mono">${stats.exhausted||0}</strong><span class="text-ink-dim">esgotados</span></span>
+      <span class="stat-chip"><span class="text-ink-dim">Total</span><strong class="mono">${stats.total||0}</strong></span>
+    `;
+  }catch(err){document.getElementById('stats-bar').innerHTML=`<span class="text-bad text-sm">${err.message}</span>`;}
+}
+
+// =============================================================
+// DATA LOADERS
+// =============================================================
+async function loadLeads(){LEADS=await fetchJson('/api/leads');}
+async function loadClients(){CLIENTS=await fetchJson('/api/clients');}
+async function loadTeam(){TEAM=await fetchJson('/api/team');}
+async function loadPackages(){PACKAGES=await fetchJson('/api/packages');}
+async function loadInvoices(qs=''){INVOICES=await fetchJson('/api/invoices'+qs);}
+async function loadCosts(){COSTS=await fetchJson('/api/costs');}
+async function loadPrenotes(qs=''){PRENOTES=await fetchJson('/api/prenotes'+qs);}
+
+// =============================================================
+// VIEW: DASHBOARD EXECUTIVO
+// =============================================================
+async function renderDashboard(view){
+  view.innerHTML='<p class="text-ink-dim">Carregando dashboard…</p>';
+  const d=await fetchJson('/api/dashboard/executive');
+  view.innerHTML=`
+    <div class="space-y-6">
+      <div class="grid grid-cols-4 gap-4">
+        <div class="card p-5"><p class="label">Leads ativos</p><p class="metric-num mt-3">${d.leads.active}</p><p class="text-xs text-ink-mute mt-1">${d.leads.responded} responderam</p></div>
+        <div class="card p-5"><p class="label">Reuniões agendadas</p><p class="metric-num mt-3 text-accent-light">${d.leads.meeting_scheduled}</p><p class="text-xs text-ink-mute mt-1">próximas chamadas</p></div>
+        <div class="card p-5"><p class="label">Clientes ativos</p><p class="metric-num mt-3">${d.clients.active}</p><p class="text-xs text-ink-mute mt-1">${d.clients.at_risk} em risco · ${d.clients.churn} churn</p></div>
+        <div class="card p-5"><p class="label">MRR (estimado)</p><p class="metric-num mt-3 text-accent-light">${brl(d.finance.mrr)}</p><p class="text-xs text-ink-mute mt-1">receita mensal recorrente</p></div>
+      </div>
+      <div class="grid grid-cols-4 gap-4">
+        <div class="card p-5"><p class="label">Custo total mensal</p><p class="metric-num mt-3">${brl(d.finance.total_cost_monthly)}</p></div>
+        <div class="card p-5"><p class="label">EBITDA (estimado)</p><p class="metric-num mt-3 ${d.finance.ebitda_estimated>=0?'text-ok':'text-bad'}">${brl(d.finance.ebitda_estimated)}</p><p class="text-xs text-ink-mute mt-1">MRR − Custo</p></div>
+        <div class="card p-5"><p class="label">CAC (estimado)</p><p class="metric-num mt-3">${brl(d.finance.cac_estimated)}</p><p class="text-xs text-ink-mute mt-1">custo / cliente ativo</p></div>
+        <div class="card p-5"><p class="label">A receber / atraso</p><p class="metric-num mt-3 text-accent-light">${brl(d.finance.pending_revenue)}</p><p class="text-xs ${d.finance.overdue_revenue>0?'text-bad':'text-ink-mute'} mt-1">${brl(d.finance.overdue_revenue)} em atraso</p></div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="card p-5">
+          <p class="label mb-3">Contas em risco</p>
+          <div id="dash-at-risk" class="text-sm">Carregando…</div>
+        </div>
+        <div class="card p-5">
+          <p class="label mb-3">Próximas reuniões</p>
+          <div id="dash-meetings" class="text-sm">Carregando…</div>
+        </div>
+      </div>
+      <div class="card p-5">
+        <p class="label mb-3">Ações rápidas</p>
+        <div class="flex flex-wrap gap-2">
+          <button class="btn btn-primary" onclick="location.hash='#/clients';setTimeout(openClientForm,100)">+ Novo cliente</button>
+          <button class="btn btn-ghost" onclick="openCostForm()">+ Lançar custo</button>
+          <button class="btn btn-ghost" onclick="openTeamForm()">+ Adicionar membro</button>
+          <button class="btn btn-ghost" onclick="openPackageForm()">+ Novo pacote</button>
+          <button class="btn btn-ghost" onclick="openPrenoteForm()">+ Pré-nota</button>
+        </div>
+      </div>
+    </div>
+  `;
+  // Carrega contas em risco
+  const cli=await fetchJson('/api/clients');
+  CLIENTS=cli;
+  const risk=cli.filter(c=>c.status==='em_risco');
+  document.getElementById('dash-at-risk').innerHTML=risk.length
+    ? risk.map(c=>`<div class="flex items-center justify-between py-2 border-b border-line last:border-0"><span class="text-ink">${escapeHtml(c.name)}</span>${clientStatusBadge(c.status)}</div>`).join('')
+    : '<p class="text-ink-mute italic">Tudo sob controle. Nenhum cliente em risco.</p>';
+  // Próximas reuniões
+  const meetings=await fetchJson('/api/meetings');
+  const upcoming=meetings.filter(m=>m.meeting.scheduled_at>=new Date().toISOString()).slice(0,5);
+  document.getElementById('dash-meetings').innerHTML=upcoming.length
+    ? upcoming.map(m=>`<div class="flex items-center justify-between py-2 border-b border-line last:border-0"><div><div class="text-ink">${escapeHtml(m.marca||m.name||m.id)}</div><div class="text-xs text-ink-mute mono">${fmtDateTime(m.meeting.scheduled_at)}</div></div><span class="badge badge-meeting">${MEETING_STATUS_LABELS[m.meeting.status]||m.meeting.status}</span></div>`).join('')
+    : '<p class="text-ink-mute italic">Sem reuniões agendadas.</p>';
+}
+
+// =============================================================
+// VIEW: LEADS (Fase 1 mantida)
+// =============================================================
+async function renderLeads(view){
+  view.innerHTML=`
+    <div class="space-y-4">
+      <div class="card p-4 flex flex-wrap items-center gap-3">
+        <input id="search" type="text" placeholder="Buscar..." class="input flex-1 min-w-64">
+        <select id="filter-status" class="select w-auto">
+          <option value="">Todos os status</option>
+          <option value="active">Ativos</option><option value="responded">Responderam</option>
+          <option value="meeting_scheduled">Reunião agendada</option><option value="cold">Frios</option><option value="exhausted">Esgotados</option>
+        </select>
+        <select id="filter-touch" class="select w-auto">
+          <option value="">Todos os toques</option>
+          ${[1,2,3,4,5,6].map(n=>`<option value="${n}">Toque ${n}</option>`).join('')}
+        </select>
+        <select id="filter-outcome" class="select w-auto">
+          <option value="">Todos os resultados</option><option value="_any">Com resultado</option>
+          ${Object.entries(OUTCOME_LABELS).map(([k,v])=>`<option value="${k}">${OUTCOME_ICONS[k]} ${v}</option>`).join('')}
+        </select>
+        <button id="refresh-leads" class="btn btn-ghost">↻ Atualizar</button>
+      </div>
+      <div class="card overflow-hidden">
+        <div class="overflow-x-auto scrollbar">
+          <table class="tbl">
+            <thead><tr><th>Status</th><th>Marca</th><th>Contato</th><th>Telefone</th><th>Categoria</th><th class="text-center">Toque</th><th>Última ação</th><th>Reunião</th><th>Resultado</th><th class="text-center">Notas</th></tr></thead>
+            <tbody id="leads-body"><tr><td colspan="10" class="text-center text-ink-dim py-8">Carregando…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="empty-state" class="hidden text-center text-ink-dim py-8">Nenhum lead encontrado.</div>
+    </div>
+  `;
+  ['search','filter-status','filter-touch','filter-outcome'].forEach(id=>document.getElementById(id).addEventListener(id==='search'?'input':'change',renderLeadsTable));
+  document.getElementById('refresh-leads').addEventListener('click',async()=>{await loadLeads();renderLeadsTable();});
+  await loadLeads();renderLeadsTable();
+}
+function renderLeadsTable(){
+  const tbody=document.getElementById('leads-body');if(!tbody)return;
+  const search=document.getElementById('search')?.value.toLowerCase().trim()||'';
+  const fStatus=document.getElementById('filter-status')?.value||'';
+  const fTouch=document.getElementById('filter-touch')?.value||'';
+  const fOutcome=document.getElementById('filter-outcome')?.value||'';
+  let rows=LEADS.filter(l=>{
+    if(fStatus&&l.status!==fStatus)return false;
+    if(fTouch&&l.current_touch!==Number(fTouch))return false;
+    if(fOutcome==='_any'&&!l.outcome)return false;
+    if(fOutcome&&fOutcome!=='_any'&&l.outcome!==fOutcome)return false;
+    if(search){const blob=`${l.name||''} ${l.marca||''} ${l.phone||''}`.toLowerCase();if(!blob.includes(search))return false;}
+    return true;
+  });
+  rows.sort((a,b)=>{if(a.status!==b.status){const o={meeting_scheduled:0,active:1,responded:2,needs_review:3,cold:4,skipped:5,exhausted:6};return(o[a.status]??9)-(o[b.status]??9);}const aDate=a.history?.[a.history.length-1]?.sent_at||a.first_contact_date||'';const bDate=b.history?.[b.history.length-1]?.sent_at||b.first_contact_date||'';return bDate.localeCompare(aDate);});
+  if(!rows.length){tbody.innerHTML='';document.getElementById('empty-state').classList.remove('hidden');return;}
+  document.getElementById('empty-state').classList.add('hidden');
+  tbody.innerHTML=rows.map(l=>`
+    <tr onclick="openPanel('${l.id}')">
+      <td><span class="pulse-dot status-${l.status||'cold'}"></span> <span class="ml-1 text-xs text-ink-dim">${STATUS_LABELS[l.status]||l.status||'-'}</span></td>
+      <td class="font-medium">${escapeHtml(l.marca||'-')}</td>
+      <td class="text-ink-dim">${escapeHtml(l.name||'—')}</td>
+      <td class="text-ink-dim mono text-xs">${l.phone||'-'}</td>
+      <td class="text-ink-dim">${escapeHtml(l.category||'—')}</td>
+      <td class="text-center"><span class="badge badge-neutral mono">${l.current_touch??0}</span></td>
+      <td class="text-ink-dim text-xs">${lastAction(l)}</td>
+      <td>${meetingBadge(l.meeting)}</td>
+      <td>${outcomeBadge(l.outcome)}</td>
+      <td class="text-center text-ink-mute text-xs">${l.annotations?.length||0}</td>
+    </tr>
+  `).join('');
+}
+
+// =============================================================
+// VIEW: ABORDAGENS E FOLLOW-UPS
+// =============================================================
+let _outreachLeadId=null;
+function fmtSecs(s){if(s==null)return'';s=Math.round(s);return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;}
+// Texto de uma resposta do lead; áudio transcrito vira o texto, marcado como transcrição.
+function leadMsgText(r){
+  if(r?.media==='audio'&&r.transcript?.text)return `[áudio ${fmtSecs(r.transcript.duration)}, transcrição automática${r.transcript.reliable?'':' com baixa confiança'}] ${r.transcript.text}`;
+  return r?.message||'';
+}
+
+async function renderOutreach(view){
+  view.innerHTML='Carregando…';
+  const [status,responses,autoMode,flagged,rules]=await Promise.all([
+    fetchJson('/api/evolution/status').catch(()=>({connected:false,state:'erro',managerUrl:'#'})),
+    fetchJson('/api/responses').catch(()=>[]),
+    fetchJson('/api/auto-mode').catch(()=>({enabled:false,paused_leads:[]})),
+    fetchJson('/api/flagged-auto-replies').catch(()=>[]),
+    fetchJson('/api/booking-rules').catch(()=>({require_qualification:false})),
+  ]);
+  window._bookingRules=rules;
+  await loadLeads();
+  window._outreachResponses=responses;
+  window._autoMode=autoMode;
+  const active=LEADS.filter(l=>['active','responded','needs_review'].includes(l.status));
+  view.innerHTML=`
+    <div class="space-y-4">
+      <div class="card p-4 flex items-center justify-between flex-wrap gap-3">
+        <div class="flex items-center gap-2">
+          <span class="pulse-dot ${status.connected?'status-active':'status-exhausted'}"></span>
+          <span class="text-sm text-ink">${status.connected?'WhatsApp conectado':'WhatsApp desconectado'}</span>
+          <span class="text-xs text-ink-mute mono">(${escapeHtml(status.state||'—')} · instância ${escapeHtml(status.instance||'—')})</span>
+        </div>
+        ${status.connected?'':`<a href="${status.managerUrl}" target="_blank" class="btn btn-ghost btn-sm">↻ Reprovisionar no painel da Evolution →</a>`}
+      </div>
+
+      <div class="card p-4 flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="head text-sm">🤖 Modo automático</span>
+            <span class="badge ${autoMode.enabled?'badge-ok':'badge-neutral'}">${autoMode.enabled?'Ligado':'Desligado'}</span>
+          </div>
+          <p class="text-xs text-ink-mute mt-1 max-w-lg">Continua a conversa sozinho depois da resposta do lead e agenda a call direto quando ele confirmar. Filtra mensagem automática por padrão antes de responder. Exige o <b>Claude Code CLI</b> instalado à parte do app Desktop (<span class="mono">npm install -g @anthropic-ai/claude-code</span> + <span class="mono">claude login</span>).</p>
+          <p class="text-xs text-ink-mute mt-1 max-w-lg">Também muda o texto dos toques 2 a 6: em vez de pedir uma ligação, eles convidam o lead a responder, porque a partir da resposta é o próprio BDR que conduz até o horário.</p>
+        </div>
+        <button onclick="toggleAutoMode()" class="btn ${autoMode.enabled?'btn-danger':'btn-primary'}">${autoMode.enabled?'Desligar':'Ligar modo automático'}</button>
+        <div class="w-full border-t border-line pt-3 flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="head text-sm">🎙 Responder áudios</span>
+              <span class="badge ${autoMode.audio_auto_reply&&autoMode.transcription_enabled?'badge-ok':'badge-neutral'}">${!autoMode.transcription_enabled?'Transcrição desligada':autoMode.audio_auto_reply?'Ligado':'Desligado'}</span>
+            </div>
+            <p class="text-xs text-ink-mute mt-1 max-w-lg">${autoMode.transcription_enabled
+              ?'Com isso ligado, o modo automático continua a conversa a partir do áudio transcrito. Transcrição com baixa confiança, ou com dia e hora duvidosos, sempre vem pra você. Desligado, todo áudio vem pra você com a transcrição anexada.'
+              :'A transcrição de áudio está desligada: todo áudio vem pra você ouvir. Pra ligar, veja <span class="mono">docs/transcricao-audio.md</span>.'}</p>
+          </div>
+          <button onclick="toggleAudioAutoReply()" class="btn btn-ghost btn-sm" ${autoMode.transcription_enabled?'':'disabled'}>${autoMode.audio_auto_reply?'Desligar':'Ligar'}</button>
+        </div>
+        <div class="w-full border-t border-line pt-3">
+          ${autoMode.enabled?`
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="head text-sm">🎯 Qualificar antes de agendar</span>
+                <span class="badge ${rules.require_qualification?'badge-ok':'badge-neutral'}">${rules.require_qualification?'Ligado':'Desligado'}</span>
+              </div>
+              <p class="text-xs text-ink-mute mt-1 max-w-lg">O BDR só propõe horário e só agenda depois de saber o <b>faturamento</b> do negócio e <b>quem decide</b>, ditos pelo próprio lead.</p>
+              <div class="flex items-center gap-2 mt-2 flex-wrap">
+                <span class="text-xs text-ink-dim">Faturamento mínimo pra call:</span>
+                <input id="br-min" class="input" style="width:220px;padding:5px 10px;font-size:12px" placeholder="sem mínimo (ex.: 1 milhão por ano)" value="${rules.min_label?escapeHtml(rules.min_label):''}">
+                <button onclick="saveMinRevenue()" class="btn btn-ghost btn-sm">Salvar</button>
+                <span id="br-msg" class="text-xs"></span>
+              </div>
+            </div>
+            <button onclick="toggleQualification()" class="btn ${rules.require_qualification?'btn-danger':'btn-primary'}">${rules.require_qualification?'Desligar':'Ligar'}</button>
+          </div>`:`
+          <p class="text-xs text-ink-mute max-w-lg">🎯 <b class="text-ink-dim">Qualificar antes de agendar</b> fica disponível aqui assim que o modo automático estiver ligado: com ele, o BDR passa a só marcar call depois de saber o faturamento do negócio e quem decide.</p>`}
+        </div>
+      </div>
+
+      ${flagged.length?`
+      <div class="card p-4" style="border-color:rgba(251,191,36,.35)">
+        <p class="label mb-3">⚠ Prováveis mensagens automáticas (${flagged.length}) — não respondidas pelo bot</p>
+        <div class="space-y-2">
+          ${flagged.map((f,i)=>`
+            <div class="flex items-center justify-between gap-3 text-xs border-b border-line pb-2 last:border-0 last:pb-0">
+              <div class="min-w-0"><span class="text-ink font-medium">${escapeHtml(f.lead_id)}</span> — <span class="text-ink-dim">${escapeHtml((f.message||'').slice(0,90))}</span>
+                <div class="text-ink-mute mt-0.5">${(f.reasons||[]).join('; ')}</div>
+              </div>
+              <button onclick="dismissFlagged(${i})" class="btn btn-ghost btn-sm flex-shrink-0">Dispensar</button>
+            </div>
+          `).join('')}
+        </div>
+      </div>` : ''}
+
+      <div class="card overflow-hidden">
+        <div class="overflow-x-auto scrollbar">
+          <table class="tbl">
+            <thead><tr><th>Status</th><th>Marca</th><th>Contato</th><th>Último toque</th><th>Última resposta do lead</th>${autoMode.enabled?'<th class="text-center">Auto</th>':''}<th></th></tr></thead>
+            <tbody>
+              ${active.length===0?`<tr><td colspan="7" class="text-center text-ink-dim py-8">Nenhuma prospecção ativa no momento.</td></tr>`:active.map(l=>{
+                const lastOut=(l.history||[])[l.history.length-1];
+                const leadResponses=responses.filter(r=>r.lead_id===l.id);
+                const lastIn=leadResponses[leadResponses.length-1];
+                const paused=autoMode.paused_leads.includes(l.id);
+                return `
+                <tr onclick="openOutreachCompose('${l.id}')">
+                  <td><span class="pulse-dot status-${l.status||'cold'}"></span> <span class="ml-1 text-xs text-ink-dim">${STATUS_LABELS[l.status]||l.status||'-'}</span></td>
+                  <td class="font-medium text-ink">${escapeHtml(l.marca||'-')}</td>
+                  <td class="text-ink-dim text-xs">${escapeHtml(l.name||'—')}<br class="hidden sm:block">${l.phone||''}</td>
+                  <td class="text-ink-dim text-xs">${lastOut?`Toque ${lastOut.touch} · ${fmtDate(lastOut.sent_at)}`:'—'}</td>
+                  <td class="text-ink-dim text-xs">${lastIn?(lastIn.media==='audio'?`🎙 ${lastIn.transcript?.text?escapeHtml(lastIn.transcript.text.slice(0,56)):`<span class="text-ink-mute italic">${lastIn.transcript?escapeHtml(lastIn.transcript.reason||'transcrição falhou'):'áudio sem transcrição'}</span>`}`:escapeHtml((lastIn.message||'').slice(0,60))):'<span class="text-ink-mute italic">sem registro</span>'}</td>
+                  ${autoMode.enabled?`<td class="text-center" onclick="event.stopPropagation()">
+                    <button onclick="toggleLeadAutoMode('${l.id}',${paused})" class="badge ${paused?'badge-neutral':'badge-ok'}">${paused?'Pausado':'Ativo'}</button>
+                  </td>`:''}
+                  <td class="text-right"><button onclick="event.stopPropagation();openOutreachCompose('${l.id}')" class="btn btn-primary btn-sm">💬 Abordar</button></td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+function renderOutreachRoute(){ renderOutreach(document.getElementById('route-view')); }
+
+async function toggleAutoMode(){
+  const current=window._autoMode?.enabled||false;
+  if(!current && !confirm('Ligar o modo automático? O BDR vai responder leads e agendar reuniões sozinho, sem revisão prévia sua. Confirma?'))return;
+  await fetchJson('/api/auto-mode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:!current})});
+  renderOutreachRoute();
+}
+async function toggleQualification(){
+  if(!window._autoMode?.enabled){alert('Ligue o modo automático primeiro.');return;}
+  const current=!!window._bookingRules?.require_qualification;
+  try{
+    await fetchJson('/api/booking-rules',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({require_qualification:!current})});
+  }catch(e){alert(e.message);return;}
+  renderOutreachRoute();
+}
+async function saveMinRevenue(){
+  const v=document.getElementById('br-min').value.trim(),msg=document.getElementById('br-msg');
+  try{
+    const r=await fetchJson('/api/booking-rules',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({min_annual_revenue_text:v})});
+    window._bookingRules=r;document.getElementById('br-min').value=r.min_label||'';
+    msg.textContent=r.min_label?`✓ mínimo: ${r.min_label}`:'✓ sem mínimo';msg.className='text-xs text-ok';
+  }catch(e){msg.textContent=e.message;msg.className='text-xs text-bad';}
+}
+// Espelho do qualificationStatus do servidor (dispatcher/src/qualification.js).
+function qualStatus(q,rules){
+  const rev=q?.revenue,auth=q?.authority;
+  const revenueOk=!!rev?.annual,authorityOk=!!auth&&['decisor','decisor_na_call'].includes(auth.kind);
+  const belowMin=revenueOk&&rules?.min_annual_revenue?rev.annual<rules.min_annual_revenue:false;
+  return {revenueOk,authorityOk,belowMin,ready:revenueOk&&authorityOk&&!belowMin};
+}
+function brlYear(n){if(!n)return'';return n>=1e6?`R$ ${(n/1e6).toLocaleString('pt-BR',{maximumFractionDigits:2})} mi/ano`:`R$ ${Math.round(n/1e3).toLocaleString('pt-BR')} mil/ano`;}
+const AUTH_LABEL={decisor:'fala com quem decide',decisor_na_call:'quem decide vai estar na call',nao_decisor:'quem respondeu não decide'};
+async function saveQualification(id,clear=false){
+  const err=document.getElementById('qf-msg');
+  const body=clear?{clear:true}:{revenue_text:document.getElementById('qf-rev').value,authority_kind:document.getElementById('qf-auth').value||undefined,authority_text:document.getElementById('qf-auth-txt').value};
+  try{
+    await fetchJson(`/api/leads/${id}/qualification`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    closeModal();await openOutreachCompose(id);
+  }catch(e){err.textContent=e.message;err.className='text-xs text-bad mt-2';}
+}
+async function toggleAudioAutoReply(){
+  const current=!!window._autoMode?.audio_auto_reply;
+  if(!current&&!confirm('Deixar o modo automático responder áudios a partir da transcrição? Transcrição duvidosa continua vindo pra você.'))return;
+  await fetchJson('/api/auto-mode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio_auto_reply:!current})});
+  renderOutreachRoute();
+}
+async function toggleLeadAutoMode(id,currentlyPaused){
+  await fetchJson(`/api/leads/${id}/auto-mode`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paused:!currentlyPaused})});
+  renderOutreachRoute();
+}
+async function dismissFlagged(index){
+  await fetchJson(`/api/flagged-auto-replies/${index}/dismiss`,{method:'POST'});
+  renderOutreachRoute();
+}
+
+async function openOutreachCompose(id){
+  await loadLeads();
+  const lead=LEADS.find(l=>l.id===id);if(!lead)return;
+  _outreachLeadId=id;
+  const [status,allResponses,transcription,rules,autoMode]=await Promise.all([
+    fetchJson('/api/evolution/status').catch(()=>({connected:false})),
+    fetchJson('/api/responses').catch(()=>[]),
+    fetchJson('/api/transcription/status').catch(()=>({enabled:false})),
+    fetchJson('/api/booking-rules').catch(()=>({require_qualification:false})),
+    fetchJson('/api/auto-mode').catch(()=>({enabled:false})),
+  ]);
+  window._autoMode=autoMode;
+  const q=lead.qualification||{};
+  const qs=qualStatus(q,rules);
+  // "Qualificar antes de agendar" só existe dentro do modo automático (ver card
+  // na lista). Desligado, nem mostramos o bloco nem pedimos isso na sugestão.
+  const qualBlock=!autoMode.enabled?'':`
+      <div class="card p-3" style="${rules.require_qualification?(qs.ready?'border-color:rgba(74,222,128,.4)':'border-color:rgba(251,191,36,.4)'):''}">
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <p class="label">🎯 Qualificação ${rules.require_qualification?'<span class="text-ink-mute normal-case tracking-normal font-normal">(obrigatória pra agendar)</span>':'<span class="text-ink-mute normal-case tracking-normal font-normal">(opcional)</span>'}</p>
+          ${rules.require_qualification?`<span class="badge ${qs.ready?'badge-ok':'badge-warn'}">${qs.ready?'pode agendar':qs.belowMin?'abaixo do mínimo':'falta qualificar'}</span>`:''}
+        </div>
+        <div class="grid grid-cols-2 gap-3 mt-2 text-sm">
+          <div><span class="${qs.revenueOk?(qs.belowMin?'text-bad':'text-ok'):'text-ink-mute'}">${qs.revenueOk?'✓':'✗'} Faturamento</span><br><span class="text-xs text-ink-dim">${q.revenue?`${brlYear(q.revenue.annual)} · "${escapeHtml(q.revenue.quote)}"${q.revenue.source==='manual'?' (você)':''}`:'não informado pelo lead'}${qs.belowMin&&rules.min_label?` · mínimo ${escapeHtml(rules.min_label)}`:''}</span></div>
+          <div><span class="${qs.authorityOk?'text-ok':'text-ink-mute'}">${qs.authorityOk?'✓':'✗'} Autoridade</span><br><span class="text-xs text-ink-dim">${q.authority?`${AUTH_LABEL[q.authority.kind]||q.authority.kind} · "${escapeHtml(q.authority.quote)}"`:'não informado pelo lead'}</span></div>
+        </div>
+        <details class="mt-2"><summary class="text-xs text-ink-mute cursor-pointer">Registrar você mesmo (ex.: falou por telefone)</summary>
+          <div class="grid grid-cols-2 gap-2 mt-2">
+            <input id="qf-rev" class="input" style="font-size:12px" placeholder="faturamento: ex. 120 mil por mês">
+            <select id="qf-auth" class="select" style="font-size:12px"><option value="">autoridade…</option><option value="decisor">fala com quem decide</option><option value="decisor_na_call">quem decide vai estar na call</option><option value="nao_decisor">quem respondeu não decide</option></select>
+            <input id="qf-auth-txt" class="input col-span-2" style="font-size:12px" placeholder="o que ele disse (opcional)">
+          </div>
+          <div class="flex justify-end gap-2 mt-2"><button onclick="saveQualification('${id}',true)" class="btn btn-ghost btn-sm">Limpar</button><button onclick="saveQualification('${id}')" class="btn btn-surface btn-sm">Salvar qualificação</button></div>
+          <p id="qf-msg" class="hidden"></p>
+        </details>
+      </div>`;
+  const qualPrompt=(autoMode.enabled&&rules.require_qualification)
+    ?`\n\nQUALIFICAÇÃO OBRIGATÓRIA ANTES DE AGENDAR: só proponha horário depois de saber o faturamento do negócio e quem decide, ditos pelo lead.${rules.min_label?` Faturamento mínimo pra call: ${rules.min_label}.`:''} Estado agora: faturamento ${qs.revenueOk?`✓ (${brlYear(q.revenue.annual)})`:'✗'}, autoridade ${qs.authorityOk?'✓':'✗'}. ${qs.ready?'Qualificado: pode propor os 2 horários.':qs.belowMin?'Faturamento abaixo do mínimo: não proponha call, me avise.':'Se faltar algo, a próxima mensagem pergunta o que falta (uma pergunta só, natural, faixa de faturamento em vez de número exato; ver seção 9.3.1 da skill).'}`
+    :'';
+  const responses=allResponses.filter(r=>r.lead_id===id);
+  const timeline=[
+    ...(lead.history||[]).map(h=>({at:h.sent_at,text:`[Você, toque ${h.touch}] ${h.copy}`})),
+    ...responses.map(r=>({at:r.received_at,text:`[Lead] ${leadMsgText(r)}`})),
+  ].sort((a,b)=>(a.at||'').localeCompare(b.at||''));
+  const conversationText=timeline.map(t=>t.text).join('\n')||'(sem histórico ainda)';
+  const audios=responses.filter(r=>r.media==='audio');
+  const hasTranscript=audios.some(r=>r.transcript?.text);
+  const audioBlock=audios.length?`
+      <div>
+        <p class="label mb-2">Áudios do lead (${audios.length})</p>
+        <div class="space-y-2">${audios.map(r=>{
+          const t=r.transcript;
+          const badge=!t?'<span class="badge badge-neutral">sem transcrição</span>':!t.ok?'<span class="badge badge-bad">falhou</span>':t.reliable?`<span class="badge badge-ok">confiável · ${Math.round((t.confidence||0)*100)}%</span>`:`<span class="badge badge-warn">${escapeHtml(t.reason||'baixa confiança')}</span>`;
+          const canRetry=transcription.enabled&&r.media_key&&r.message_id;
+          return `<div class="card p-3 text-sm">
+            <div class="flex items-center justify-between gap-2 flex-wrap"><span class="text-xs text-ink-mute mono">🎙 ${fmtDate(r.received_at)}${t?.duration?` · ${fmtSecs(t.duration)}`:''}</span><div class="flex items-center gap-2">${badge}${canRetry?`<button onclick="transcribeAudio('${id}','${r.message_id}',this)" class="btn btn-ghost btn-sm">${t?'↻ Transcrever de novo':'Transcrever'}</button>`:''}</div></div>
+            ${t?.text?`<p class="text-ink mt-2">${escapeHtml(t.text)}</p>`:t&&!t.ok?`<p class="text-xs text-bad mt-2">${escapeHtml(t.reason||'')}</p>`:''}
+          </div>`;}).join('')}</div>
+        ${!transcription.enabled?'<p class="text-xs text-ink-mute mt-2">Transcrição desligada: ouça no celular. Pra ligar, veja <span class="mono">docs/transcricao-audio.md</span>.</p>':hasTranscript?'<p class="text-xs text-ink-mute mt-2">Transcrição automática pode trocar palavra. Confira nome, número, dia e hora antes de responder.</p>':''}
+      </div>`:'';
+
+  const promptText=`Preciso de uma sugestão de próxima mensagem de WhatsApp pra esse lead. Use a skill BDR deste projeto (.claude/skills/): a seção 9 pra ler a resposta do lead e decidir o próximo passo (qualificar, contornar objeção, propor 2 horários ou encerrar) e a seção 10 (checklist anti-IA) antes de me entregar o texto.
+
+Lead: ${lead.marca||lead.name||id}
+Categoria: ${lead.category||'(sem categoria)'}
+Status atual: ${STATUS_LABELS[lead.status]||lead.status}
+
+Conversa até agora:
+${conversationText}
+
+Me diga em uma linha o que o lead sinalizou e qual é o próximo passo. Depois escreva só a próxima mensagem: curta, uma pergunta no máximo, tom de WhatsApp real, sem saudação formal, sem prometer resultado e sem entregar o diagnóstico de graça. Se for propor call, sugira dois horários concretos que eu confirmo na minha agenda.${qualPrompt}${hasTranscript?`
+
+Algumas mensagens do lead foram áudios, marcados "[áudio ..., transcrição automática]". É o que ele falou, transcrito por máquina: pode ter palavra trocada. Responda ao conteúdo como quem ouviu o áudio (sem citar a transcrição) e, se algum dado importante parecer estranho, me avise antes da mensagem.`:''}`;
+  window._outreachPrompt=promptText;
+
+  showModal(`
+    <div class="flex items-center justify-between px-6 py-4 border-b border-line">
+      <div><p class="eyebrow">Abordagem</p><h2 class="head text-lg mt-0.5">${escapeHtml(lead.marca||lead.name||id)}</h2></div>
+      <button onclick="closeModal()" class="text-ink-dim hover:text-ink text-3xl leading-none">×</button>
+    </div>
+    <div class="p-6 space-y-4 overflow-y-auto scrollbar">
+      <div class="flex items-center gap-2 text-xs">
+        <span class="pulse-dot ${status.connected?'status-active':'status-exhausted'}"></span>
+        <span class="text-ink-dim">${status.connected?'WhatsApp conectado':'WhatsApp desconectado — reprovisione no painel da Evolution antes de enviar'}</span>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-2 gap-2 flex-wrap">
+          <p class="label">Conversa até agora</p>
+          <button id="oc-pull" onclick="pullWhatsApp('${id}')" class="btn btn-ghost btn-sm" ${status.connected?'':'disabled'} title="Busca no WhatsApp as mensagens que o lead mandou${transcription.enabled?' e transcreve os áudios':''}">📥 Puxar conversa do WhatsApp</button>
+        </div>
+        <div class="markdown card p-3 max-h-40 overflow-y-auto scrollbar">${escapeHtml(conversationText)}</div>
+        <p id="oc-pull-msg" class="hidden text-xs mt-2"></p>
+      </div>
+      ${audioBlock}
+      ${qualBlock}
+
+      <div class="flex items-center justify-between gap-2 flex-wrap">
+        <p class="label">Sugestão de resposta</p>
+        <div class="flex items-center gap-2">
+          <button id="oc-copy-prompt" onclick="copyOutreachPrompt()" class="btn btn-ghost btn-sm">📋 Copiar prompt</button>
+          <button id="oc-generate" onclick="generateOutreachSuggestion('${id}')" class="btn btn-primary btn-sm">✨ Gerar sugestão</button>
+        </div>
+      </div>
+      <p class="text-xs text-ink-mute -mt-2">"Gerar sugestão" chama o Claude Code direto (precisa do CLI instalado à parte do app Desktop — veja docs/modo-automatico.md). Sem o CLI, use "Copiar prompt" e cole manualmente.</p>
+      <div id="oc-gen-err" class="hidden text-xs text-bad -mt-2"></div>
+      <textarea id="oc-reply" rows="4" class="textarea" placeholder="Cole aqui a sugestão do Claude Code — ou escreva a sua"></textarea>
+
+      <div class="border-t border-line pt-4">
+        <p class="label mb-2">O lead respondeu algo? (opcional — registra na conversa)</p>
+        <div class="flex gap-2">
+          <input id="oc-inbound" class="input" placeholder="Cole aqui o que o lead mandou">
+          <button onclick="submitInboundReply()" class="btn btn-surface btn-sm">Registrar</button>
+        </div>
+      </div>
+
+      <div id="oc-err" class="hidden text-sm text-bad"></div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-line">
+        <button onclick="closeModal()" class="btn btn-ghost">Fechar</button>
+        <button id="oc-send" onclick="submitManualMessage('${id}')" class="btn btn-primary" ${status.connected?'':'disabled'}>Enviar agora →</button>
+      </div>
+    </div>
+  `,{size:'max-w-2xl'});
+}
+
+async function pullWhatsApp(id){
+  const btn=document.getElementById('oc-pull'),msg=document.getElementById('oc-pull-msg');
+  btn.disabled=true;btn.textContent='Buscando… (áudio leva alguns segundos)';
+  try{
+    const r=await fetchJson(`/api/leads/${id}/pull-whatsapp`,{method:'POST'});
+    if(!r.added){msg.textContent='Nenhuma mensagem nova do lead no WhatsApp.';msg.className='text-xs mt-2 text-ink-mute';btn.disabled=false;btn.textContent='📥 Puxar conversa do WhatsApp';return;}
+    closeModal();await openOutreachCompose(id);
+    if(location.hash.replace(/^#/,'')==='/outreach')renderOutreachRoute();
+  }catch(e){msg.textContent=e.message;msg.className='text-xs mt-2 text-bad';btn.disabled=false;btn.textContent='📥 Puxar conversa do WhatsApp';}
+}
+async function transcribeAudio(leadId,messageId,btn){
+  btn.disabled=true;btn.textContent='Transcrevendo…';
+  try{
+    await fetchJson('/api/responses/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lead_id:leadId,message_id:messageId})});
+    closeModal();await openOutreachCompose(leadId);
+  }catch(e){alert(e.message);btn.disabled=false;btn.textContent='Transcrever';}
+}
+async function copyOutreachPrompt(){
+  if(!window._outreachPrompt)return;
+  await navigator.clipboard.writeText(window._outreachPrompt);
+  const btn=document.getElementById('oc-copy-prompt');
+  if(btn){btn.textContent='✓ Copiado!';setTimeout(()=>{if(btn)btn.textContent='📋 Copiar prompt';},2000);}
+}
+async function generateOutreachSuggestion(id){
+  if(!window._outreachPrompt)return;
+  const btn=document.getElementById('oc-generate');
+  const err=document.getElementById('oc-gen-err');
+  const textarea=document.getElementById('oc-reply');
+  err.classList.add('hidden');
+  btn.disabled=true;btn.textContent='Gerando… (pode levar até 2-3 min na 1ª vez)';
+  try{
+    const r=await fetchJson(`/api/leads/${id}/suggest-reply`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:window._outreachPrompt})});
+    textarea.value=r.text;
+  }catch(e){
+    err.textContent=e.message||'Falha ao gerar sugestão. Use "Copiar prompt" e cole manualmente no Claude Code.';
+    err.classList.remove('hidden');
+  }finally{
+    btn.disabled=false;btn.textContent='✨ Gerar sugestão';
+  }
+}
+
+async function submitInboundReply(){
+  const input=document.getElementById('oc-inbound');
+  const message=input.value.trim();
+  if(!message||!_outreachLeadId)return;
+  try{
+    await fetchJson(`/api/leads/${_outreachLeadId}/inbound`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message})});
+    const keepId=_outreachLeadId;
+    closeModal();
+    await openOutreachCompose(keepId);
+  }catch(e){alert(e.message);}
+}
+
+async function submitManualMessage(id){
+  const err=document.getElementById('oc-err');err.classList.add('hidden');
+  const text=document.getElementById('oc-reply').value.trim();
+  if(!text){err.textContent='Escreva ou cole a mensagem antes de enviar';err.classList.remove('hidden');return;}
+  const btn=document.getElementById('oc-send');btn.disabled=true;btn.textContent='Enviando…';
+  try{
+    await fetchJson(`/api/leads/${id}/manual-message`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+    closeModal();
+    await loadLeads();
+    if(location.hash.replace(/^#/,'')==='/outreach')renderOutreachRoute();
+    if(location.hash.replace(/^#/,'')==='/leads')renderLeadsTable();
+  }catch(e){err.textContent=e.message;err.classList.remove('hidden');btn.disabled=false;btn.textContent='Enviar agora →';}
+}
+
+// =============================================================
+// SIMULAÇÕES — conversas de docs/simulacoes-atendimento.md com análise de copy
+// =============================================================
+let SIMS=null, SIM_SEL='overview', SIM_KIND='all', SIM_OPEN={};
+const SIM_ACTIONS={
+  touch_1:{label:'toque 1',cls:'badge-neutral',hint:'mensagem de abertura'},
+  reply:{label:'reply',cls:'badge-accent',hint:'responde e segue'},
+  book_meeting:{label:'book_meeting',cls:'badge-ok',hint:'agenda direto'},
+  handoff_human:{label:'handoff_human',cls:'badge-warn',hint:'passa pra você'},
+  close:{label:'close',cls:'badge-bad',hint:'encerra'},
+};
+const SIM_OUTCOME={book_meeting:'📅 Agendou',handoff_human:'🙋 Passou pra você',close:'✋ Encerrou',reply:'💬 Em conversa'};
+const simDomKey=k=>k.replace('#','-');
+
+function simActionBadge(a,detail){const m=SIM_ACTIONS[a];if(!m)return'';return `<span class="badge ${m.cls} mono" title="${m.hint}">${m.label}${detail?` · ${escapeHtml(detail)}`:''}</span>`;}
+function simMd(s){return escapeHtml(s).replace(/\*\*([^*]+)\*\*/g,'<strong class="text-ink">$1</strong>').replace(/`([^`]+)`/g,'<code class="mono text-accent-light">$1</code>').replace(/\n\n/g,'<br><br>');}
+function simHighlight(text,hits){
+  let out='',pos=0;
+  for(const h of (hits||[])){
+    if(h.start<pos)continue;
+    out+=escapeHtml(text.slice(pos,h.start))+`<mark class="sim-hit" title="Checklist item ${h.item} · ${escapeHtml(h.label)}">${escapeHtml(text.slice(h.start,h.end))}</mark>`;
+    pos=h.end;
+  }
+  return (out+escapeHtml(text.slice(pos))).replace(/\n/g,'<br>');
+}
+
+async function renderSimulations(view){
+  SIMS=await fetchJson('/api/simulations');
+  view.innerHTML=`<div class="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] items-start">
+    <aside class="card p-3 lg:sticky lg:top-32 space-y-2" id="sim-nav"></aside>
+    <section id="sim-main" class="min-w-0"></section>
+  </div>`;
+  renderSimNav();renderSimMain();
+}
+function renderSimulationsRoute(){renderSimulations(document.getElementById('route-view'));}
+function simSelect(id){SIM_SEL=id;renderSimNav();renderSimMain();window.scrollTo({top:0});}
+function simSetKind(k){SIM_KIND=k;if(!['overview','antes-depois','resumo'].includes(SIM_SEL)&&k!=='all'&&SIMS.scenarios.find(s=>s.id===SIM_SEL)?.kind!==k)SIM_SEL='overview';renderSimNav();renderSimMain();}
+function simToggle(key){SIM_OPEN[key]=!SIM_OPEN[key];renderSimMain();}
+function simNoteCount(s){const n=s.steps.filter(st=>SIMS.notes[st.key]).length;return n?` · ${n} nota${n>1?'s':''}`:'';}
+
+function renderSimNav(){
+  const nav=document.getElementById('sim-nav');if(!nav)return;
+  const item=(id,label,sub='')=>`<button onclick="simSelect('${id}')" class="w-full text-left px-3 py-2 rounded-lg text-sm transition ${SIM_SEL===id?'bg-surface-2 text-ink':'text-ink-dim hover:bg-surface-2 hover:text-ink'}">${label}${sub?`<div class="text-[11px] text-ink-mute mt-0.5">${sub}</div>`:''}</button>`;
+  const group=(kind,title)=>{
+    if(SIM_KIND!=='all'&&SIM_KIND!==kind)return'';
+    const list=SIMS.scenarios.filter(s=>s.kind===kind);if(!list.length)return'';
+    return `<div><p class="label px-3 mb-1 mt-3">${title}</p>${list.map(s=>item(s.id,`<span class="mono text-accent-light">${s.id}</span> ${escapeHtml(s.title)}`,`${SIM_OUTCOME[s.stats.outcome]||'—'} · copy limpa ${s.stats.clean}/${s.stats.agent_messages}${simNoteCount(s)}`)).join('')}</div>`;
+  };
+  nav.innerHTML=`
+    <div class="flex gap-1 p-1 bg-bg rounded-lg">${[['all','Todas'],['agencia','Agência'],['b2b','B2B']].map(([k,l])=>`<button onclick="simSetKind('${k}')" class="flex-1 text-xs py-1.5 rounded-md ${SIM_KIND===k?'bg-accent text-black font-semibold':'text-ink-dim hover:text-ink'}">${l}</button>`).join('')}</div>
+    ${item('overview','📋 Visão geral')}
+    ${group('agencia','Agência de marketing')}
+    ${group('b2b','Outro B2B')}
+    <div><p class="label px-3 mb-1 mt-3">Referência</p>${item('antes-depois','🔍 Antes e depois (anti-IA)')}${item('resumo','🧭 O que fazer em cada situação')}</div>`;
+}
+
+function renderSimMain(){
+  const el=document.getElementById('sim-main');if(!el)return;
+  if(SIM_SEL==='overview')el.innerHTML=simOverview();
+  else if(SIM_SEL==='antes-depois')el.innerHTML=simBeforeAfter();
+  else if(SIM_SEL==='resumo')el.innerHTML=simSummary();
+  else{const s=SIMS.scenarios.find(x=>x.id===SIM_SEL);el.innerHTML=s?simScenario(s):'<p class="text-ink-dim">Cenário não encontrado.</p>';}
+}
+
+function simOverview(){
+  const sc=SIMS.scenarios;
+  const agent=sc.flatMap(s=>s.steps.filter(st=>st.type==='agent'));
+  const clean=agent.filter(st=>st.analysis.clean).length;
+  const infl=sc.reduce((n,s)=>n+s.stats.inflections,0);
+  const out=k=>sc.filter(s=>s.stats.outcome===k).length;
+  const verdicts=agent.map(st=>SIMS.notes[st.key]?.verdict).filter(Boolean);
+  const toFix=Object.entries(SIMS.notes).filter(([,n])=>n.verdict==='ajustar');
+  const metric=(label,val,sub='')=>`<div class="card p-4"><p class="label">${label}</p><p class="metric-num mt-1">${val}</p>${sub?`<p class="text-xs text-ink-mute mt-1">${sub}</p>`:''}</div>`;
+  return `<div class="space-y-5">
+    <div class="card p-5">
+      <p class="eyebrow">docs/simulacoes-atendimento.md</p>
+      <h2 class="h-head mt-1">Como o BDR conduz a conversa, do toque 1 até a call</h2>
+      <p class="text-sm text-ink-dim mt-2 max-w-3xl">Cada cenário mostra a conversa como ela aparece no WhatsApp, os <b class="text-ink">pontos de inflexão</b> (onde a conversa pode desandar e o que o agente faz no lugar) e a <b class="text-ink">análise da copy</b> de cada mensagem do agente: checklist anti-IA da skill, o que a trava do modo automático faria, tamanho e perguntas. Abra uma mensagem em "analisar" pra aprovar, pedir ajuste e deixar sua nota.</p>
+    </div>
+    <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
+      ${metric('Cenários',sc.length,`${sc.filter(s=>s.kind==='agencia').length} agência · ${sc.filter(s=>s.kind==='b2b').length} B2B`)}
+      ${metric('Mensagens do agente',agent.length,`${infl} pontos de inflexão`)}
+      ${metric('Copy limpa',`${clean}/${agent.length}`,'sem item do checklist, trava passa, sem alerta')}
+      ${metric('Desfechos',`${out('book_meeting')} agendam`,`${out('handoff_human')} passam pra você · ${out('close')} encerram`)}
+    </div>
+    <div class="card p-5">
+      <div class="flex items-center justify-between flex-wrap gap-2"><p class="label">Sua revisão</p><span class="text-xs text-ink-mute">${verdicts.filter(v=>v==='ok').length} aprovadas · ${verdicts.filter(v=>v==='ajustar').length} pra ajustar · ${agent.length-verdicts.length} sem veredito</span></div>
+      ${toFix.length?`<div class="mt-3 space-y-2">${toFix.map(([k,n])=>`<button onclick="simSelect('${k.split('#')[0]}');SIM_OPEN['${k}']=true;renderSimMain()" class="w-full text-left card card-hover p-3 text-sm"><span class="mono text-accent-light">${k}</span> <span class="text-ink-dim">· ${escapeHtml(n.note||'(sem nota)')}</span></button>`).join('')}</div>`:'<p class="text-sm text-ink-mute mt-2">Nenhuma mensagem marcada pra ajustar ainda.</p>'}
+    </div>
+    ${SIMS.personas.length?`<div class="card overflow-hidden"><div class="overflow-x-auto scrollbar"><table class="tbl"><thead><tr><th>Persona</th><th>Agência de marketing</th><th>Outro B2B</th></tr></thead><tbody>${SIMS.personas.map(p=>`<tr style="cursor:default"><td class="text-ink-dim text-xs">${escapeHtml(p.campo)}</td><td class="text-ink">${escapeHtml(p.agencia)}</td><td class="text-ink">${escapeHtml(p.b2b)}</td></tr>`).join('')}</tbody></table></div></div>`:''}
+    <div class="card p-5"><p class="label mb-3">Ações no modo automático</p><div class="flex flex-wrap gap-x-5 gap-y-2 text-xs text-ink-dim">${Object.entries(SIM_ACTIONS).map(([k,m])=>`<span class="flex items-center gap-2">${simActionBadge(k)} ${m.hint}</span>`).join('')}</div></div>
+  </div>`;
+}
+
+function simScenario(s){
+  const st=s.stats;
+  return `<div class="space-y-4 max-w-4xl">
+    <div class="card p-5">
+      <div class="flex items-start justify-between gap-3 flex-wrap">
+        <div><p class="eyebrow">${s.kind==='b2b'?'Outro B2B':'Agência de marketing'} · ${s.id}</p><h2 class="h-head mt-1">${escapeHtml(s.title)}</h2></div>
+        ${st.outcome?`<div class="text-right"><p class="label">Desfecho</p><div class="mt-1">${simActionBadge(st.outcome,st.outcome_detail)}</div></div>`:''}
+      </div>
+      ${s.context?`<p class="text-sm text-ink-dim mt-3"><span class="label mr-1">Contexto</span> ${escapeHtml(s.context)}</p>`:''}
+      ${s.angle?`<p class="text-sm text-ink-dim mt-2"><span class="label mr-1">${escapeHtml(s.angle.label)}</span> ${escapeHtml(s.angle.text)}</p>`:''}
+      <div class="flex flex-wrap gap-2 mt-4">
+        <span class="stat-chip text-xs"><span class="text-ink-mute">Mensagens do agente</span> <b class="mono">${st.agent_messages}</b></span>
+        <span class="stat-chip text-xs"><span class="text-ink-mute">Inflexões</span> <b class="mono">${st.inflections}</b></span>
+        <span class="stat-chip text-xs"><span class="text-ink-mute">Copy limpa</span> <b class="mono ${st.clean===st.agent_messages?'text-ok':'text-warn'}">${st.clean}/${st.agent_messages}</b></span>
+        ${st.replies?`<span class="stat-chip text-xs" title="Checklist item 12: nem toda mensagem deve terminar em pergunta"><span class="text-ink-mute">Respostas que terminam em pergunta</span> <b class="mono">${st.ending_in_question}/${st.replies}</b></span>`:''}
+      </div>
+    </div>
+    <div class="sim-thread rounded-2xl border border-line p-4 sm:p-6 space-y-4">${s.steps.map(x=>simStep(s,x)).join('')}</div>
+  </div>`;
+}
+
+function simStep(s,x){
+  if(x.type==='lead')return `<div class="flex justify-start"><div class="max-w-[80%]">
+    <p class="text-[11px] text-ink-mute mb-1">${/áudio/i.test(x.time||'')?'🎙 ':''}${escapeHtml(x.label||'Lead')}${x.time?` · ${escapeHtml(x.time)}`:''}</p>
+    <div class="sim-bubble sim-lead">${escapeHtml(x.text).replace(/\n/g,'<br>')}</div></div></div>`;
+  if(x.type==='inflexao')return `<div class="sim-infl"><p class="text-xs font-bold text-accent-light uppercase tracking-wider">⚡ Inflexão · ${escapeHtml(x.title)}</p><p class="text-sm text-ink-dim mt-1.5 leading-relaxed">${simMd(x.text)}</p></div>`;
+  if(x.type==='result')return `<div class="sim-result"><p class="label" style="color:#4ADE80">Resultado</p><p class="text-sm text-ink-dim mt-1">${simMd(x.text)}</p></div>`;
+  if(x.type==='note')return `<p class="text-xs text-ink-mute italic text-center px-6">${simMd(x.text)}</p>`;
+  if(x.type==='agent')return simAgent(s,x);
+  return '';
+}
+
+function simAgent(s,x){
+  const a=x.analysis,n=SIMS.notes[x.key],open=SIM_OPEN[x.key];
+  const sizeWarn=a.warnings.some(w=>w.includes('maior'));
+  const chips=[
+    `<span class="sim-chip">${a.words} palavras</span>`,
+    a.ratio!=null?`<span class="sim-chip ${sizeWarn?'sim-chip-warn':''}" title="Tamanho em relação à última mensagem do lead (${a.lead_words} palavras)">${a.ratio}× o lead</span>`:'',
+    `<span class="sim-chip ${a.questions>1?'sim-chip-warn':''}">${a.questions} pergunta${a.questions===1?'':'s'}</span>`,
+    `<span class="sim-chip ${a.hits.length?'sim-chip-bad':'sim-chip-ok'}">${a.hits.length?`anti-IA: ${a.hits.length} ${a.hits.length>1?'itens':'item'}`:'anti-IA ✓'}</span>`,
+    `<span class="sim-chip ${a.guard.ok?(a.guard.fixes.length?'sim-chip-warn':'sim-chip-ok'):'sim-chip-bad'}" title="O que a trava do modo automático faria antes de enviar">${a.guard.ok?(a.guard.fixes.length?'trava: corrige':'trava: passa'):'trava: barra'}</span>`,
+  ].join('');
+  return `<div class="flex justify-end"><div class="max-w-[85%] flex flex-col items-end">
+    <div class="flex items-center gap-2 mb-1 flex-wrap justify-end">${n?.verdict?`<span class="badge ${n.verdict==='ok'?'badge-ok':'badge-warn'}">${n.verdict==='ok'?'✓ aprovada':'✎ ajustar'}</span>`:''}${n?.note&&!open?'<span class="text-[11px] text-ink-mute">📝 com nota</span>':''}${simActionBadge(x.action,x.action_detail)}</div>
+    <div class="sim-bubble sim-agent">${simHighlight(x.text,a.hits)}${x.system?`<div class="sim-system">🔗 ${escapeHtml(x.system)}<br><span>anexado pelo sistema, não escrito pelo agente</span></div>`:''}</div>
+    <div class="flex flex-wrap justify-end gap-1.5 mt-1.5">${chips}<button onclick="simToggle('${x.key}')" class="sim-chip hover:text-ink" style="border-color:rgba(217,119,6,.4);color:#F59E0B">${open?'▴ fechar':'▾ analisar'}</button></div>
+    ${open?simDetail(x):''}
+  </div></div>`;
+}
+
+function simDetail(x){
+  const a=x.analysis,n=SIMS.notes[x.key]||{},dk=simDomKey(x.key);
+  return `<div class="card p-4 mt-2 text-sm space-y-3 w-full" style="background:#141414;min-width:min(520px,100%)">
+    <div class="grid sm:grid-cols-2 gap-3">
+      <div><p class="label mb-1">Tamanho</p><p class="text-ink-dim text-xs">${a.words} palavras${a.lead_words!=null?` · o lead mandou ${a.lead_words} (${a.ratio}×)`:' · toque 1, sem mensagem do lead antes'}</p></div>
+      <div><p class="label mb-1">Perguntas</p><p class="text-ink-dim text-xs">${a.questions} ${a.ends_with_question?'· termina em pergunta':'· termina afirmando'}</p></div>
+    </div>
+    <div><p class="label mb-1">Checklist anti-IA (seção 10)</p>${a.hits.length?`<ul class="space-y-1 text-xs">${a.hits.map(h=>`<li class="text-ink-dim"><span class="mono text-bad">#${h.item}</span> ${escapeHtml(h.label)}: <mark class="sim-hit">${escapeHtml(h.match)}</mark></li>`).join('')}</ul>`:'<p class="text-ok text-xs">Nenhum item detectável. Regra de três, ritmo e justificativa longa ficam pra sua leitura.</p>'}</div>
+    <div><p class="label mb-1">Trava do modo automático</p><p class="text-xs ${a.guard.ok?'text-ink-dim':'text-bad'}">${a.guard.ok?(a.guard.fixes.length?`Enviaria com correção: ${escapeHtml(a.guard.fixes.join(', '))}`:'Enviaria sem mudar nada.'):`Não enviaria: ${escapeHtml(a.guard.reason)}. O lead iria pra você.`}</p></div>
+    ${a.warnings.length?`<div><p class="label mb-1">Alertas</p><ul class="space-y-1">${a.warnings.map(w=>`<li class="text-warn text-xs">⚠ ${escapeHtml(w)}</li>`).join('')}</ul></div>`:''}
+    <div class="border-t border-line pt-3">
+      <p class="label mb-2">Sua revisão</p>
+      <textarea id="simnote-${dk}" rows="2" class="textarea" placeholder="O que você mudaria nessa mensagem?">${escapeHtml(n.note||'')}</textarea>
+      <div class="flex flex-wrap gap-2 mt-2 justify-end">
+        <button onclick="simCopyRewrite('${x.key}')" id="simcopy-${dk}" class="btn btn-ghost btn-sm">📋 Copiar prompt de reescrita</button>
+        ${n.verdict||n.note?`<button onclick="simSaveNote('${x.key}',null,true)" class="btn btn-ghost btn-sm">Limpar</button>`:''}
+        <button onclick="simSaveNote('${x.key}','ajustar')" class="btn btn-surface btn-sm">✎ Pedir ajuste</button>
+        <button onclick="simSaveNote('${x.key}','ok')" class="btn btn-success btn-sm">✓ Aprovar</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function simSaveNote(key,verdict,clear=false){
+  const ta=document.getElementById(`simnote-${simDomKey(key)}`);
+  try{
+    const r=await fetchJson('/api/simulations/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,note:clear?'':(ta?.value||''),verdict:clear?null:verdict})});
+    SIMS.notes=r.notes;renderSimNav();renderSimMain();
+  }catch(e){alert(e.message);}
+}
+
+async function simCopyRewrite(key){
+  const [id,idx]=key.split('#');const s=SIMS.scenarios.find(x=>x.id===id);const x=s.steps[+idx];const a=x.analysis;
+  const history=s.steps.slice(0,+idx).filter(st=>st.type==='lead'||st.type==='agent').map(st=>`[${st.type==='lead'?'Lead':'Agente'}] ${st.text}`).join('\n');
+  const note=document.getElementById(`simnote-${simDomKey(key)}`)?.value.trim();
+  const txt=`Quero reescrever uma mensagem das simulações de atendimento (docs/simulacoes-atendimento.md, cenário ${s.id}: ${s.title}). Siga a skill BDR deste projeto: seção 9 pra conduzir a conversa e seção 10 (checklist anti-IA).
+
+Contexto do lead: ${s.context||'(não informado)'}
+
+Conversa até aqui:
+${history||'(é o toque 1)'}
+
+Mensagem atual do agente (ação: ${x.action}${x.action_detail?` ${x.action_detail}`:''}):
+${x.text}
+
+Análise do painel: ${a.words} palavras${a.ratio!=null?`, ${a.ratio}x a mensagem do lead`:''}, ${a.questions} pergunta(s)${a.hits.length?`, checklist: ${a.hits.map(h=>`#${h.item} "${h.match}"`).join('; ')}`:''}${a.warnings.length?`, alertas: ${a.warnings.join('; ')}`:''}.
+${note?`Minha observação: ${note}\n`:''}
+Mantenha a mesma ação e o mesmo objetivo. Me devolva 2 versões curtas e uma linha dizendo o que mudou em cada. Se eu aprovar uma, atualize o trecho no docs/simulacoes-atendimento.md.`;
+  await navigator.clipboard.writeText(txt);
+  const b=document.getElementById(`simcopy-${simDomKey(key)}`);
+  if(b){b.textContent='✓ Copiado';setTimeout(()=>{if(b)b.textContent='📋 Copiar prompt de reescrita';},2000);}
+}
+
+function simBeforeAfter(){
+  return `<div class="space-y-4 max-w-5xl">
+    <div class="card p-5"><h2 class="h-head">Antes e depois do checklist anti-IA</h2><p class="text-sm text-ink-dim mt-2">A mesma intenção escrita do jeito que IA costuma escrever e do jeito que o agente escreve. Os trechos marcados são o que o checklist da seção 10 pega. Embaixo de cada lado, o que a trava do modo automático faria.</p></div>
+    ${SIMS.before_after.map(p=>`<div class="card p-5">
+      <p class="label mb-3">${escapeHtml(p.title)}</p>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div><p class="text-xs text-bad font-semibold mb-2">Com cara de IA · ${p.ia_analysis.hits.length} itens · ${p.ia_analysis.words} palavras</p><div class="sim-bubble sim-agent sim-bad">${simHighlight(p.ia,p.ia_analysis.hits)}</div><p class="text-xs mt-2 ${p.ia_analysis.guard.ok?'text-ink-mute':'text-bad'}">Trava: ${p.ia_analysis.guard.ok?'passaria':`barraria (${escapeHtml(p.ia_analysis.guard.reason)})`}</p></div>
+        <div><p class="text-xs text-ok font-semibold mb-2">Depois do checklist · ${p.humano_analysis.hits.length} itens · ${p.humano_analysis.words} palavras</p><div class="sim-bubble sim-agent">${simHighlight(p.humano,p.humano_analysis.hits)}</div><p class="text-xs mt-2 text-ink-mute">Trava: ${p.humano_analysis.guard.ok?'passa':'barraria'}</p></div>
+      </div>
+      ${p.notes?`<p class="text-sm text-ink-dim mt-4 border-t border-line pt-3">${escapeHtml(p.notes)}</p>`:''}
+    </div>`).join('')}
+  </div>`;
+}
+
+function simSummary(){
+  const action=r=>r.split(/\s*→\s*/).map(x=>{const m=x.match(/^([a-z_]+)(?:\s*\(([^)]*)\))?$/);return m&&SIM_ACTIONS[m[1]]?simActionBadge(m[1],m[2]):`<span class="text-ink-mute text-xs">${escapeHtml(x)}</span>`;}).join(' <span class="text-ink-mute">→</span> ');
+  return `<div class="card overflow-hidden max-w-5xl"><div class="overflow-x-auto scrollbar"><table class="tbl"><thead><tr><th>Situação</th><th>Ação</th><th>Mensagem</th></tr></thead><tbody>${SIMS.summary.map(r=>`<tr style="cursor:default"><td class="text-ink">${escapeHtml(r.situacao)}</td><td>${action(r.acao)}</td><td class="text-ink-dim">${escapeHtml(r.mensagem)}</td></tr>`).join('')}</tbody></table></div></div>`;
+}
+
+// =============================================================
+// LEAD DETAIL PANEL (com botão "Converter em cliente")
+// =============================================================
+async function openPanel(id){
+  const lead=LEADS.find(l=>l.id===id);if(!lead)return;
+  document.getElementById('panel-title').textContent=lead.marca||lead.name||id;
+  const body=document.getElementById('panel-body');
+  const canConvert=!lead.client_id&&['responded','meeting_scheduled'].includes(lead.status);
+  body.innerHTML=`
+    <section>
+      <p class="label mb-3">Informações</p>
+      <div class="grid grid-cols-2 gap-3 text-sm">
+        <div><span class="label">Marca</span><br><span class="text-ink">${escapeHtml(lead.marca||'—')}</span></div>
+        <div><span class="label">Contato</span><br><span class="text-ink">${escapeHtml(lead.name||'—')}</span></div>
+        <div><span class="label">Telefone</span><br><span class="mono text-ink">${lead.phone||'—'}</span></div>
+        <div><span class="label">Categoria</span><br><span class="text-ink">${escapeHtml(lead.category||'—')}</span></div>
+        <div><span class="label">Primeiro contato</span><br><span class="mono text-ink">${lead.first_contact_date||'—'}</span></div>
+        <div><span class="label">Próximo toque</span><br><span class="mono text-ink">${fmtDate(lead.next_touch_due_at)}</span></div>
+      </div>
+    </section>
+
+    ${lead.crm_notes?`
+    <section class="card p-4" style="border-color:rgba(217,119,6,.35);background:rgba(217,119,6,.05);">
+      <p class="label mb-3">📋 Ata pré-ligação <span class="text-ink-mute normal-case tracking-normal font-normal">— gerada na qualificação, nunca enviada ao lead</span></p>
+      <div class="space-y-3">
+        ${lead.crm_notes.decisor_nome?`<div><p class="text-xs font-bold text-accent-light uppercase tracking-wide mb-1">Decisor</p><p class="text-sm text-ink-dim">${escapeHtml(lead.crm_notes.decisor_nome)}${lead.crm_notes.decisor_papel?` <span class="text-ink-mute">(${escapeHtml(lead.crm_notes.decisor_papel)})</span>`:''}${lead.crm_notes.decisor_instagram?` · <a href="${escapeHtml(lead.crm_notes.decisor_instagram)}" target="_blank" rel="noopener" class="text-accent-light underline">Instagram →</a>`:' · <span class="text-ink-mute">Instagram pessoal não localizado</span>'}</p></div>`:''}
+        ${lead.crm_notes.sinais_observados?`<div><p class="text-xs font-bold text-accent-light uppercase tracking-wide mb-1">Sinais observados</p><p class="text-sm text-ink-dim whitespace-pre-wrap">${escapeHtml(lead.crm_notes.sinais_observados)}</p></div>`:''}
+        ${lead.crm_notes.pontos_de_melhoria?`<div><p class="text-xs font-bold text-accent-light uppercase tracking-wide mb-1">Pontos de melhoria</p><p class="text-sm text-ink-dim whitespace-pre-wrap">${escapeHtml(lead.crm_notes.pontos_de_melhoria)}</p></div>`:''}
+        ${lead.crm_notes.direcao_sugerida?`<div><p class="text-xs font-bold text-accent-light uppercase tracking-wide mb-1">Direção sugerida pra call</p><p class="text-sm text-ink-dim whitespace-pre-wrap">${escapeHtml(lead.crm_notes.direcao_sugerida)}</p></div>`:''}
+      </div>
+    </section>` : ''}
+
+    ${canConvert?`
+    <section class="card p-4" style="border-color:rgba(74,222,128,.4);background:rgba(74,222,128,.05);">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="head text-ok">💼 Pronto pra converter?</p>
+          <p class="text-xs text-ink-dim mt-1">Esse lead já respondeu. Transforme em cliente assinando contrato.</p>
+        </div>
+        <button onclick="openConvertLead('${id}')" class="btn btn-success">Converter em cliente →</button>
+      </div>
+    </section>` : lead.client_id ? `
+    <section class="card p-3" style="border-color:rgba(74,222,128,.4)">
+      <p class="text-sm"><span class="text-ok">✓ Convertido em cliente.</span> <a href="#/clients?id=${lead.client_id}" class="text-accent-light underline ml-1">Ver cliente</a></p>
+    </section>` : ''}
+
+    <section>
+      <p class="label mb-3">Status do pipeline</p>
+      <div class="flex items-center gap-2 flex-wrap">
+        <select id="status-select" class="select w-auto">
+          ${['active','responded','meeting_scheduled','cold','exhausted','needs_review','skipped'].map(s=>`<option value="${s}" ${lead.status===s?'selected':''}>${STATUS_LABELS[s]||s}</option>`).join('')}
+        </select>
+        <button onclick="saveStatus('${id}')" class="btn btn-primary">Salvar</button>
+        <button onclick="markResponded('${id}')" class="btn btn-surface">Marcar respondido</button>
+      </div>
+    </section>
+
+    <section>
+      <p class="label mb-3">Reunião</p>
+      ${lead.meeting?`
+        <div class="card p-4 space-y-3" style="border-color:rgba(217,119,6,.35);background:rgba(217,119,6,.05);">
+          <div class="flex items-center justify-between">
+            <div><div class="head text-base text-accent-light">${fmtDateTime(lead.meeting.scheduled_at)}</div><div class="text-xs text-ink-dim capitalize">${fmtDateOnly(lead.meeting.scheduled_at)} · ${lead.meeting.duration_minutes||30} min</div></div>
+            <span class="badge badge-meeting">${MEETING_STATUS_LABELS[lead.meeting.status]||lead.meeting.status}</span>
+          </div>
+          ${lead.meeting.google_meet_url?`<div class="text-xs"><a href="${lead.meeting.google_meet_url}" target="_blank" class="text-accent-light underline">🎥 Google Meet</a></div>`:''}
+          ${lead.meeting.calendar_html_link?`<div class="text-xs"><a href="${lead.meeting.calendar_html_link}" target="_blank" class="text-ink-dim underline">Abrir no Calendar</a></div>`:''}
+          ${lead.meeting.confirmation_sent_at?`<div class="text-xs text-ok">✓ Confirmação enviada ${fmtDateTime(lead.meeting.confirmation_sent_at)}</div>`:lead.meeting.status==='scheduled'?`<div class="text-xs text-ink-mute italic">Confirmação na véspera 14h.</div>`:''}
+          ${lead.meeting.notes?`<div class="text-xs text-ink-dim"><strong class="text-ink">Notas:</strong><br><span class="whitespace-pre-wrap">${escapeHtml(lead.meeting.notes)}</span></div>`:''}
+          <div class="flex items-center gap-2 flex-wrap pt-2 border-t" style="border-color:rgba(217,119,6,.3)">
+            <button onclick="rescheduleMeeting('${id}')" class="btn btn-surface btn-sm">↻ Reagendar</button>
+            ${lead.meeting.status==='scheduled'?`<button onclick="updateMeetingStatus('${id}','confirmed')" class="btn btn-success btn-sm">✓ Confirmar</button>`:''}
+            ${['scheduled','confirmed'].includes(lead.meeting.status)?`<button onclick="updateMeetingStatus('${id}','completed')" class="btn btn-surface btn-sm">Realizada</button><button onclick="updateMeetingStatus('${id}','no_show')" class="btn btn-surface btn-sm">👻 No-show</button>`:''}
+            <button onclick="cancelMeeting('${id}')" class="btn btn-danger btn-sm">Cancelar</button>
+          </div>
+        </div>
+      `:`
+        <div class="card p-4 flex items-center justify-between">
+          <p class="text-sm text-ink-dim italic">Nenhuma reunião agendada.</p>
+          <button onclick="openScheduleModal('${id}')" class="btn btn-primary">📅 Agendar</button>
+        </div>
+      `}
+    </section>
+
+    <section>
+      <p class="label mb-3">Resultado comercial</p>
+      <div class="flex items-center gap-2 flex-wrap">
+        <select id="outcome-select" class="select w-auto">
+          <option value="">— Sem resultado —</option>
+          ${Object.entries(OUTCOME_LABELS).map(([k,v])=>`<option value="${k}" ${lead.outcome===k?'selected':''}>${OUTCOME_ICONS[k]} ${v}</option>`).join('')}
+        </select>
+        <button onclick="saveOutcome('${id}')" class="btn btn-primary">Salvar</button>
+      </div>
+      ${lead.outcome?`<div class="mt-3 flex items-center gap-2">${outcomeBadge(lead.outcome)}${lead.outcome_set_at?`<span class="text-xs text-ink-mute mono">${fmtDate(lead.outcome_set_at)}</span>`:''}</div>`:''}
+    </section>
+
+    <section>
+      <p class="label mb-3">Anotações</p>
+      <div class="space-y-2 mb-3">
+        ${(lead.annotations||[]).map((a,i)=>`<div class="card p-3 text-sm"><div class="flex items-center justify-between text-xs text-ink-mute mb-1"><span class="mono">${fmtDate(a.at)}</span><button onclick="deleteAnnotation('${id}',${i})" class="hover:text-bad">remover</button></div><div class="whitespace-pre-wrap text-ink">${escapeHtml(a.text)}</div></div>`).join('')||'<p class="text-ink-mute text-sm italic">Sem anotações.</p>'}
+      </div>
+      <div><textarea id="new-annotation" placeholder="Adicionar anotação..." class="textarea" rows="3"></textarea><button onclick="addAnnotation('${id}')" class="btn btn-surface mt-2 btn-sm">+ Adicionar</button></div>
+    </section>
+
+    <section>
+      <p class="label mb-3">Histórico de toques</p>
+      <div class="space-y-2">
+        ${(lead.history||[]).map(h=>`<div class="card p-3 text-sm"><div class="flex items-center justify-between text-xs text-ink-mute mb-1"><span class="head text-ink">Toque ${h.touch}</span><span class="mono">${fmtDate(h.sent_at)}</span></div><div class="text-ink-dim whitespace-pre-wrap text-xs">${escapeHtml(h.copy||'')}</div></div>`).join('')||'<p class="text-ink-mute text-sm italic">Nenhum toque.</p>'}
+      </div>
+    </section>
+  `;
+  document.getElementById('panel-backdrop').classList.remove('hidden');
+  document.getElementById('panel').classList.remove('hidden');
+}
+function closePanel(){document.getElementById('panel-backdrop').classList.add('hidden');document.getElementById('panel').classList.add('hidden');}
+async function saveStatus(id){const status=document.getElementById('status-select').value;await fetchJson(`/api/leads/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});await loadLeads();renderLeadsTable();openPanel(id);}
+async function markResponded(id){await fetchJson(`/api/leads/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'responded',responded:true,responded_at:new Date().toISOString(),responded_via:'manual (CRM)'})});await loadLeads();renderLeadsTable();openPanel(id);}
+async function saveOutcome(id){const outcome=document.getElementById('outcome-select').value;await fetchJson(`/api/leads/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({outcome:outcome||null})});await loadLeads();renderLeadsTable();openPanel(id);}
+async function addAnnotation(id){const ta=document.getElementById('new-annotation');const text=ta.value.trim();if(!text)return;await fetchJson(`/api/leads/${id}/annotations`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});ta.value='';await loadLeads();openPanel(id);}
+async function deleteAnnotation(id,idx){if(!confirm('Remover essa anotação?'))return;await fetchJson(`/api/leads/${id}/annotations/${idx}`,{method:'DELETE'});await loadLeads();openPanel(id);}
+
+// =============================================================
+// SCHEDULE MEETING + AGENDA + PATTERNS (Fase 1, adaptados pro novo modal-host)
+// =============================================================
+function openScheduleModal(id){
+  const lead=LEADS.find(l=>l.id===id);if(!lead)return;
+  showModal(`
+    <div class="flex items-center justify-between px-6 py-4 border-b border-line"><h2 class="head text-base">📅 Agendar reunião</h2><button onclick="closeModal()" class="text-ink-dim hover:text-ink text-3xl leading-none">×</button></div>
+    <div class="p-6 space-y-4 overflow-y-auto scrollbar">
+      <div><p class="label">Lead</p><p class="font-semibold mt-1">${escapeHtml(lead.marca||lead.name||id)} · <span class="mono">${lead.phone||''}</span></p></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label block mb-1">Data</label><input id="sch-date" type="date" value="${todayInput()}" class="input mono"></div>
+        <div><label class="label block mb-1">Hora</label><input id="sch-time" type="time" value="14:00" class="input mono"></div>
+      </div>
+      <div><label class="label block mb-1">Duração</label>
+        <select id="sch-dur" class="select"><option value="15">15</option><option value="20">20</option><option value="30" selected>30</option><option value="45">45</option><option value="60">60</option></select>
+      </div>
+      <label class="flex items-center gap-2 text-sm text-ink-dim cursor-pointer"><input id="sch-meet" type="checkbox" checked> Anexar Google Meet</label>
+      <div><label class="label block mb-1">Notas</label><textarea id="sch-notes" rows="3" placeholder="Contexto da call..." class="textarea"></textarea></div>
+      <div id="sch-err" class="hidden text-sm text-bad"></div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-line">
+        <button onclick="closeModal()" class="btn btn-ghost">Cancelar</button>
+        <button id="sch-submit" onclick="submitSchedule('${id}')" class="btn btn-primary">Agendar →</button>
+      </div>
+    </div>
+  `);
+}
+async function submitSchedule(id){
+  const date=document.getElementById('sch-date').value,time=document.getElementById('sch-time').value;
+  const dur=parseInt(document.getElementById('sch-dur').value,10);
+  const meet=document.getElementById('sch-meet').checked,notes=document.getElementById('sch-notes').value.trim();
+  const err=document.getElementById('sch-err');err.classList.add('hidden');
+  if(!date||!time){err.textContent='Data e hora obrigatórias';err.classList.remove('hidden');return;}
+  const iso=`${date}T${time}:00-03:00`;
+  const btn=document.getElementById('sch-submit');btn.disabled=true;btn.textContent='Criando…';
+  try{
+    await fetchJson(`/api/leads/${id}/meeting`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scheduled_at:iso,duration_minutes:dur,notes,add_google_meet:meet})});
+    closeModal();await loadLeads();openPanel(id);
+  }catch(e){err.textContent=e.message;err.classList.remove('hidden');btn.disabled=false;btn.textContent='Agendar →';}
+}
+async function rescheduleMeeting(id){
+  const lead=LEADS.find(l=>l.id===id);if(!lead?.meeting)return;
+  const date=prompt('Nova data (YYYY-MM-DD):',lead.meeting.scheduled_at.split('T')[0]);if(!date)return;
+  const time=prompt('Nova hora (HH:MM):',lead.meeting.scheduled_at.split('T')[1].slice(0,5));if(!time)return;
+  try{await fetchJson(`/api/leads/${id}/meeting`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({scheduled_at:`${date}T${time}:00-03:00`})});await loadLeads();openPanel(id);}catch(e){alert(e.message);}
+}
+async function updateMeetingStatus(id,status){
+  if(status==='no_show'&&!confirm('Marcar no-show?'))return;
+  try{await fetchJson(`/api/leads/${id}/meeting`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});await loadLeads();openPanel(id);}catch(e){alert(e.message);}
+}
+async function cancelMeeting(id){
+  if(!confirm('Cancelar reunião? Será removida do Calendar.'))return;
+  try{await fetchJson(`/api/leads/${id}/meeting`,{method:'DELETE'});await loadLeads();openPanel(id);}catch(e){alert(e.message);}
+}
+
+async function openAgenda(){
+  showModal(`
+    <div class="flex items-center justify-between px-6 py-4 border-b border-line"><div><h2 class="head text-base">📅 Próximas reuniões</h2><p id="agenda-stat" class="text-xs text-ink-dim mt-0.5">…</p></div><button onclick="closeModal()" class="text-ink-dim hover:text-ink text-3xl leading-none">×</button></div>
+    <div id="agenda-body" class="overflow-y-auto scrollbar p-6">Carregando…</div>
+  `,{size:'max-w-2xl'});
+  try{
+    const[meetings,cal]=await Promise.all([fetchJson('/api/meetings'),fetchJson('/api/calendar/status').catch(()=>({connected:false}))]);
+    document.getElementById('agenda-stat').innerHTML=cal.connected?'<span class="text-ok">✓ Calendar conectado</span>':'<span class="text-warn">⚠ Calendar não conectado</span> · <a href="/auth/google" target="_blank" class="text-accent-light underline">conectar</a>';
+    document.getElementById('agenda-body').innerHTML=renderAgendaList(meetings);
+  }catch(e){document.getElementById('agenda-body').innerHTML=`<p class="text-bad">${e.message}</p>`;}
+}
+function renderAgendaList(meetings){
+  if(!meetings.length)return'<p class="text-ink-dim text-sm py-8 text-center">Nenhuma reunião.</p>';
+  const groups={};for(const m of meetings){const k=m.meeting.scheduled_at.split('T')[0];(groups[k]=groups[k]||[]).push(m);}
+  const todayKey=todayInput();
+  return Object.entries(groups).map(([date,list])=>{
+    const isToday=date===todayKey,isPast=date<todayKey;
+    return `<section class="mb-5"><h3 class="label ${isToday?'text-accent-light':isPast?'text-ink-mute':''} mb-2">${fmtDateOnly(date+'T12:00:00')}${isToday?' · HOJE':''}${isPast?' · passado':''}</h3><div class="space-y-2">${list.map(m=>`<div class="card card-hover p-3 flex items-center justify-between gap-3 cursor-pointer" onclick="closeModal();openPanel('${m.id}')"><div class="min-w-0"><div class="font-medium text-ink text-sm truncate">${escapeHtml(m.marca||m.name||m.id)}</div><div class="text-xs text-ink-dim">${escapeHtml(m.category||'')} · ${m.phone||''}</div></div><div class="text-right flex-shrink-0"><div class="head text-base text-accent-light mono">${m.meeting.scheduled_at.split('T')[1].slice(0,5)}</div><div class="text-[10px] text-ink-mute uppercase tracking-wider">${MEETING_STATUS_LABELS[m.meeting.status]||m.meeting.status}</div></div></div>`).join('')}</div></section>`;
+  }).join('');
+}
+async function renderAgendaPage(view){
+  view.innerHTML='Carregando…';
+  const[meetings,cal]=await Promise.all([fetchJson('/api/meetings'),fetchJson('/api/calendar/status').catch(()=>({connected:false}))]);
+  view.innerHTML=`<div class="card p-4 mb-4 flex items-center justify-between"><div>${cal.connected?'<span class="text-ok text-sm">✓ Calendar conectado</span>':'<span class="text-warn text-sm">⚠ Não conectado</span> <a href="/auth/google" target="_blank" class="text-accent-light underline ml-2">conectar</a>'}</div></div>${renderAgendaList(meetings)}`;
+}
+
+async function openPatterns(){
+  showModal(`<div class="flex items-center justify-between px-6 py-4 border-b border-line"><div><h2 class="head text-base">📊 Padrões de conversão</h2></div><div class="flex items-center gap-2"><button id="copy-pat" onclick="copyPatternsContext()" class="btn btn-primary btn-sm">📋 Copiar</button><button onclick="closeModal()" class="text-ink-dim hover:text-ink text-3xl leading-none">×</button></div></div><div id="patterns-body" class="overflow-y-auto scrollbar p-6 space-y-6">Carregando…</div>`,{size:'max-w-3xl'});
+  try{const data=await fetchJson('/api/outcomes/patterns');LAST_PATTERNS=data;renderPatterns(data,document.getElementById('patterns-body'));}catch(e){document.getElementById('patterns-body').innerHTML=`<p class="text-bad">${e.message}</p>`;}
+}
+function renderPatterns(data,container){
+  if(data.total_with_outcome===0){container.innerHTML='<div class="text-center py-8"><p class="head text-ink">Sem resultados ainda</p><p class="text-ink-dim text-sm mt-2">Marque resultados nos leads.</p></div>';return;}
+  function groupTable(groups,title){
+    if(!groups.length)return'';
+    return `<section><h3 class="label mb-3">${title}</h3><div class="overflow-x-auto card"><table class="tbl"><thead><tr><th>Grupo</th><th class="text-center">Total</th><th class="text-center">Reunião</th><th class="text-center">Aceita</th><th class="text-center">Recusada</th><th class="text-center">No-show</th><th class="text-center">Conv.</th></tr></thead><tbody>${groups.map(g=>`<tr class="${g.validated?'':'opacity-50'}"><td class="text-ink">${escapeHtml(g.key)}</td><td class="text-center mono text-ink-dim">${g.total}</td><td class="text-center text-accent-light mono">${g.reuniao_agendada} (${g.taxa_reuniao}%)</td><td class="text-center text-ok mono">${g.proposta_aceita} (${g.taxa_aceite}%)</td><td class="text-center text-bad mono">${g.proposta_recusada} (${g.taxa_recusa}%)</td><td class="text-center mono text-ink-dim">${g.no_show} (${g.taxa_noshow}%)</td><td class="text-center"><span class="head mono ${g.taxa_conversao>=30?'text-ok':g.taxa_conversao>=15?'text-warn':'text-ink-dim'}">${g.taxa_conversao}%</span></td></tr>`).join('')}</tbody></table></div></section>`;
+  }
+  container.innerHTML=`${groupTable(data.by_angle,'Por ângulo')}${groupTable(data.by_category,'Por categoria')}`;
+}
+async function copyPatternsContext(){
+  if(!LAST_PATTERNS)return;
+  const ctx={fonte:'BDR CRM',gerado_em:LAST_PATTERNS.generated_at,total:LAST_PATTERNS.total_with_outcome,por_angulo:LAST_PATTERNS.by_angle.map(g=>({angulo:g.key,total:g.total,taxa_conversao:`${g.taxa_conversao}%`,validado:g.validated})),por_categoria:LAST_PATTERNS.by_category.map(g=>({categoria:g.key,total:g.total,taxa_conversao:`${g.taxa_conversao}%`,validado:g.validated}))};
+  await navigator.clipboard.writeText(JSON.stringify(ctx,null,2));
+  const btn=document.getElementById('copy-pat');btn.textContent='✓ Copiado!';setTimeout(()=>btn.textContent='📋 Copiar',2000);
+}
+
+// =============================================================
+// VIEW: CLIENTES
+// =============================================================
+async function renderClients(view){
+  view.innerHTML='Carregando…';
+  await Promise.all([loadClients(),loadTeam(),loadPackages()]);
+  const teamById=Object.fromEntries(TEAM.map(t=>[t.id,t]));
+  const pkgById=Object.fromEntries(PACKAGES.map(p=>[p.id,p]));
+  view.innerHTML=`
+    <div class="space-y-4">
+      <div class="grid grid-cols-4 gap-4">
+        <div class="card p-4"><p class="label">Ativos</p><p class="metric-num mt-2 text-ok">${CLIENTS.filter(c=>c.status==='ativo').length}</p></div>
+        <div class="card p-4"><p class="label">Em risco</p><p class="metric-num mt-2 text-warn">${CLIENTS.filter(c=>c.status==='em_risco').length}</p></div>
+        <div class="card p-4"><p class="label">Pausados</p><p class="metric-num mt-2 text-accent-light">${CLIENTS.filter(c=>c.status==='pausado').length}</p></div>
+        <div class="card p-4"><p class="label">Churn</p><p class="metric-num mt-2 text-bad">${CLIENTS.filter(c=>c.status==='churn').length}</p></div>
+      </div>
+      <div class="card overflow-hidden">
+        <div class="overflow-x-auto scrollbar">
+          <table class="tbl">
+            <thead><tr><th>Status</th><th>Cliente</th><th>Pacote</th><th>Vendedor</th><th>Cobrança</th><th class="text-right">Valor mensal</th><th>Início</th><th></th></tr></thead>
+            <tbody>
+              ${CLIENTS.length===0?`<tr><td colspan="8" class="text-center text-ink-dim py-8">Nenhum cliente cadastrado. <button onclick="openClientForm()" class="text-accent-light underline ml-2">Cadastrar primeiro</button></td></tr>`:CLIENTS.map(c=>`
+                <tr onclick="openClientForm('${c.id}')">
+                  <td>${clientStatusBadge(c.status)}</td>
+                  <td><div class="font-medium text-ink">${escapeHtml(c.name)}</div><div class="text-xs text-ink-mute">${escapeHtml(c.cnpj||c.email||'')}</div></td>
+                  <td class="text-ink-dim">${pkgById[c.package_id]?escapeHtml(pkgById[c.package_id].name):'<span class="text-ink-mute">—</span>'}</td>
+                  <td class="text-ink-dim">${teamById[c.seller_id]?escapeHtml(teamById[c.seller_id].name):'<span class="text-ink-mute">—</span>'}</td>
+                  <td><span class="badge badge-neutral">${BILLING_LABELS[c.billing_type]||'—'}</span></td>
+                  <td class="text-right mono text-ink">${brl(c.monthly_value||0)}</td>
+                  <td class="mono text-ink-dim text-xs">${fmtShortDate(c.start_date)}</td>
+                  <td class="text-right"><button onclick="event.stopPropagation();openPrenoteForm('${c.id}')" class="text-xs text-accent-light hover:underline">🧾 Pré-nota</button></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function openClientForm(clientId=null,fromLeadId=null){
+  await Promise.all([loadTeam(),loadPackages()]);
+  let c={};
+  if(clientId){c=await fetchJson(`/api/clients/${clientId}`);}
+  else if(fromLeadId){const lead=LEADS.find(l=>l.id===fromLeadId);c={name:lead?.marca||lead?.name||'',notes:lead?.crm_notes?.direcao_sugerida||'',source_lead_id:fromLeadId};}
+  c.billing_type=c.billing_type||'mensal';c.status=c.status||'ativo';c.auto_renew=c.auto_renew!==false;c.start_date=c.start_date||todayInput();
+  const title=clientId?'Editar cliente':fromLeadId?'Converter lead em cliente':'Novo cliente';
+  showModal(`
+    <div class="flex items-center justify-between px-6 py-4 border-b border-line"><h2 class="head text-base">💼 ${title}</h2><button onclick="closeModal()" class="text-ink-dim hover:text-ink text-3xl leading-none">×</button></div>
+    <div class="p-6 space-y-4 overflow-y-auto scrollbar">
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label block mb-1">Nome / Razão social *</label><input id="cl-name" class="input" value="${escapeHtml(c.name||'')}" placeholder="Empresa LTDA"></div>
+        <div><label class="label block mb-1">Status</label>
+          <select id="cl-status" class="select">${Object.entries(CLIENT_STATUS_LABELS).map(([k,v])=>`<option value="${k}" ${c.status===k?'selected':''}>${v}</option>`).join('')}</select>
+        </div>
+        <div><label class="label block mb-1">E-mail</label><input id="cl-email" class="input" value="${escapeHtml(c.email||'')}" placeholder="contato@empresa.com"></div>
+        <div><label class="label block mb-1">CNPJ</label><input id="cl-cnpj" class="input mono" value="${escapeHtml(c.cnpj||'')}" placeholder="00.000.000/0000-00"></div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label block mb-1">Pacote contratado</label>
+          <select id="cl-pkg" class="select"><option value="">— Nenhum —</option>${PACKAGES.filter(p=>p.active!==false).map(p=>`<option value="${p.id}" ${c.package_id===p.id?'selected':''}>${escapeHtml(p.name)}</option>`).join('')}</select>
+        </div>
+        <div><label class="label block mb-1">Vendedor responsável</label>
+          <select id="cl-seller" class="select"><option value="">— Não atribuído —</option>${TEAM.filter(t=>t.role==='vendedor'||!t.role).map(t=>`<option value="${t.id}" ${c.seller_id===t.id?'selected':''}>${escapeHtml(t.name)}</option>`).join('')}</select>
+        </div>
+      </div>
+
+      <div><label class="label block mb-1">Membros da equipe (Ctrl+click p/ múltiplos)</label>
+        <select id="cl-team" class="select" multiple size="3">${TEAM.map(t=>`<option value="${t.id}" ${(c.team_member_ids||[]).includes(t.id)?'selected':''}>${escapeHtml(t.name)} (${ROLE_LABELS[t.role]||t.role})</option>`).join('')}</select>
+      </div>
+
+      <div class="border-t border-line pt-4">
+        <p class="label mb-3">Cobrança</p>
+        <div class="grid grid-cols-3 gap-3">
+          <div><label class="label block mb-1">Tipo</label>
+            <select id="cl-billing" class="select" onchange="renderBillingFields()">
+              <option value="mensal" ${c.billing_type==='mensal'?'selected':''}>Mensal</option>
+              <option value="unico" ${c.billing_type==='unico'?'selected':''}>Pagamento único</option>
+              <option value="personalizado" ${c.billing_type==='personalizado'?'selected':''}>Personalizado</option>
+            </select>
+          </div>
+          <div id="cl-billing-fields" class="col-span-2 grid grid-cols-2 gap-3"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3 mt-3">
+          <div><label class="label block mb-1">Data de início</label><input id="cl-start" type="date" value="${c.start_date}" class="input mono"></div>
+          <div><label class="label block mb-1">Data de término (opcional)</label><input id="cl-end" type="date" value="${c.end_date?c.end_date.slice(0,10):''}" class="input mono"></div>
+        </div>
+        <label class="flex items-center gap-2 text-sm text-ink-dim cursor-pointer mt-3"><input id="cl-renew" type="checkbox" ${c.auto_renew?'checked':''}> Renovação automática</label>
+      </div>
+
+      <div><label class="label block mb-1">Notas</label><textarea id="cl-notes" rows="3" placeholder="Contexto, observações do contrato..." class="textarea">${escapeHtml(c.notes||'')}</textarea></div>
+
+      <div id="cl-err" class="hidden text-sm text-bad"></div>
+      <div class="flex items-center justify-between pt-2 border-t border-line">
+        ${clientId?`<button onclick="deleteClient('${clientId}')" class="btn btn-danger btn-sm">Excluir cliente</button>`:'<span></span>'}
+        <div class="flex gap-2">
+          <button onclick="closeModal()" class="btn btn-ghost">Cancelar</button>
+          <button id="cl-submit" onclick="submitClient(${clientId?`'${clientId}'`:'null'},${fromLeadId?`'${fromLeadId}'`:'null'})" class="btn btn-primary">Salvar →</button>
+        </div>
+      </div>
+    </div>
+  `,{size:'max-w-2xl'});
+  renderBillingFields(c);
+}
+
+function renderBillingFields(c={}){
+  const type=document.getElementById('cl-billing')?.value||c.billing_type||'mensal';
+  const box=document.getElementById('cl-billing-fields');if(!box)return;
+  if(type==='mensal'){
+    box.innerHTML=`<div><label class="label block mb-1">Valor mensal (R$)</label><input id="cl-monthly" type="number" step="0.01" min="0" class="input mono" value="${c.monthly_value??''}" placeholder="0,00"></div>`;
+  }else if(type==='unico'){
+    box.innerHTML=`<div><label class="label block mb-1">Valor total (R$)</label><input id="cl-total" type="number" step="0.01" min="0" class="input mono" value="${c.total_value??''}" placeholder="0,00"></div><div><label class="label block mb-1">Meses de serviço</label><input id="cl-months" type="number" min="1" class="input mono" value="${c.service_months??''}" placeholder="1"></div>`;
+  }else{
+    box.innerHTML=`<div><label class="label block mb-1">Nº de parcelas</label><input id="cl-installments" type="number" min="1" class="input mono" value="${c.num_installments??''}" placeholder="1"></div><div><label class="label block mb-1">Valor por parcela (R$)</label><input id="cl-monthly" type="number" step="0.01" min="0" class="input mono" value="${c.monthly_value??''}" placeholder="0,00"></div>`;
+  }
+}
+
+async function submitClient(id,fromLeadId){
+  const err=document.getElementById('cl-err');err.classList.add('hidden');
+  const name=document.getElementById('cl-name').value.trim();
+  if(!name){err.textContent='Nome obrigatório';err.classList.remove('hidden');return;}
+  const billing_type=document.getElementById('cl-billing').value;
+  const payload={
+    name,
+    status:document.getElementById('cl-status').value,
+    email:document.getElementById('cl-email').value.trim()||null,
+    cnpj:document.getElementById('cl-cnpj').value.trim()||null,
+    package_id:document.getElementById('cl-pkg').value||null,
+    seller_id:document.getElementById('cl-seller').value||null,
+    team_member_ids:[...document.getElementById('cl-team').selectedOptions].map(o=>o.value),
+    billing_type,
+    start_date:document.getElementById('cl-start').value,
+    end_date:document.getElementById('cl-end').value||null,
+    auto_renew:document.getElementById('cl-renew').checked,
+    notes:document.getElementById('cl-notes').value.trim()||null,
+  };
+  if(billing_type==='mensal'){payload.monthly_value=parseFloat(document.getElementById('cl-monthly').value)||0;}
+  else if(billing_type==='unico'){payload.total_value=parseFloat(document.getElementById('cl-total').value)||0;payload.service_months=parseInt(document.getElementById('cl-months').value,10)||1;}
+  else{payload.num_installments=parseInt(document.getElementById('cl-installments').value,10)||1;payload.monthly_value=parseFloat(document.getElementById('cl-monthly').value)||0;}
+
+  const btn=document.getElementById('cl-submit');btn.disabled=true;btn.textContent='Salvando…';
+  try{
+    if(id){await fetchJson(`/api/clients/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}
+    else if(fromLeadId){await fetchJson(`/api/clients/from-lead/${fromLeadId}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}
+    else{await fetchJson('/api/clients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}
+    closeModal();
+    if(fromLeadId){await loadLeads();}
+    if(location.hash.replace(/^#/,'')==='/clients'){await renderClients(document.getElementById('route-view'));}
+  }catch(e){err.textContent=e.message;err.classList.remove('hidden');btn.disabled=false;btn.textContent='Salvar →';}
+}
+async function deleteClient(id){
+  if(!confirm('Excluir este cliente? Cobranças pendentes também serão removidas.'))return;
+  await fetchJson(`/api/clients/${id}`,{method:'DELETE'});
+  closeModal();await renderClients(document.getElementById('route-view'));
+}
+function openConvertLead(id){closePanel();openClientForm(null,id);}
+
+// =============================================================
+// VIEW: EQUIPE
+// =============================================================
+async function renderTeam(view){
+  view.innerHTML='Carregando…';
+  await loadTeam();
+  view.innerHTML=`
+    <div class="card overflow-hidden">
+      <div class="overflow-x-auto scrollbar">
+        <table class="tbl">
+          <thead><tr><th>Nome</th><th>Função</th><th>E-mail</th><th>Telefone</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            ${TEAM.length===0?`<tr><td colspan="6" class="text-center text-ink-dim py-8">Ninguém cadastrado. <button onclick="openTeamForm()" class="text-accent-light underline ml-2">Adicionar</button></td></tr>`:TEAM.map(t=>`
+              <tr onclick="openTeamForm('${t.id}')">
+                <td class="font-medium text-ink">${escapeHtml(t.name)}</td>
+                <td><span class="badge badge-neutral">${ROLE_LABELS[t.role]||t.role}</span></td>
+                <td class="text-ink-dim">${escapeHtml(t.email||'—')}</td>
+                <td class="text-ink-dim mono text-xs">${t.phone||'—'}</td>
+                <td>${t.active!==false?'<span class="badge badge-ok">Ativo</span>':'<span class="badge badge-neutral">Inativo</span>'}</td>
+                <td class="text-right"><button onclick="event.stopPropagation();deleteTeamMember('${t.id}')" class="text-xs text-bad hover:underline">Excluir</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+function openTeamForm(id=null){
+  const t=id?(TEAM.find(x=>x.id===id)||{}):{};
+  showModal(`
+    <div class="flex items-center justify-between px-6 py-4 border-b border-line"><h2 class="head text-base">👥 ${id?'Editar membro':'Adicionar membro'}</h2><button onclick="closeModal()" class="text-ink-dim hover:text-ink text-3xl leading-none">×</button></div>
+    <div class="p-6 space-y-4">
+      <div><label class="label block mb-1">Nome *</label><input id="tm-name" class="input" value="${escapeHtml(t.name||'')}"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label block mb-1">Função</label><select id="tm-role" class="select">${Object.entries(ROLE_LABELS).map(([k,v])=>`<option value="${k}" ${t.role===k?'selected':''}>${v}</option>`).join('')}</select></div>
+        <div><label class="label block mb-1">Status</label><select id="tm-active" class="select"><option value="1" ${t.active!==false?'selected':''}>Ativo</option><option value="0" ${t.active===false?'selected':''}>Inativo</option></select></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label block mb-1">E-mail</label><input id="tm-email" class="input" value="${escapeHtml(t.email||'')}"></div>
+        <div><label class="label block mb-1">Telefone</label><input id="tm-phone" class="input mono" value="${t.phone||''}"></div>
+      </div>
+      <div id="tm-err" class="hidden text-sm text-bad"></div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-line">
+        <button onclick="closeModal()" class="btn btn-ghost">Cancelar</button>
+        <button id="tm-submit" onclick="submitTeamMember(${id?`'${id}'`:'null'})" class="btn btn-primary">Salvar</button>
+      </div>
+    </div>
+  `);
+}
+async function submitTeamMember(id){
+  const err=document.getElementById('tm-err');err.classList.add('hidden');
+  const payload={name:document.getElementById('tm-name').value.trim(),role:document.getElementById('tm-role').value,active:document.getElementById('tm-active').value==='1',email:document.getElementById('tm-email').value.trim()||null,phone:document.getElementById('tm-phone').value.trim()||null};
+  if(!payload.name){err.textContent='Nome obrigatório';err.classList.remove('hidden');return;}
+  const btn=document.getElementById('tm-submit');btn.disabled=true;btn.textContent='Salvando…';
+  try{
+    if(id)await fetchJson(`/api/team/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    else await fetchJson('/api/team',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    closeModal();await renderTeam(document.getElementById('route-view'));
+  }catch(e){err.textContent=e.message;err.classList.remove('hidden');btn.disabled=false;btn.textContent='Salvar';}
+}
+async function deleteTeamMember(id){
+  if(!confirm('Excluir este membro da equipe?'))return;
+  await fetchJson(`/api/team/${id}`,{method:'DELETE'});await renderTeam(document.getElementById('route-view'));
+}
+
+// =============================================================
+// VIEW: PACOTES
+// =============================================================
+async function renderPackages(view){
+  view.innerHTML='Carregando…';
+  await loadPackages();
+  view.innerHTML=`
+    <div class="card overflow-hidden">
+      <div class="overflow-x-auto scrollbar">
+        <table class="tbl">
+          <thead><tr><th>Nome</th><th>Escopo</th><th class="text-right">Valor base</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            ${PACKAGES.length===0?`<tr><td colspan="5" class="text-center text-ink-dim py-8">Nenhum pacote cadastrado. <button onclick="openPackageForm()" class="text-accent-light underline ml-2">Criar</button></td></tr>`:PACKAGES.map(p=>`
+              <tr onclick="openPackageForm('${p.id}')">
+                <td class="font-medium text-ink">${escapeHtml(p.name)}</td>
+                <td class="text-ink-dim">${escapeHtml(p.scope||p.description||'—')}</td>
+                <td class="text-right mono text-ink">${brl(p.base_price||0)}</td>
+                <td>${p.active!==false?'<span class="badge badge-ok">Ativo</span>':'<span class="badge badge-neutral">Inativo</span>'}</td>
+                <td class="text-right"><button onclick="event.stopPropagation();deletePackage('${p.id}')" class="text-xs text-bad hover:underline">Excluir</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+function openPackageForm(id=null){
+  const p=id?(PACKAGES.find(x=>x.id===id)||{}):{};
+  showModal(`
+    <div class="flex items-center justify-between px-6 py-4 border-b border-line"><h2 class="head text-base">📦 ${id?'Editar pacote':'Novo pacote'}</h2><button onclick="closeModal()" class="text-ink-dim hover:text-ink text-3xl leading-none">×</button></div>
+    <div class="p-6 space-y-4">
+      <div><label class="label block mb-1">Nome *</label><input id="pk-name" class="input" value="${escapeHtml(p.name||'')}"></div>
+      <div><label class="label block mb-1">Escopo (o que está incluso)</label><textarea id="pk-scope" rows="2" class="textarea">${escapeHtml(p.scope||'')}</textarea></div>
+      <div><label class="label block mb-1">Descrição</label><textarea id="pk-desc" rows="2" class="textarea">${escapeHtml(p.description||'')}</textarea></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label block mb-1">Valor base (R$)</label><input id="pk-price" type="number" step="0.01" min="0" class="input mono" value="${p.base_price??''}" placeholder="0,00"></div>
+        <div><label class="label block mb-1">Status</label><select id="pk-active" class="select"><option value="1" ${p.active!==false?'selected':''}>Ativo</option><option value="0" ${p.active===false?'selected':''}>Inativo</option></select></div>
+      </div>
+      <div id="pk-err" class="hidden text-sm text-bad"></div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-line">
+        <button onclick="closeModal()" class="btn btn-ghost">Cancelar</button>
+        <button id="pk-submit" onclick="submitPackage(${id?`'${id}'`:'null'})" class="btn btn-primary">Salvar</button>
+      </div>
+    </div>
+  `);
+}
+async function submitPackage(id){
+  const err=document.getElementById('pk-err');err.classList.add('hidden');
+  const payload={name:document.getElementById('pk-name').value.trim(),scope:document.getElementById('pk-scope').value.trim()||null,description:document.getElementById('pk-desc').value.trim()||null,base_price:parseFloat(document.getElementById('pk-price').value)||0,active:document.getElementById('pk-active').value==='1'};
+  if(!payload.name){err.textContent='Nome obrigatório';err.classList.remove('hidden');return;}
+  const btn=document.getElementById('pk-submit');btn.disabled=true;btn.textContent='Salvando…';
+  try{
+    if(id)await fetchJson(`/api/packages/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    else await fetchJson('/api/packages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    closeModal();await renderPackages(document.getElementById('route-view'));
+  }catch(e){err.textContent=e.message;err.classList.remove('hidden');btn.disabled=false;btn.textContent='Salvar';}
+}
+async function deletePackage(id){
+  if(!confirm('Excluir este pacote?'))return;
+  await fetchJson(`/api/packages/${id}`,{method:'DELETE'});await renderPackages(document.getElementById('route-view'));
+}
+
+// =============================================================
+// VIEW: CUSTOS
+// =============================================================
+function costMonthlyValue(c){if(!c.active)return 0;if(c.recurrence==='mensal')return c.amount||0;if(c.recurrence==='anual')return(c.amount||0)/12;return 0;}
+async function renderCosts(view){
+  view.innerHTML='Carregando…';
+  await loadCosts();
+  const totalMonthly=COSTS.reduce((s,c)=>s+costMonthlyValue(c),0);
+  view.innerHTML=`
+    <div class="space-y-4">
+      <div class="card p-4 flex items-center gap-3">
+        <span class="label">Custo mensal recorrente</span><span class="metric-num text-lg">${brl(totalMonthly)}</span>
+      </div>
+      <div class="card overflow-hidden">
+        <div class="overflow-x-auto scrollbar">
+          <table class="tbl">
+            <thead><tr><th>Nome</th><th>Categoria</th><th>Recorrência</th><th class="text-right">Valor</th><th class="text-right">Mensalizado</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              ${COSTS.length===0?`<tr><td colspan="7" class="text-center text-ink-dim py-8">Nenhum custo lançado. <button onclick="openCostForm()" class="text-accent-light underline ml-2">Lançar</button></td></tr>`:COSTS.map(c=>`
+                <tr onclick="openCostForm('${c.id}')">
+                  <td class="font-medium text-ink">${escapeHtml(c.name)}</td>
+                  <td><span class="badge badge-neutral">${COST_CAT_LABELS[c.category]||c.category}</span></td>
+                  <td class="text-ink-dim">${RECURRENCE_LABELS[c.recurrence]||c.recurrence}</td>
+                  <td class="text-right mono text-ink">${brl(c.amount||0)}</td>
+                  <td class="text-right mono text-ink-dim">${brl(costMonthlyValue(c))}</td>
+                  <td>${c.active!==false?'<span class="badge badge-ok">Ativo</span>':'<span class="badge badge-neutral">Inativo</span>'}</td>
+                  <td class="text-right"><button onclick="event.stopPropagation();deleteCost('${c.id}')" class="text-xs text-bad hover:underline">Excluir</button></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+function openCostForm(id=null){
+  const c=id?(COSTS.find(x=>x.id===id)||{}):{};
+  showModal(`
+    <div class="flex items-center justify-between px-6 py-4 border-b border-line"><h2 class="head text-base">💸 ${id?'Editar custo':'Lançar custo'}</h2><button onclick="closeModal()" class="text-ink-dim hover:text-ink text-3xl leading-none">×</button></div>
+    <div class="p-6 space-y-4">
+      <div><label class="label block mb-1">Nome *</label><input id="ct-name" class="input" value="${escapeHtml(c.name||'')}"></div>
+      <div class="grid grid-cols-3 gap-3">
+        <div><label class="label block mb-1">Categoria</label><select id="ct-cat" class="select">${Object.entries(COST_CAT_LABELS).map(([k,v])=>`<option value="${k}" ${c.category===k?'selected':''}>${v}</option>`).join('')}</select></div>
+        <div><label class="label block mb-1">Recorrência</label><select id="ct-rec" class="select">${Object.entries(RECURRENCE_LABELS).map(([k,v])=>`<option value="${k}" ${c.recurrence===k?'selected':''}>${v}</option>`).join('')}</select></div>
+        <div><label class="label block mb-1">Valor (R$)</label><input id="ct-amount" type="number" step="0.01" min="0" class="input mono" value="${c.amount??''}" placeholder="0,00"></div>
+      </div>
+      <div><label class="label block mb-1">Notas</label><textarea id="ct-notes" rows="2" class="textarea">${escapeHtml(c.notes||'')}</textarea></div>
+      <div><label class="label block mb-1">Status</label><select id="ct-active" class="select"><option value="1" ${c.active!==false?'selected':''}>Ativo</option><option value="0" ${c.active===false?'selected':''}>Inativo</option></select></div>
+      <div id="ct-err" class="hidden text-sm text-bad"></div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-line">
+        <button onclick="closeModal()" class="btn btn-ghost">Cancelar</button>
+        <button id="ct-submit" onclick="submitCost(${id?`'${id}'`:'null'})" class="btn btn-primary">Salvar</button>
+      </div>
+    </div>
+  `);
+}
+async function submitCost(id){
+  const err=document.getElementById('ct-err');err.classList.add('hidden');
+  const payload={name:document.getElementById('ct-name').value.trim(),category:document.getElementById('ct-cat').value,recurrence:document.getElementById('ct-rec').value,amount:parseFloat(document.getElementById('ct-amount').value)||0,notes:document.getElementById('ct-notes').value.trim()||null,active:document.getElementById('ct-active').value==='1'};
+  if(!payload.name){err.textContent='Nome obrigatório';err.classList.remove('hidden');return;}
+  const btn=document.getElementById('ct-submit');btn.disabled=true;btn.textContent='Salvando…';
+  try{
+    if(id)await fetchJson(`/api/costs/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    else await fetchJson('/api/costs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    closeModal();await renderCosts(document.getElementById('route-view'));
+  }catch(e){err.textContent=e.message;err.classList.remove('hidden');btn.disabled=false;btn.textContent='Salvar';}
+}
+async function deleteCost(id){
+  if(!confirm('Excluir este custo?'))return;
+  await fetchJson(`/api/costs/${id}`,{method:'DELETE'});await renderCosts(document.getElementById('route-view'));
+}
+
+// =============================================================
+// VIEW: PRÉ-NOTAS
+// =============================================================
+async function renderPrenotes(view){
+  view.innerHTML='Carregando…';
+  await Promise.all([loadPrenotes(),loadClients()]);
+  view.innerHTML=`
+    <div class="card overflow-hidden">
+      <div class="overflow-x-auto scrollbar">
+        <table class="tbl">
+          <thead><tr><th>Cliente</th><th>Referência</th><th class="text-right">Valor</th><th>Descrição</th><th>Gerada em</th><th></th></tr></thead>
+          <tbody>
+            ${PRENOTES.length===0?`<tr><td colspan="6" class="text-center text-ink-dim py-8">Nenhuma pré-nota gerada. <button onclick="openPrenoteForm()" class="text-accent-light underline ml-2">Gerar</button></td></tr>`:[...PRENOTES].sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||'')).map(p=>`
+              <tr onclick="viewPrenote('${p.id}')">
+                <td class="font-medium text-ink">${escapeHtml(p.client_name||'—')}</td>
+                <td class="mono text-ink-dim">${p.ref_month||'—'}</td>
+                <td class="text-right mono text-ink">${brl(p.amount||0)}</td>
+                <td class="text-ink-dim text-xs">${escapeHtml(p.description||'—')}</td>
+                <td class="text-ink-mute text-xs mono">${fmtShortDate(p.created_at)}</td>
+                <td class="text-right"><button onclick="event.stopPropagation();deletePrenote('${p.id}')" class="text-xs text-bad hover:underline">Excluir</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+function openPrenoteForm(clientId=null){
+  showModal(`
+    <div class="flex items-center justify-between px-6 py-4 border-b border-line"><h2 class="head text-base">🧾 Gerar pré-nota</h2><button onclick="closeModal()" class="text-ink-dim hover:text-ink text-3xl leading-none">×</button></div>
+    <div class="p-6 space-y-4">
+      <div><label class="label block mb-1">Cliente *</label><select id="pn-client" class="select">${CLIENTS.map(c=>`<option value="${c.id}" ${clientId===c.id?'selected':''}>${escapeHtml(c.name)}</option>`).join('')}</select></div>
+      <div><label class="label block mb-1">Mês de referência *</label><input id="pn-month" type="month" value="${thisMonth()}" class="input mono"></div>
+      <div><label class="label block mb-1">Descrição customizada (opcional)</label><input id="pn-desc" class="input" placeholder="Deixe em branco para usar o pacote do cliente"></div>
+      <div><label class="label block mb-1">Valor customizado (opcional, R$)</label><input id="pn-amount" type="number" step="0.01" min="0" class="input mono" placeholder="Deixe em branco para usar o valor do contrato"></div>
+      <div id="pn-err" class="hidden text-sm text-bad"></div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-line">
+        <button onclick="closeModal()" class="btn btn-ghost">Cancelar</button>
+        <button id="pn-submit" onclick="submitPrenote()" class="btn btn-primary">Gerar →</button>
+      </div>
+    </div>
+  `);
+}
+async function submitPrenote(){
+  const err=document.getElementById('pn-err');err.classList.add('hidden');
+  const client_id=document.getElementById('pn-client').value;
+  const ref_month=document.getElementById('pn-month').value;
+  if(!client_id||!ref_month){err.textContent='Cliente e mês de referência são obrigatórios';err.classList.remove('hidden');return;}
+  const custom_description=document.getElementById('pn-desc').value.trim()||null;
+  const customAmountRaw=document.getElementById('pn-amount').value;
+  const custom_amount=customAmountRaw?parseFloat(customAmountRaw):null;
+  const btn=document.getElementById('pn-submit');btn.disabled=true;btn.textContent='Gerando…';
+  try{
+    const result=await fetchJson('/api/prenotes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({client_id,ref_month,custom_description,custom_amount})});
+    await loadPrenotes();
+    showPrenoteMarkdown(result.markdown,result.client_name);
+    if(location.hash.replace(/^#/,'')==='/prenotes'){await renderPrenotes(document.getElementById('route-view'));}
+  }catch(e){err.textContent=e.message;err.classList.remove('hidden');btn.disabled=false;btn.textContent='Gerar →';}
+}
+function showPrenoteMarkdown(markdown,clientName){
+  showModal(`
+    <div class="flex items-center justify-between px-6 py-4 border-b border-line"><h2 class="head text-base">🧾 Pré-nota — ${escapeHtml(clientName||'')}</h2><div class="flex items-center gap-2"><button id="pn-copy" onclick="copyPrenoteMarkdown()" class="btn btn-primary btn-sm">📋 Copiar</button><button onclick="closeModal()" class="text-ink-dim hover:text-ink text-3xl leading-none">×</button></div></div>
+    <div class="p-6 overflow-y-auto scrollbar"><div class="markdown card p-4">${escapeHtml(markdown)}</div></div>
+  `,{size:'max-w-2xl'});
+  window._lastPrenoteMarkdown=markdown;
+}
+async function copyPrenoteMarkdown(){
+  if(!window._lastPrenoteMarkdown)return;
+  await navigator.clipboard.writeText(window._lastPrenoteMarkdown);
+  const btn=document.getElementById('pn-copy');if(btn){btn.textContent='✓ Copiado!';setTimeout(()=>btn.textContent='📋 Copiar',2000);}
+}
+async function viewPrenote(id){
+  const p=await fetchJson(`/api/prenotes/${id}`);
+  showPrenoteMarkdown(p.markdown,p.client_name);
+}
+async function deletePrenote(id){
+  if(!confirm('Excluir esta pré-nota do histórico?'))return;
+  await fetchJson(`/api/prenotes/${id}`,{method:'DELETE'});await renderPrenotes(document.getElementById('route-view'));
+}
+
+// =============================================================
+// VIEW: DASHBOARD FINANCEIRO
+// =============================================================
+async function renderFinancial(view,monthRef=null){
+  view.innerHTML='Carregando…';
+  const month=monthRef||thisMonth();
+  const d=await fetchJson(`/api/dashboard/financial?month_ref=${month}`);
+  const catRows=Object.entries(d.costs_by_category||{}).sort((a,b)=>b[1]-a[1]);
+  view.innerHTML=`
+    <div class="space-y-6">
+      <div class="card p-4 flex items-center gap-3">
+        <label class="label">Mês de referência</label>
+        <input id="fin-month" type="month" value="${month}" class="input mono w-auto">
+        <button class="btn btn-ghost" onclick="renderFinancial(document.getElementById('route-view'),document.getElementById('fin-month').value)">Aplicar</button>
+      </div>
+      <div class="grid grid-cols-4 gap-4">
+        <div class="card p-5"><p class="label">MRR</p><p class="metric-num mt-3 text-accent-light">${brl(d.mrr)}</p></div>
+        <div class="card p-5"><p class="label">Valor total contratado</p><p class="metric-num mt-3">${brl(d.contracted_total)}</p></div>
+        <div class="card p-5"><p class="label">Custo mensal</p><p class="metric-num mt-3">${brl(d.cost_monthly)}</p></div>
+        <div class="card p-5"><p class="label">EBITDA (estimado)</p><p class="metric-num mt-3 ${d.ebitda_estimated>=0?'text-ok':'text-bad'}">${brl(d.ebitda_estimated)}</p><p class="text-xs text-ink-mute mt-1">Margem: ${d.margin.toFixed(1)}%</p></div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="card p-5">
+          <p class="label mb-3">Custos por categoria</p>
+          ${catRows.length?catRows.map(([k,v])=>`<div class="flex items-center justify-between py-2 border-b border-line last:border-0"><span class="text-ink-dim">${COST_CAT_LABELS[k]||k}</span><span class="mono text-ink">${brl(v)}</span></div>`).join(''):'<p class="text-ink-mute italic text-sm">Nenhum custo recorrente.</p>'}
+        </div>
+        <div class="card p-5">
+          <p class="label mb-3">Cobranças do mês</p>
+          <div class="flex items-center justify-between py-2 border-b border-line"><span class="text-ink-dim">Pendente</span><span class="mono text-ink">${brl(d.invoices.total_pending)}</span></div>
+          <div class="flex items-center justify-between py-2 border-b border-line"><span class="text-ink-dim">Em atraso</span><span class="mono text-bad">${brl(d.invoices.total_overdue)}</span></div>
+          <div class="flex items-center justify-between py-2 border-b border-line"><span class="text-ink-dim">Pago este mês</span><span class="mono text-ok">${brl(d.invoices.total_paid_month)}</span></div>
+          <div class="flex items-center justify-between py-2"><span class="text-ink-dim">Total previsto este mês</span><span class="mono text-ink">${brl(d.invoices.total_due_month)}</span></div>
+        </div>
+      </div>
+      <div class="card p-5 flex items-center gap-6">
+        <div><p class="label">Clientes</p><p class="metric-num mt-2">${d.clients_count}</p></div>
+        <div><p class="label">Ativos</p><p class="metric-num mt-2 text-ok">${d.clients_active}</p></div>
+      </div>
+    </div>
+  `;
+}
+
+// =============================================================
+// VIEW: COBRANÇAS
+// =============================================================
+async function renderInvoices(view){
+  view.innerHTML='Carregando…';
+  await Promise.all([loadInvoices(),loadClients()]);
+  const clientById=Object.fromEntries(CLIENTS.map(c=>[c.id,c]));
+  view.innerHTML=`
+    <div class="space-y-4">
+      <div class="card p-4 flex flex-wrap items-center gap-3">
+        <select id="inv-filter-status" class="select w-auto">
+          <option value="">Todos os status</option>
+          ${Object.entries(INVOICE_STATUS_LABELS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}
+        </select>
+        <button id="inv-refresh" class="btn btn-ghost">↻ Atualizar</button>
+      </div>
+      <div class="card overflow-hidden">
+        <div class="overflow-x-auto scrollbar">
+          <table class="tbl">
+            <thead><tr><th>Cliente</th><th>Descrição</th><th>Vencimento</th><th class="text-right">Valor</th><th>Status</th><th></th></tr></thead>
+            <tbody id="inv-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('inv-filter-status').addEventListener('change',renderInvoicesTable);
+  document.getElementById('inv-refresh').addEventListener('click',async()=>{await loadInvoices();renderInvoicesTable();});
+  function renderInvoicesTable(){
+    const fStatus=document.getElementById('inv-filter-status').value;
+    let rows=INVOICES.filter(i=>!fStatus||i.status===fStatus);
+    rows.sort((a,b)=>(a.due_date||'').localeCompare(b.due_date||''));
+    document.getElementById('inv-body').innerHTML=rows.length?rows.map(i=>`
+      <tr>
+        <td class="font-medium text-ink">${escapeHtml(clientById[i.client_id]?.name||'—')}</td>
+        <td class="text-ink-dim text-xs">${escapeHtml(i.description||'—')}</td>
+        <td class="mono text-ink-dim text-xs">${fmtShortDate(i.due_date)}</td>
+        <td class="text-right mono text-ink">${brl(i.amount||0)}</td>
+        <td>${invoiceStatusBadge(i.status)}</td>
+        <td class="text-right">${i.status==='pago'?`<button onclick="setInvoiceStatus('${i.id}','pendente')" class="text-xs text-ink-dim hover:underline">Reabrir</button>`:`<button onclick="setInvoiceStatus('${i.id}','pago')" class="text-xs text-ok hover:underline">✓ Marcar pago</button>`}</td>
+      </tr>
+    `).join(''):'<tr><td colspan="6" class="text-center text-ink-dim py-8">Nenhuma cobrança encontrada.</td></tr>';
+  }
+  renderInvoicesTable();
+}
+async function setInvoiceStatus(id,status){
+  await fetchJson(`/api/invoices/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
+  await loadInvoices();
+  const view=document.getElementById('route-view');
+  if(location.hash.replace(/^#/,'')==='/invoices')await renderInvoices(view);
+}
+
+// =============================================================
+// INIT
+// =============================================================
+renderStats();
+activateRoute();
+</script>
+</body>
+</html>

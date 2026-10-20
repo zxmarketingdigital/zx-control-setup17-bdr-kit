@@ -1,0 +1,34 @@
+# Dependências
+dispatcher/node_modules/
+
+# Sessão WhatsApp (nunca commitar)
+dispatcher/whatsapp-session/
+
+# Variáveis de ambiente (gerado pelo wizard, contém o token Apify)
+dispatcher/.env
+docs/comandos-diarios.md
+
+# Tokens de API (nunca commitar)
+pipeline/.meta_token
+scripts/.instagram-session.json
+
+# Pipeline — dados de leads (privados, não commitar)
+pipeline/
+
+# Logs
+dispatcher/dispatcher.log
+
+# Config do wizard (contém token mascarado — opcional commitar)
+setup/setup-config.json
+
+# Arquivos gerados pelo wizard (não commitar — regenerar com setup.js)
+CLAUDE.md
+.claude/skills/
+
+# Ferramentas de administração (só para uso do autor)
+grant-access.js
+buyers.json
+
+# OS
+.DS_Store
+Thumbs.db

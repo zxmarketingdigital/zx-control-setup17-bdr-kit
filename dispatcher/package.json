@@ -1,0 +1,19 @@
+{
+  "name": "bdr-dispatcher",
+  "version": "1.0.0",
+  "description": "WhatsApp dispatcher for BDR Kit — reads queue files and sends messages via Evolution API",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "setup": "node scripts/setup.js",
+    "status": "node scripts/status.js",
+    "logout": "node scripts/logout.js"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "dotenv": "^16.4.5"
+  }
+}

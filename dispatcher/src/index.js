@@ -1,3 +1,4 @@
+import { phoneOptedOut } from './phone.js';
 import { config } from './config.js';
 import { logger, setLogLevel } from './log.js';
 import { initWhatsApp, isReady, destroyClient } from './whatsapp.js';
@@ -67,7 +68,8 @@ async function runAutoModeCycle() {
 
   const master = await loadMaster();
   const eligible = Object.entries(master)
-    .filter(([id, lead]) => ['active', 'responded'].includes(lead.status) && !lead.no_send && !autoState.paused_leads.includes(id))
+    .filter(([id, lead]) => ['active', 'responded'].includes(lead.status) && !lead.no_send && !lead.opt_out
+      && !phoneOptedOut(master, lead.phone, id) && !autoState.paused_leads.includes(id))
     .map(([id, lead]) => ({ id, ...lead }));
 
   if (eligible.length === 0) return;
@@ -166,6 +168,13 @@ async function runAutoModeCycle() {
       if (!isOpenForBusiness()) {
         logger.info(MOD, `${leadId}: janela fechou antes de responder, fica pra quando abrir`);
         await markNeedsReview(leadId, 'Respondeu perto do fim do horário: a resposta automática não saiu, responda quando abrir');
+        continue;
+      }
+
+      // Master relido: um opt-out deste número (em qualquer lead) registrado durante a espera vale.
+      if (freshLead.opt_out) continue;
+      if (phoneOptedOut(await loadMaster(), freshLead.phone, leadId)) {
+        await markNeedsReview(leadId, 'Este número pediu pra parar em outro lead: a resposta automática não saiu, decida você');
         continue;
       }
 

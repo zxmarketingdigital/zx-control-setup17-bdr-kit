@@ -707,6 +707,9 @@ async function createMeetingRoute(req, res) {
   const master = await readJson('leads-master.json', {}) ?? {};
   const lead = ownLead(master, req.params.id);
   if (!lead) return res.status(404).json({ error: 'Lead not found' });
+  if (lead.opt_out || phoneOptedOut(master, lead.phone, req.params.id)) {
+    return res.status(409).json({ error: 'Esse número pediu pra parar de receber mensagem: não dá pra mandar convite. Desfaça o opt-out na tela do lead se ele voltou a falar com você.', code: 'opt_out' });
+  }
   if (lead.meeting && ['scheduled', 'confirmed'].includes(lead.meeting.status)) {
     return res.status(409).json({ error: 'Lead já tem reunião ativa. Use PATCH pra reagendar.' });
   }

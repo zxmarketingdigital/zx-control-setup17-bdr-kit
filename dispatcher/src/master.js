@@ -25,18 +25,29 @@ function _buildAnnotationText(crm_notes) {
   return lines.join('\n\n');
 }
 
+// Se o master já existiu nesta execução e sumiu (backup restaurado, sync, pasta trocada),
+// parar: tratar como vazio gravaria por cima só o lead novo e apagaria opt-outs e histórico.
+let masterSeen = false;
+
 async function readMaster() {
   try {
     const raw = await fs.readFile(MASTER_FILE(), 'utf8');
-    return JSON.parse(raw);
+    const data = JSON.parse(raw);
+    masterSeen = true;
+    return data;
   } catch (err) {
-    if (err.code === 'ENOENT') return {};
+    if (err.code === 'ENOENT') {
+      if (masterSeen) throw new Error('leads-master.json sumiu com o dispatcher rodando. Restaure o arquivo (há cópia em leads-master.json.bak) e reinicie.');
+      return {};
+    }
     throw err;
   }
 }
 
 async function writeMaster(data) {
   await fs.mkdir(config.pipelineDir, { recursive: true });
+  // Cópia do estado anterior antes de cada gravação: dá pra voltar se algo der errado.
+  await fs.copyFile(MASTER_FILE(), `${MASTER_FILE()}.bak`).catch((err) => { if (err.code !== 'ENOENT') throw err; });
   // Atômico: write em temp + rename. Evita race com o CRM.
   await writeJsonAtomic(MASTER_FILE(), data);
 }

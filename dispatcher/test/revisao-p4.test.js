@@ -42,3 +42,14 @@ test('lead novo (fora do master) com número que pediu pra parar não recebe o 1
   assert.equal(await isLeadSendable('novo-sem-master', '(11) 98765-4321'), false);
   assert.equal(await isLeadSendable('outro-sem-master', '11911112222'), true);
 });
+
+test('master apagado com o dispatcher rodando: para em vez de gravar um master vazio', async () => {
+  const { markClosed: mc, loadMaster } = await import('../src/master.js');
+  const f = path.join(PIPELINE, 'leads-master.json');
+  await fs.writeFile(f, JSON.stringify({ a: { phone: '11900000001', status: 'active' }, z: { opt_out: true } }));
+  await loadMaster();
+  await fs.rm(f);
+  await assert.rejects(loadMaster(), /sumiu/);
+  await assert.rejects(mc('a', 'sem_interesse'));
+  await assert.rejects(fs.access(f));
+});

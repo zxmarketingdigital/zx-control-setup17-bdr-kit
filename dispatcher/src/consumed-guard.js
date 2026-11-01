@@ -5,11 +5,20 @@
 // fecha como opt-out.
 
 import { logger } from './log.js';
-import { markResponded as realMarkResponded, markClosed as realMarkClosed } from './master.js';
+import { markResponded as realMarkResponded, markClosed as realMarkClosed, markNeedsReview as realMarkNeedsReview } from './master.js';
 import { responseText } from './audio-transcriber.js';
 import { detectOptOut } from './opt-out-detector.js';
 
 const MOD = 'consumed';
+
+// Passa o lead pro humano e só DEPOIS da gravação o tira do "lido e não tratado" (handled).
+// Se o needs_review não gravar, o erro sobe, o lead continua fora de handled e o
+// settleConsumed do fim do ciclo ainda registra a resposta dele.
+export async function handOffToHuman(leadId, reason, handled, deps = {}) {
+  const markNeedsReview = deps.markNeedsReview ?? realMarkNeedsReview;
+  await markNeedsReview(leadId, reason);
+  handled.add(leadId);
+}
 
 export async function settleConsumed(entries, deps = {}) {
   const markResponded = deps.markResponded ?? realMarkResponded;

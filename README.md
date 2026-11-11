@@ -183,10 +183,11 @@ Os seus dados não são mexidos: leads (`pipeline/`), `dispatcher/.env`, `crm/.e
 O kit inclui um CRM local que roda em `http://localhost:3001`. Ele lê os mesmos arquivos do pipeline — leads, toques enviados, respostas recebidas — sem nenhuma configuração adicional.
 
 ```bash
-cd crm && npm start
+cd crm
+npm start
 ```
 
-**Login.** O CRM pede uma senha. O setup gera uma e guarda no `crm/.env` (linha `CRM_PASSWORD`); para vê-la, rode `cd crm && npm run senha`. Quem atualizou de uma versão sem login recebe uma senha nova na primeira vez que o CRM abre. Para trocar, edite a linha (12+ caracteres) e reinicie. O dispatcher usa a mesma senha, sozinho, no modo automático. A senha protege a base de leads e o envio de WhatsApp de outros usuários do mesmo computador; o CRM continua escutando só em `127.0.0.1`.
+**Login.** O CRM pede uma senha. O setup gera uma e guarda no `crm/.env` (linha `CRM_PASSWORD`); para vê-la, rode `cd crm` e depois `npm run senha`. Quem atualizou de uma versão sem login recebe uma senha nova na primeira vez que o CRM abre. Para trocar, edite a linha (12+ caracteres) e reinicie. O dispatcher usa a mesma senha, sozinho, no modo automático. A senha protege a base de leads e o envio de WhatsApp de outros usuários do mesmo computador; o CRM continua escutando só em `127.0.0.1`.
 
 **Demonstração, sem login.** `cd crm && npm run start:demo` abre o CRM sem pedir senha, para mostrar o produto com os dados fictícios de `scripts/seed-demo.py` (`docs/demonstracao.md`). Um aviso âmbar na barra lateral lembra que está sem login, e ele se recusa a abrir se houver lead real em `pipeline/`.
 

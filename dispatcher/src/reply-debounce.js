@@ -19,10 +19,14 @@ export function pickDelayMs(minSeconds, maxSeconds, rand = Math.random) {
 // initial: mensagens do lead já detectadas.
 // fetchMore: busca só o que chegou depois (cursor já avançado), devolve array.
 // nextDelayMs: devolve a próxima espera em ms (9s por padrão, ver config.js).
+// onMore: chamado com o lote acumulado a cada fetchMore que trouxe mensagem. O que o
+// fetchMore traz já saiu do cursor; se a próxima busca lançar, o chamador ainda tem tudo
+// o que chegou até ali (um "pare" nesse intervalo não se perde).
 export async function settleBatch(initial, {
   fetchMore,
   nextDelayMs,
   sleep,
+  onMore = () => {},
   maxWaitMs = MAX_SETTLE_MS,
   now = Date.now,
   shouldStop = () => false,
@@ -39,6 +43,7 @@ export async function settleBatch(initial, {
     const more = await fetchMore();
     if (more.length === 0) break;
     batch.push(...more);
+    onMore([...batch]);
   }
 
   return batch;

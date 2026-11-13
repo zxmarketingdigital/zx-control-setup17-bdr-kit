@@ -113,6 +113,8 @@ export async function recordTouchSent(leadId, touch, copy, queueEntry) {
     }
   }
 
+  // Lead pré-criado pelo CRM (só anotações) não tem history: o envio já aconteceu, o registro não pode lançar.
+  if (!Array.isArray(master[leadId].history)) master[leadId].history = [];
   master[leadId].history.push({ touch, sent_at: sentAt, copy });
 
   await writeMaster(master);
@@ -236,7 +238,7 @@ export async function alreadySentTouch(leadId, touch) {
   const master = await readMaster();
   const lead = master[leadId];
   if (!lead) return false;
-  return lead.history.some((h) => h.touch === touch);
+  return (Array.isArray(lead.history) ? lead.history : []).some((h) => h.touch === touch);
 }
 
 // Leads que pediram pra parar (opt_out). Nunca mais recebem mensagem nossa, em nenhum fluxo:

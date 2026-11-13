@@ -583,13 +583,14 @@ app.get('/api/simulations', async (req, res) => {
 // Nota de revisão por mensagem: { key: "A1#3", note, verdict: "ok" | "ajustar" | null }
 app.post('/api/simulations/notes', async (req, res) => {
   const { key, note = '', verdict = null } = req.body || {};
-  if (!/^[AB]\d+#\d+$|^BA#\d+$/.test(String(key || ''))) return res.status(400).json({ error: 'key inválida' });
-  if (verdict !== null && !['ok', 'ajustar'].includes(verdict)) return res.status(400).json({ error: 'verdict inválido' });
-  const notes = await readJson('simulation-notes.json', {}) ?? {};
-  if (!String(note).trim() && !verdict) delete notes[key];
-  else notes[key] = { note: String(note).slice(0, 2000), verdict, updated_at: new Date().toISOString() };
-  await writeJsonAtomic('simulation-notes.json', notes);
-  res.json({ ok: true, notes });
+  const problem = simulations.noteProblem({ key, verdict });
+  if (problem) return res.status(400).json({ error: problem });
+  try {
+    const notes = await simulations.saveNote(withFile, { key, note, verdict });
+    res.json({ ok: true, notes });
+  } catch (err) {
+    res.status(500).json({ error: `Não consegui gravar a nota: ${err.message}` });
+  }
 });
 
 app.get('/api/stats', async (req, res) => {

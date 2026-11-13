@@ -248,3 +248,26 @@ export async function loadSimulations(docsDir) {
   const md = await fs.readFile(path.join(docsDir, 'simulacoes-atendimento.md'), 'utf8');
   return parseSimulations(md);
 }
+
+// Nota de revisão por mensagem: { key: "A1#3", note, verdict: "ok" | "ajustar" | null }.
+const NOTE_KEY = /^[AB]\d+#\d+$|^BA#\d+$/;
+
+export function noteProblem({ key, verdict = null } = {}) {
+  if (!NOTE_KEY.test(String(key || ''))) return 'key inválida';
+  if (verdict !== null && !['ok', 'ajustar'].includes(verdict)) return 'verdict inválido';
+  return null;
+}
+
+// Grava pela fila do pipeline (withFile relê o arquivo dentro dela): duas notas salvas ao
+// mesmo tempo não se sobrescrevem. Arquivo que não é um objeto: para em vez de gravar por cima.
+export function saveNote(withFile, { key, note = '', verdict = null }) {
+  return withFile('simulation-notes.json', {}, (atual) => {
+    if (atual != null && (typeof atual !== 'object' || Array.isArray(atual))) {
+      throw new Error('simulation-notes.json com formato inesperado (esperava um objeto). Corrija ou mova o arquivo.');
+    }
+    const notes = atual ?? {};
+    if (!String(note).trim() && !verdict) delete notes[key];
+    else notes[key] = { note: String(note).slice(0, 2000), verdict, updated_at: new Date().toISOString() };
+    return notes;
+  });
+}
